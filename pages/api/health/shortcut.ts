@@ -11,7 +11,7 @@ import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
 import { looksLikeShortcutToken } from "@/lib/server/shortcutTokens";
 import { extractShortcutToken, resolveShortcutUser } from "@/lib/server/shortcutAuth";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
-import { parseHealthPayload } from "@/lib/health/shortcutPayload";
+import { parseHealthPayload, type HealthDailyInput, type HealthWorkoutInput } from "@/lib/health/shortcutPayload";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (!allowMethods(req, res, ["POST"])) return;
@@ -28,6 +28,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  try {
+    await saveHealthData(res, parsed.daily, parsed.workouts, token);
+  } catch (err) {
+    console.error("[health/shortcut]", err);
+    res.status(500).json({ error: "Usługa chwilowo niedostępna. Spróbuj ponownie później." });
+  }
+}
+
+async function saveHealthData(
+  res: NextApiResponse,
+  daily: HealthDailyInput,
+  workouts: HealthWorkoutInput[],
+  token: string
+): Promise<void> {
   const admin = supabaseAdmin();
   const userId = await resolveShortcutUser(admin, token);
   if (!userId) {
@@ -45,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { daily, workouts } = parsed;
   if (Object.keys(daily).length > 1) {
     const { error } = await admin
       .from("health_daily")
@@ -69,6 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   res.status(201).json({
     success: true,
-    message: `Zapisano dane z ${daily.date}${workouts.length ? `, treningi: ${workouts.length}` : ""}.`,
+    message: workouts.length
+      ? `Zapisano dane z ${daily.date}, treningi: ${workouts.length}.`
+      : `Zapisano dane z ${daily.date}.`,
   });
 }

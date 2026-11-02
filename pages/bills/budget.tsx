@@ -66,7 +66,7 @@ export default function BudgetPage() {
       <Seo
         title="Budżet"
         description="Zaplanuj budżet w kategoriach i porównuj go z wydatkami w ujęciu miesięcznym i rocznym."
-        canonical="https://dzisiaj.fun/bills/budget"
+        canonical="https://www.dzisiaj.fun/bills/budget"
         keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
       />
       <div className="mb-6 flex items-center justify-between gap-3">

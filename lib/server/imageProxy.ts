@@ -16,31 +16,31 @@ const PROXY_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "imag
 
 const BLOCKED = new BlockList();
 for (const [net, prefix] of [
-  ["0.0.0.0", 8],
-  ["10.0.0.0", 8],
-  ["100.64.0.0", 10],
-  ["127.0.0.0", 8],
-  ["169.254.0.0", 16],
-  ["172.16.0.0", 12],
-  ["192.0.0.0", 24],
-  ["192.0.2.0", 24],
-  ["192.168.0.0", 16],
-  ["198.18.0.0", 15],
-  ["198.51.100.0", 24],
-  ["203.0.113.0", 24],
-  ["224.0.0.0", 4],
-  ["240.0.0.0", 4],
+  ["0.0.0.0", 8], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["10.0.0.0", 8], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["100.64.0.0", 10], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["127.0.0.0", 8], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["169.254.0.0", 16], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["172.16.0.0", 12], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["192.0.0.0", 24], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["192.0.2.0", 24], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["192.168.0.0", 16], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["198.18.0.0", 15], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["198.51.100.0", 24], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["203.0.113.0", 24], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["224.0.0.0", 4], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["240.0.0.0", 4], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
 ] as const) {
   BLOCKED.addSubnet(net, prefix, "ipv4");
 }
 for (const [net, prefix] of [
-  ["::", 128],
-  ["::1", 128],
-  ["fc00::", 7],
-  ["fe80::", 10],
-  ["ff00::", 8],
-  ["64:ff9b::", 96],
-  ["2001:db8::", 32],
+  ["::", 128], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["::1", 128], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["fc00::", 7], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["fe80::", 10], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["ff00::", 8], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["64:ff9b::", 96], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
+  ["2001:db8::", 32], // NOSONAR – zakres blokowany (ochrona przed SSRF), nie adres docelowy
 ] as const) {
   BLOCKED.addSubnet(net, prefix, "ipv6");
 }
@@ -145,44 +145,62 @@ export async function fetchRemoteImage(
   for (let hop = 0; hop <= IMAGE_PROXY_MAX_REDIRECTS; hop++) {
     const target = await resolvePublicHost(url, deps.resolve);
     if (!target) return { ok: false, status: 403, reason: "Adres niedozwolony." };
-    const signal = AbortSignal.timeout(IMAGE_PROXY_TIMEOUT_MS);
-    const res = deps.fetchImpl
-      ? await deps.fetchImpl(url, { redirect: "manual", signal, headers: { Accept: "image/*" } })
-      : await pinnedGet(url, target, signal);
+    const res = await requestImage(url, target, deps.fetchImpl);
     if (res.status >= 300 && res.status < 400) {
-      const next = parseImageUrl(
-        res.headers.get("location") ? new URL(res.headers.get("location") as string, url).toString() : ""
-      );
+      const next = redirectTarget(res, url);
       if (!next) return { ok: false, status: 403, reason: "Przekierowanie niedozwolone." };
       url = next;
       continue;
     }
-    if (!res.ok || !res.body) return { ok: false, status: 502, reason: "Nie udało się pobrać obrazu." };
-    const contentType = (res.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-    if (!PROXY_IMAGE_TYPES.has(contentType)) return { ok: false, status: 415, reason: "Nieobsługiwany typ obrazu." };
-    const declared = Number(res.headers.get("content-length") ?? "0");
-    if (declared > IMAGE_PROXY_MAX_BYTES) return { ok: false, status: 413, reason: "Obraz jest za duży." };
-
-    const reader = res.body.getReader();
-    const chunks: Uint8Array[] = [];
-    let total = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > IMAGE_PROXY_MAX_BYTES) {
-        await reader.cancel();
-        return { ok: false, status: 413, reason: "Obraz jest za duży." };
-      }
-      chunks.push(value);
-    }
-    const body = new Uint8Array(total);
-    let offset = 0;
-    for (const c of chunks) {
-      body.set(c, offset);
-      offset += c.byteLength;
-    }
-    return { ok: true, contentType, body };
+    return readImage(res);
   }
   return { ok: false, status: 508, reason: "Za dużo przekierowań." };
+}
+
+function requestImage(url: URL, target: ResolvedHost, fetchImpl?: typeof fetch): Promise<Response> {
+  const signal = AbortSignal.timeout(IMAGE_PROXY_TIMEOUT_MS);
+  return fetchImpl
+    ? fetchImpl(url, { redirect: "manual", signal, headers: { Accept: "image/*" } })
+    : pinnedGet(url, target, signal);
+}
+
+/** Cel przekierowania po tej samej walidacji co adres początkowy; null – niedozwolony. */
+function redirectTarget(res: Response, base: URL): URL | null {
+  const location = res.headers.get("location");
+  return location ? parseImageUrl(new URL(location, base).toString()) : null;
+}
+
+/** Typ z listy dozwolonych i rozmiar w limicie (sprawdzany także podczas czytania strumienia). */
+async function readImage(res: Response): Promise<ProxyResult> {
+  if (!res.ok || !res.body) return { ok: false, status: 502, reason: "Nie udało się pobrać obrazu." };
+  const contentType = (res.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  if (!PROXY_IMAGE_TYPES.has(contentType)) return { ok: false, status: 415, reason: "Nieobsługiwany typ obrazu." };
+  if (Number(res.headers.get("content-length") ?? "0") > IMAGE_PROXY_MAX_BYTES) {
+    return { ok: false, status: 413, reason: "Obraz jest za duży." };
+  }
+  const body = await readLimited(res.body, IMAGE_PROXY_MAX_BYTES);
+  return body ? { ok: true, contentType, body } : { ok: false, status: 413, reason: "Obraz jest za duży." };
+}
+
+async function readLimited(stream: ReadableStream<Uint8Array>, limit: number): Promise<Uint8Array | null> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    out.set(c, offset);
+    offset += c.byteLength;
+  }
+  return out;
 }

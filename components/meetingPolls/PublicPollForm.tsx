@@ -107,12 +107,8 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
               >
                 Zobacz wyniki
               </button>
-            ) : results ? (
-              <RespondentResultsGrid poll={poll} results={results} />
-            ) : resultsLoading ? (
-              <p className="text-sm text-text-secondary">Ładowanie wyników…</p>
             ) : (
-              <p className="text-sm text-text-secondary">Nie udało się pobrać wyników. Spróbuj ponownie później.</p>
+              <ResultsState poll={poll} results={results} loading={resultsLoading} />
             )}
           </div>
         )}
@@ -235,4 +231,19 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
       <SaveButton onClick={() => void handleSubmit()} disabled={submitting} />
     </div>
   );
+}
+
+/** Wyniki dla respondenta: siatka, ładowanie albo błąd – bez zagnieżdżonych operatorów warunkowych. */
+function ResultsState({
+  poll,
+  results,
+  loading,
+}: Readonly<{
+  poll: Parameters<typeof RespondentResultsGrid>[0]["poll"];
+  results: Parameters<typeof RespondentResultsGrid>[0]["results"] | null | undefined;
+  loading: boolean;
+}>) {
+  if (results) return <RespondentResultsGrid poll={poll} results={results} />;
+  if (loading) return <p className="text-sm text-text-secondary">Ładowanie wyników…</p>;
+  return <p className="text-sm text-text-secondary">Nie udało się pobrać wyników. Spróbuj ponownie później.</p>;
 }

@@ -20,8 +20,8 @@ import {
 import type { ColumnMap, SyncTarget, TaskRow } from "./types";
 
 /**
- * Wbudowane kolumny list zadań Slacka („Due Date” – todo_due_date, „Completed” –
- * todo_completed) są mapowane automatycznie, gdy użytkownik nie przypisał
+ * Wbudowane kolumny list zadań Slacka („Due Date” i „Completed”, identyfikatory w BUILT_IN_COLUMNS) są mapowane
+ * automatycznie, gdy użytkownik nie przypisał
  * tych pól ręcznie. Wcześniej bez ręcznego mapowania daty w ogóle się nie kopiowały.
  */
 const BUILT_IN_COLUMNS: Partial<Record<SlackMappableTaskField, string>> = {

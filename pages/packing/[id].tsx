@@ -51,7 +51,7 @@ export default function DynamicPackingPage() {
       <Seo
         title={listData.pageTitle}
         description={listData.description}
-        canonical={`https://dzisiaj.fun/packing/${String(router.query.id ?? "")}`}
+        canonical={`https://www.dzisiaj.fun/packing/${String(router.query.id ?? "")}`}
         noindex={true}
       />
       <PackingList

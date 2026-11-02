@@ -48,7 +48,7 @@ export default function DaySchemaPage() {
       <Seo
         title="Schemat dnia"
         description="Ułóż stały plan dnia z godzinami, np. poranną i wieczorną rutynę, i korzystaj z niego w widoku dnia."
-        canonical="https://dzisiaj.fun/tasks/daySchema"
+        canonical="https://www.dzisiaj.fun/tasks/daySchema"
         keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
       />
       <div className="mb-6 flex items-center justify-between">

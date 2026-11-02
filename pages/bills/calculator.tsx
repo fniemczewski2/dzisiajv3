@@ -168,7 +168,7 @@ export default function BillCalculator() {
       <Seo
         title="Kalkulator kosztów"
         description="Podziel wspólne koszty mieszkania między dwie osoby proporcjonalnie do dochodów netto – z uwzględnieniem ZUS, zaliczki na PIT i kursu EUR/PLN."
-        canonical="https://dzisiaj.fun/bills/calculator"
+        canonical="https://www.dzisiaj.fun/bills/calculator"
         keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
       />
       <div className="mx-auto max-w-4xl space-y-6">

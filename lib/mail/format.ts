@@ -1,5 +1,6 @@
 // lib/mail/format.ts
 
+import { trimChars } from "@/lib/text";
 import { format, isSameDay, isSameYear } from "date-fns";
 import { pl } from "date-fns/locale";
 
@@ -15,7 +16,10 @@ export function formatMailDate(value: string | null, now: Date = new Date()): st
 
 /** Nazwa nadawcy z „Imię <adres>”; bez nazwy – sam adres. */
 export function senderName(from: string): string {
-  const match = /^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/.exec(from);
-  if (!match) return from.trim();
-  return match[1].trim() || match[2].trim();
+  const value = from.trim();
+  const open = value.lastIndexOf("<");
+  if (open < 0 || !value.endsWith(">")) return value;
+  const address = value.slice(open + 1, -1).trim();
+  const name = trimChars(value.slice(0, open), '" ');
+  return name || address;
 }

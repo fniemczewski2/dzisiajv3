@@ -58,7 +58,7 @@ export default function CalendarPage() {
       <Seo
         title="Kalendarz"
         description="Planuj wydarzenia, udostępniaj je innym i synchronizuj z Kalendarzem Google oraz Outlookiem. Urodziny i imieniny bliskich widać obok wydarzeń."
-        canonical="https://dzisiaj.fun/calendar"
+        canonical="https://www.dzisiaj.fun/calendar"
         keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google, outlook"
       />
 

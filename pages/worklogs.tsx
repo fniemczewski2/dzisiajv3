@@ -229,7 +229,7 @@ export default function WorkLogsPage() {
       <Seo
         title="Czas pracy"
         description="Ewidencja czasu pracy: wpisy z godziną rozpoczęcia, zakończenia i opisem, zestawione miesiącami. Wpisy można dodawać skrótem Siri."
-        canonical="https://dzisiaj.fun/worklogs"
+        canonical="https://www.dzisiaj.fun/worklogs"
       />
       <div className="space-y-6 pb-20">
         <div className="flex w-full items-center justify-between gap-4">

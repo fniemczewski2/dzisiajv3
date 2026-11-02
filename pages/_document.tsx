@@ -17,8 +17,8 @@ export default function Document() {
         <meta name="msapplication-TileColor" content="#0A2947" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="alternate" hrefLang="pl" href="https://dzisiaj.fun" />
-        <link rel="alternate" hrefLang="x-default" href="https://dzisiaj.fun" />
+        <link rel="alternate" hrefLang="pl" href="https://www.dzisiaj.fun" />
+        <link rel="alternate" hrefLang="x-default" href="https://www.dzisiaj.fun" />
       </Head>
       <body className="bg-background p-3 font-sans text-text transition-colors duration-300 sm:p-4">
         <Main />

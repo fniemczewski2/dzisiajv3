@@ -22,7 +22,7 @@ export default function ShoppingPage() {
       <Seo
         title="Listy zakupów"
         description="Twórz listy zakupów pogrupowane według kategorii i udostępniaj je domownikom."
-        canonical="https://dzisiaj.fun/notes/shopping"
+        canonical="https://www.dzisiaj.fun/notes/shopping"
         keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
       />
       <div className="mb-6 flex items-center justify-between">

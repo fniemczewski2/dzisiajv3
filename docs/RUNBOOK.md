@@ -73,9 +73,9 @@ Dla każdego wiersza z tabeli poniżej: **Dashboard → Create cronjob**, potem:
 
 | Zadanie                          | Adres                                                                                 | Nagłówek                              | Harmonogram (czas polski) |
 | -------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------- |
-| Synchronizacja kalendarzy        | `https://dzisiaj.fun/api/calendar/sync-calendars`                                     | `Authorization: Bearer <CRON_SECRET>` | `*/15 * * * *`            |
-| Zamykanie ankiet                 | `https://dzisiaj.fun/api/meeting-polls/close-expired`                                 | `Authorization: Bearer <CRON_SECRET>` | `5 * * * *`               |
-| Synchronizacja Slacka            | `https://dzisiaj.fun/api/slack/sync`                                                  | `Authorization: Bearer <CRON_SECRET>` | `*/10 * * * *`            |
+| Synchronizacja kalendarzy        | `https://www.dzisiaj.fun/api/calendar/sync-calendars`                                 | `Authorization: Bearer <CRON_SECRET>` | `*/15 * * * *`            |
+| Zamykanie ankiet                 | `https://www.dzisiaj.fun/api/meeting-polls/close-expired`                             | `Authorization: Bearer <CRON_SECRET>` | `5 * * * *`               |
+| Synchronizacja Slacka            | `https://www.dzisiaj.fun/api/slack/sync`                                              | `Authorization: Bearer <CRON_SECRET>` | `*/10 * * * *`            |
 | Przypomnienia o zadaniach        | `https://<projekt>.supabase.co/functions/v1/process-notifications?type=task_reminder` | `x-cron-secret: <CRON_SECRET>`        | `* * * * *`               |
 | Przypomnienia o wydarzeniach     | `…/process-notifications?type=upcoming_event`                                         | `x-cron-secret`                       | `* * * * *`               |
 | Schemat dnia                     | `…/process-notifications?type=day_schema`                                             | `x-cron-secret`                       | `* * * * *`               |
@@ -88,7 +88,7 @@ Dla każdego wiersza z tabeli poniżej: **Dashboard → Create cronjob**, potem:
 | Urodziny, imieniny, kontakt      | `…/process-notifications?type=people`                                                 | `x-cron-secret`                       | `0 9 * * *`               |
 | Nawyki                           | `…/process-notifications?type=daily_habits`                                           | `x-cron-secret`                       | `0 20 * * *`              |
 | Wieczorne podsumowanie           | `…/process-notifications?type=evening_audit`                                          | `x-cron-secret`                       | `0 21 * * *`              |
-| Czyszczenie bufora poczty        | `https://dzisiaj.fun/api/mail/inbox/purge`                                            | `Authorization: Bearer <CRON_SECRET>` | `0 * * * *`               |
+| Czyszczenie bufora poczty        | `https://www.dzisiaj.fun/api/mail/inbox/purge`                                        | `Authorization: Bearer <CRON_SECRET>` | `0 * * * *`               |
 | Zadania cykliczne                | `https://<projekt>.supabase.co/functions/v1/process-reminders`                        | `x-cron-secret: <CRON_SECRET>`        | `0 3 * * *`               |
 
 **Skąd te częstotliwości (z kodu):**
@@ -112,7 +112,7 @@ wykonałoby się dwa razy.
 **Sprawdzenie ręczne:**
 
 ```bash
-curl -i -H "Authorization: Bearer $CRON_SECRET" https://dzisiaj.fun/api/calendar/sync-calendars
+curl -i -H "Authorization: Bearer $CRON_SECRET" https://www.dzisiaj.fun/api/calendar/sync-calendars
 # 200 {"success":true,"imported":…,"removed":…,"failedAccounts":[]}
 
 curl -i -H "x-cron-secret: $CRON_SECRET" "https://<projekt>.supabase.co/functions/v1/process-notifications?type=task_reminder"
@@ -228,7 +228,7 @@ rekordów MX domeny głównej (skrzynki `@dzisiaj.fun` działają bez zmian).
 
 ```powershell
 $body = @{ recipient = "p-<token>@poczta.dzisiaj.fun"; from = "test@example.com"; subject = "Test"; text = "Treść testowa" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "https://dzisiaj.fun/api/mail/inbound" `
+Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/mail/inbound" `
   -Headers @{ "x-mail-inbound-secret" = "<MAIL_INBOUND_SECRET>" } -ContentType "application/json" -Body $body
 ```
 
@@ -240,7 +240,7 @@ adres wiadomość z kodem potwierdzającym – pojawi się na liście przekierow
 Warunki: migracja `supabase/sql/2026-10-30_health_shortcuts.sql`, token skrótów (Ustawienia → Skróty) i zgoda w
 Ustawieniach → „Zdrowie ze Skrótów iOS”. Bez aktualnej zgody endpoint zwraca `403` i niczego nie zapisuje.
 
-`POST https://dzisiaj.fun/api/health/shortcut`, nagłówek z tokenem jak w pozostałych skrótach, treść JSON:
+`POST https://www.dzisiaj.fun/api/health/shortcut`, nagłówek z tokenem jak w pozostałych skrótach, treść JSON:
 
 ```json
 {

@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     url.searchParams.set("lon", String(lon));
     url.searchParams.set("limit", "1");
     const upstream = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "dzisiaj.fun (https://dzisiaj.fun)" },
+      headers: { Accept: "application/json", "User-Agent": "dzisiaj.fun (https://www.dzisiaj.fun)" },
       signal: AbortSignal.timeout(5000),
     });
     if (!upstream.ok) return res.status(502).json({ locality: null });

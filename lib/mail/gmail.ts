@@ -12,15 +12,26 @@ const BATCH_URL = "https://gmail.googleapis.com/batch/gmail/v1";
 const MAX_BATCH_PARTS = 100;
 const SUMMARY_HEADERS = ["Subject", "From", "To", "Date", "Message-ID"];
 
+/** Część odpowiedzi zbiorczej: status z linii „HTTP/1.1 NNN” i treść po pustej linii nagłówków. */
+function parseHttpPart(part: string): { status: string; body: string } | null {
+  const normalized = part.replaceAll("\r\n", "\n");
+  const start = normalized.indexOf("HTTP/1.1 ");
+  if (start < 0) return null;
+  const status = normalized.slice(start + 9, start + 12);
+  const headersEnd = normalized.indexOf("\n\n", start);
+  if (headersEnd < 0) return null;
+  return { status, body: normalized.slice(headersEnd + 2) };
+}
+
 /** Odpowiedź multipart/mixed z /batch: obiekty JSON części z kodem 200, w kolejności Content-ID. */
 export function parseBatchResponse(body: string, boundary: string): Map<number, unknown> {
   const out = new Map<number, unknown>();
   for (const part of body.split(`--${boundary}`)) {
     const id = /Content-ID:\s*<?response-item(\d+)>?/i.exec(part);
-    const http = /HTTP\/1\.1 (\d{3})[^\r\n]*\r?\n[\s\S]*?\r?\n\r?\n([\s\S]*)$/.exec(part);
-    if (!id || !http || http[1] !== "200") continue;
+    const http = parseHttpPart(part);
+    if (!id || !http || http.status !== "200") continue;
     try {
-      out.set(Number(id[1]), JSON.parse(http[2].trim()));
+      out.set(Number(id[1]), JSON.parse(http.body.trim()));
     } catch {
       // Uszkodzona część – wiadomość zostanie pobrana pojedynczo.
     }
@@ -100,6 +111,12 @@ function walk(part: GmailPart, out: Collected): void {
   for (const child of part.parts ?? []) walk(child, out);
 }
 
+/** Część text/plain; gdy jej brak – tekst z HTML; gdy brak obu – pusty. */
+function plainText(textParts: string[], html: string | null): string {
+  if (textParts.length > 0) return textParts.join("\n");
+  return html ? htmlToPlainText(html) : "";
+}
+
 export function parseGmailMessage(raw: GmailRawMessage): MailMessage {
   const headers = raw.payload.headers;
   const collected: Collected = { text: [], html: [], attachments: [], inline: [] };
@@ -114,7 +131,7 @@ export function parseGmailMessage(raw: GmailRawMessage): MailMessage {
     date: header(headers, "Date") || null,
     messageId: header(headers, "Message-ID") || null,
     references: header(headers, "References") || null,
-    text: collected.text.length > 0 ? collected.text.join("\n") : html ? htmlToPlainText(html) : "",
+    text: plainText(collected.text, html),
     html,
     attachments: collected.attachments,
     inlineImages: collected.inline,
@@ -153,7 +170,8 @@ export function createGmailClient(accessToken: string, fetchImpl: FetchLike = fe
      */
     async getMessageSummaries(ids: readonly string[]): Promise<MailMessage[]> {
       if (ids.length === 0) return [];
-      const query = `format=metadata${SUMMARY_HEADERS.map((h) => `&metadataHeaders=${encodeURIComponent(h)}`).join("")}`;
+      const headerParams = SUMMARY_HEADERS.map((h) => "&metadataHeaders=" + encodeURIComponent(h)).join("");
+      const query = `format=metadata${headerParams}`;
       const boundary = `batch_${crypto.randomUUID()}`;
       const slice = ids.slice(0, MAX_BATCH_PARTS);
       const body =

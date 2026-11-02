@@ -24,7 +24,7 @@ export interface FeedResult {
   error: string | null;
 }
 
-const USER_AGENT = "Dzisiaj.fun RSS reader (+https://dzisiaj.fun)";
+const USER_AGENT = "Dzisiaj.fun RSS reader (+https://www.dzisiaj.fun)";
 
 const parser = new XMLParser({
   ignoreAttributes: false,

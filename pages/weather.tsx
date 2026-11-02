@@ -289,7 +289,7 @@ export default function WeatherPage() {
       <Seo
         title="Pogoda"
         description="Prognoza pogody dla Twojej lokalizacji z jakością powietrza, indeksem UV oraz godzinami wschodu i zachodu słońca."
-        canonical="https://dzisiaj.fun/weather"
+        canonical="https://www.dzisiaj.fun/weather"
         keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
       />
       <h1 className="page-title mb-4">Pogoda</h1>

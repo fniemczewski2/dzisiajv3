@@ -89,7 +89,7 @@ export default function NewsPage() {
       <Seo
         title="Wiadomości"
         description="Wiadomości z wybranych kanałów RSS w jednym miejscu."
-        canonical="https://dzisiaj.fun/news"
+        canonical="https://www.dzisiaj.fun/news"
         keywords="rss, wiadomości, czytnik rss"
       />
 

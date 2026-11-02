@@ -60,7 +60,7 @@ frontend (`token_refresh_failed`, `LOCATION_REQUIRED`).
 ### Przykład: Skrót Siri
 
 ```bash
-curl -X POST https://dzisiaj.fun/api/worklogs/auto \
+curl -X POST https://www.dzisiaj.fun/api/worklogs/auto \
   -H "Authorization: Bearer dzs_…" -H "Content-Type: application/json" \
   -d '{"action":"start"}'
 # 200 {"success":true,"message":"Rozpoczęto pracę", …}

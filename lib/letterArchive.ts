@@ -3,6 +3,7 @@
 // Pakowanie plików pisma do jednego archiwum ZIP: jeden katalog o nazwie sygnatury,
 // w nim podfoldery „pismo” i „odpowiedz” z numerowanymi plikami PDF.
 
+import { trimChars } from "@/lib/text";
 import { zipSync } from "fflate";
 
 export interface ArchiveSource {
@@ -14,12 +15,11 @@ const FORBIDDEN_IN_NAMES = '<>:"/\\|?*';
 
 /** Nazwa pliku lub folderu bezpieczna na Windows, macOS i Linux. */
 export function safeName(value: string, maxLength = 120): string {
-  const cleaned = Array.from(value)
+  const joined = Array.from(value)
     .map((ch) => (ch.charCodeAt(0) < 32 || FORBIDDEN_IN_NAMES.includes(ch) ? "_" : ch))
     .join("")
-    .replaceAll(/\s+/g, " ")
-    .replaceAll(/^[.\s]+|[.\s]+$/g, "")
-    .trim();
+    .replaceAll(/\s+/g, " ");
+  const cleaned = trimChars(joined, ". ");
   return (cleaned || "plik").slice(0, maxLength);
 }
 

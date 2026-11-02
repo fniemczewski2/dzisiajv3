@@ -25,7 +25,7 @@ export default function MoviesPage() {
       <Seo
         title="Filmy i seriale"
         description="Wyszukuj tytuły w bazie TMDB, zapisuj filmy i seriale do obejrzenia, oceniaj obejrzane i śledź postęp sezonów."
-        canonical="https://dzisiaj.fun/notes/movies"
+        canonical="https://www.dzisiaj.fun/notes/movies"
         keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"
       />
       {fetching && movies.length === 0 ? (

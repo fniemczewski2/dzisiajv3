@@ -74,7 +74,7 @@ export default function IndexPage() {
       <Seo
         title="Mój dzień"
         description="Twój dzień w jednym miejscu: zadania, wydarzenia z kalendarza i plan godzinowy."
-        canonical="https://dzisiaj.fun"
+        canonical="https://www.dzisiaj.fun"
         noindex={true}
       />
       <MainView view={settings.main_view} viewDate={viewDate} onDateChange={setViewDate} />

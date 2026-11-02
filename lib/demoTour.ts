@@ -3,6 +3,7 @@
 // Dane przewodnika demo: kroki po funkcjach budowane z FEATURE_GROUPS (jedno źródło prawdy
 // z /start i /guide) oraz krótka instrukcja pierwszych kroków dla nowego użytkownika.
 
+import { trimChars } from "@/lib/text";
 import { FEATURE_GROUPS, type Feature, type FeatureCategory } from "@/config/features";
 
 export interface DemoStep {
@@ -42,13 +43,13 @@ export function buildDemoSteps(groups: typeof FEATURE_GROUPS = FEATURE_GROUPS): 
 }
 
 function slugify(value: string): string {
-  return value
+  const slug = value
     .toLowerCase()
     .normalize("NFD")
     .replaceAll(/[\u0300-\u036f]/g, "")
     .replaceAll("ł", "l")
-    .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/^-+|-+$/g, "");
+    .replaceAll(/[^a-z0-9]+/g, "-");
+  return trimChars(slug, "-");
 }
 
 /** Ścieżka „Wypróbuj”: strony wymagające logowania przechodzą przez /start z parametrem next. */

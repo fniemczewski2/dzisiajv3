@@ -3,6 +3,8 @@
 // Ścieżki plików w vaulcie. Tożsamość wpisu wyznacza dzisiaj_id w nagłówku, nie ścieżka –
 // zmiana nazwy lub przeniesienie pliku w Obsidianie nie zrywa powiązania.
 
+import { trimChars } from "@/lib/text";
+
 export const VAULT_FOLDERS = { note: "Notatki", recipe: "Przepisy", person: "Osoby", report: "Protokoły" } as const;
 export type VaultItemType = keyof typeof VAULT_FOLDERS;
 
@@ -15,10 +17,9 @@ export function safeSegment(value: string, max = 80): string {
     .join("")
     .replace(FORBIDDEN, "-")
     .replaceAll(/\s+/g, " ")
-    .replaceAll(/^[.\s-]+|[.\s]+$/g, "")
-    .slice(0, max)
-    .trim();
-  return cleaned || "bez nazwy";
+    .slice(0, max);
+  const trimmed = trimChars(trimChars(cleaned, ".- ", "start"), ". ", "end");
+  return trimmed || "bez nazwy";
 }
 
 /** Folder notatki „Fundacje/Zapłon” → bezpieczne segmenty; pusty → brak podfolderu. */

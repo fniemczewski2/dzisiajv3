@@ -8,7 +8,7 @@ export default function ProfilesPage() {
   return (
     <>
       <Seo
-        canonical="https://dzisiaj.fun/profiles"
+        canonical="https://www.dzisiaj.fun/profiles"
         title="Wizytówki"
         description="Twórz wizytówki z danymi kontaktowymi i udostępniaj je przez link, kod QR lub plik vCard."
       />

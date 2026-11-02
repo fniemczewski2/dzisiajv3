@@ -47,7 +47,7 @@ export default function TrainsPage() {
       <Seo
         title="Pociągi"
         description="Śledź pociągi PKP z opóźnieniem na żywo, dodawaj je z biletu PDF i sprawdzaj tablice odjazdów wybranych stacji."
-        canonical="https://dzisiaj.fun/trains"
+        canonical="https://www.dzisiaj.fun/trains"
         keywords="pociągi, PKP, opóźnienia, bilet, rozkład jazdy, tablica odjazdów"
       />
       <div className="mb-4 flex items-center">

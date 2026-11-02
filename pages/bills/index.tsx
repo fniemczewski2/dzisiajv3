@@ -58,7 +58,7 @@ export default function FinancePage() {
       <Seo
         title="Finanse"
         description="Rachunki stałe z terminami i przypomnieniami oraz miesięczne podsumowanie wydatków i wpływów."
-        canonical="https://dzisiaj.fun/bills"
+        canonical="https://www.dzisiaj.fun/bills"
         keywords="rachunki, wydatki, budżet domowy, finanse osobiste"
       />
 

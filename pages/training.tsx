@@ -41,7 +41,7 @@ export default function TrainingPage() {
       <Seo
         title="Trening interwałowy"
         description="Stoper do treningów interwałowych, np. HIIT i Tabata. Ustaw czas pracy, przerwy i liczbę rund."
-        canonical="https://dzisiaj.fun/training"
+        canonical="https://www.dzisiaj.fun/training"
         keywords="trening, interwały, stoper, hiit, tabata, fitness"
       />
       <div className="space-y-6">

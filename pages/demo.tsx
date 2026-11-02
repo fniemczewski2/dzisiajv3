@@ -12,7 +12,7 @@ export default function DemoPage() {
       <Seo
         title="Demo – Dzisiaj.Fun"
         description="Przewodnik po Dzisiaj.Fun: pierwsze kroki i wszystkie funkcje krok po kroku. Bez logowania."
-        canonical="https://dzisiaj.fun/demo"
+        canonical="https://www.dzisiaj.fun/demo"
         keywords="demo aplikacja, instrukcja, przewodnik, Dzisiaj.Fun"
       />
       <div className="mx-auto max-w-3xl space-y-10 px-2 py-8">

@@ -51,7 +51,7 @@ export default function RecurringTasksPage() {
       <Seo
         title="Zadania cykliczne"
         description="Lista zadań cyklicznych z edycją reguł powtarzania."
-        canonical="https://dzisiaj.fun/tasks/recurring"
+        canonical="https://www.dzisiaj.fun/tasks/recurring"
       />
       <div className="space-y-6 pb-20">
         <div className="flex items-center justify-between gap-4">

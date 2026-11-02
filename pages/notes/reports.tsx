@@ -224,7 +224,7 @@ export default function ReportsPage() {
       <Seo
         title="Protokoły"
         description="Notuj przebieg spotkań – temat, agendę, uczestników i zadania – i zapisuj protokół jako PDF lub Markdown."
-        canonical="https://dzisiaj.fun/notes/reports"
+        canonical="https://www.dzisiaj.fun/notes/reports"
         keywords="raporty, podsumowania, spotkania, protokoły"
       />
 

@@ -21,7 +21,7 @@ export default function LettersPage() {
       <Seo
         title="Pisma urzędowe"
         description="Śledź wnioski o udostępnienie informacji publicznej, skargi, zgłoszenia wykroczeń i inną korespondencję urzędową razem z terminami odpowiedzi i załącznikami."
-        canonical="https://dzisiaj.fun/notes/letters"
+        canonical="https://www.dzisiaj.fun/notes/letters"
         keywords="UDIP, wniosek, skarga, wykroczenie, pismo urzędowe, korespondencja"
       />
       <div className="mb-6 flex items-center justify-between">

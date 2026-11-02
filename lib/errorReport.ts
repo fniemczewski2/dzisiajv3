@@ -28,7 +28,25 @@ export function errorMessageOf(value: unknown): string {
 
 /** Usuwa adresy e-mail z treści, zanim trafią do bazy (wiadomości błędów nie mogą nieść danych osobowych). */
 export function redactMessage(message: string): string {
-  return message.replaceAll(/[^\s@"'<>]+@[^\s@"'<>]+/g, "[email]").slice(0, 2000);
+  // Tokeny między białymi znakami i cudzysłowami/nawiasami (jeden przebieg); w tokenie z „@” każda para
+  // „lokalna@domena” zamieniana na [email].
+  return message
+    .replaceAll(/[^\s"'<>]+/g, (token) => (token.includes("@") ? redactToken(token) : token))
+    .slice(0, 2000);
+}
+
+function redactToken(token: string): string {
+  const parts = token.split("@");
+  const out: string[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    if (i + 1 < parts.length && parts[i] && parts[i + 1]) {
+      out.push("[email]");
+      i++;
+    } else {
+      out.push(i === 0 ? parts[i] : `@${parts[i]}`);
+    }
+  }
+  return out.join("");
 }
 
 export async function reportError(context: string, value: unknown): Promise<void> {

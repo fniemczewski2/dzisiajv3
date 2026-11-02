@@ -8,7 +8,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)
 ![Tests](https://img.shields.io/badge/tests-vitest-6E9F18)
 
-**Live:** [https://dzisiaj.fun](https://dzisiaj.fun)
+**Live:** [https://www.dzisiaj.fun](https://www.dzisiaj.fun)
 
 > Numer wersji pochodzi z `package.json` i jest wstrzykiwany podczas builda (razem ze skrótem commita i datą wdrożenia) – widać go w **Ustawieniach → Informacje o wersji**.
 
@@ -115,7 +115,7 @@ Pełna lista z opisami jest w [`.env.example`](./.env.example); kod czyta zmienn
 | `NEXT_PUBLIC_SUPABASE_URL`                            | Wszystko                                                | URL projektu Supabase                                                                                                          |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`                | Wszystko                                                | Publiczny klucz Supabase (anon/publishable)                                                                                    |
 | `SUPABASE_SECRET_KEY`                                 | API serwerowe (cron, eksport i usuwanie konta, ankiety) | Klucz service role – tylko po stronie serwera                                                                                  |
-| `NEXT_PUBLIC_APP_URL`                                 | OAuth, publiczne linki                                  | Bazowy URL aplikacji (np. `https://dzisiaj.fun`)                                                                               |
+| `NEXT_PUBLIC_APP_URL`                                 | OAuth, publiczne linki                                  | Bazowy URL aplikacji (np. `https://www.dzisiaj.fun`)                                                                           |
 | `CALENDAR_TOKEN_ENCRYPTION_KEY`                       | Kalendarze, Slack                                       | 32-bajtowy klucz base64 do szyfrowania tokenów (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`) |
 | `REJECT_PLAINTEXT_TOKENS`                             | –                                                       | `1` = odrzucaj niezaszyfrowane tokeny w bazie (po uruchomieniu `scripts/encrypt-legacy-tokens.mjs`)                            |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`           | Google Calendar                                         | Aplikacja OAuth w Google Cloud Console                                                                                         |

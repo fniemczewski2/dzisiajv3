@@ -4,6 +4,7 @@
 // (nie indeks) – usunięcie środkowej osoby nie przenosi fokusu ani wpisanego
 // tekstu do sąsiedniego pola.
 
+import { isSimpleEmail } from "@/lib/text";
 import { useState } from "react";
 import { DeleteButton } from "@/components/ui/CommonButtons";
 import { MAX_TRUSTED_USERS } from "@/config/limits";
@@ -13,8 +14,6 @@ interface Row {
   id: string;
   email: string;
 }
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const toRows = (emails: readonly string[]): Row[] => emails.map((email) => ({ id: crypto.randomUUID(), email }));
 
@@ -69,7 +68,7 @@ export default function TrustedUsersField({
         placeholder="E-mail nowej osoby"
         normalize={(raw) => raw.trim().toLowerCase()}
         validate={(email) => {
-          if (!EMAIL_RE.test(email)) return "Podaj poprawny adres e-mail.";
+          if (!isSimpleEmail(email)) return "Podaj poprawny adres e-mail.";
           if (rows.some((r) => r.email.trim().toLowerCase() === email)) return "Ta osoba jest już na liście.";
           return null;
         }}

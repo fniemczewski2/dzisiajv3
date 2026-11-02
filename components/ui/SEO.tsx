@@ -22,8 +22,8 @@ interface SeoProps {
 export default function Seo({
   title = "Dzisiaj.Fun – zadania, kalendarz, budżet i notatki",
   description = "Zadania, kalendarz, rachunki, budżet, notatki i listy zakupów w jednej aplikacji. Synchronizacja z Kalendarzem Google i Outlookiem.",
-  canonical = "https://dzisiaj.fun",
-  ogImage = "https://dzisiaj.fun/og-image.png",
+  canonical = "https://www.dzisiaj.fun",
+  ogImage = "https://www.dzisiaj.fun/og-image.png",
   ogType = "website",
   twitterCard = "summary_large_image",
   noindex = false,

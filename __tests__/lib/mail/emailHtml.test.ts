@@ -73,3 +73,22 @@ describe("prepareEmailHtml – układ", () => {
     expect(out.document).toContain('<base target="_blank">');
   });
 });
+
+describe("prepareEmailHtml – style maila", () => {
+  it("style z <head> zostają (bez skryptów i bez wyjścia ze znacznika <style>)", () => {
+    const html =
+      "<html><head><style>.btn{color:red}</style><style>p{x:1}</style><script>alert(1)</script></head>" +
+      "<body><p class='btn'>Kliknij</p><style>.x{}</style></style><script>alert(2)</script></body></html>";
+    const { doc, out } = body(html);
+    expect(out.document).toContain(".btn{color:red}");
+    expect(out.document).toContain("p{x:1}");
+    expect(doc.querySelectorAll("script")).toHaveLength(0);
+    expect(doc.querySelector("p.btn")?.textContent).toBe("Kliknij");
+  });
+
+  it("„</style>” w treści stylu nie zamyka znacznika (brak wstrzyknięcia HTML)", () => {
+    const { doc } = body("<style>a{}</style ><img src=x onerror=alert(1)></style><p>x</p>");
+    expect(doc.querySelector("img[onerror]")).toBeNull();
+    for (const style of Array.from(doc.querySelectorAll("style"))) expect(style.innerHTML).not.toMatch(/<\/style/i);
+  });
+});

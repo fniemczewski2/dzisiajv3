@@ -19,7 +19,7 @@ export default function PackingMenuPage() {
       <Seo
         title="Pakowanie"
         description="Gotowe listy rzeczy do spakowania: plecak, walizka i plecak bezpieczeństwa na sytuacje awaryjne."
-        canonical="https://dzisiaj.fun/packing"
+        canonical="https://www.dzisiaj.fun/packing"
         keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"
       />
       <div className="mb-6 flex w-full items-center">

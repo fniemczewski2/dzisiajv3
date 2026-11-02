@@ -109,7 +109,7 @@ export default function PeoplePage() {
   return (
     <>
       <Seo
-        canonical="https://dzisiaj.fun/people"
+        canonical="https://www.dzisiaj.fun/people"
         title="Osoby"
         description="Kontakty bliskich z datami urodzin i imienin, które pojawiają się w kalendarzu."
       />

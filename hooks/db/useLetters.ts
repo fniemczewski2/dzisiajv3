@@ -43,6 +43,14 @@ function attachmentPath(userId: string, letterId: string, kind: LetterFileKind):
   return `${userId}/${letterId}/${kind}-${crypto.randomUUID()}.pdf`;
 }
 
+/** Powód odrzucenia pliku pisma (tylko PDF w limicie rozmiaru); null – plik poprawny. */
+function pdfRejectionReason(file: File): string | null {
+  if (file.type !== "application/pdf") return `„${file.name}” nie jest plikiem PDF.`;
+  if (file.size > MAX_LETTER_PDF_SIZE_MB * 1024 * 1024)
+    return `„${file.name}” jest za duży (limit ${MAX_LETTER_PDF_SIZE_MB} MB).`;
+  return null;
+}
+
 export function useLetters() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -172,12 +180,9 @@ export function useLetters() {
           toast.error(`Dodano ${added} z ${files.length} plików. Limit to ${MAX_LETTER_ATTACHMENTS} plików w sekcji.`);
           break;
         }
-        if (file.type !== "application/pdf") {
-          toast.error(`„${file.name}” nie jest plikiem PDF.`);
-          continue;
-        }
-        if (file.size > MAX_LETTER_PDF_SIZE_MB * 1024 * 1024) {
-          toast.error(`„${file.name}” jest za duży (limit ${MAX_LETTER_PDF_SIZE_MB} MB).`);
+        const rejected = pdfRejectionReason(file);
+        if (rejected) {
+          toast.error(rejected);
           continue;
         }
 

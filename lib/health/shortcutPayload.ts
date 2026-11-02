@@ -31,14 +31,24 @@ export type ParsedHealthPayload =
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Liczba z wartości liczbowej albo tekstu („6,2”, „8 423”); undefined = brak; null = niepoprawna. */
+const THOUSANDS_SEPARATORS = /[\s\u00a0\u202f]/g;
+const LEADING_NUMBER = /^-?\d+(?:[.,]\d+)?/;
+
+/**
+ * Liczba z wartości liczbowej albo tekstu ze Skrótów: „6,2”, „8 423”, także z jednostką z Apple Zdrowie
+ * („8 423 kroki”, „72 uderz./min”, „431,5 min”). undefined = brak; null = brak liczby na początku.
+ */
 export function toNumber(value: unknown): number | null | undefined {
   if (value === undefined || value === null || value === "") return undefined;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
   if (typeof value !== "string") return null;
-  const normalized = value.replaceAll(/\s/g, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(normalized)) return null;
-  return Number(normalized);
+  const compact = value.trim().replaceAll(THOUSANDS_SEPARATORS, "");
+  const match = LEADING_NUMBER.exec(compact);
+  if (!match) return null;
+  const rest = compact.slice(match[0].length);
+  // Po liczbie dopuszczamy wyłącznie jednostkę (litery, „/”, „.”, „%”) – nie kolejne cyfry.
+  if (/\d/.test(rest)) return null;
+  return Number(match[0].replace(",", "."));
 }
 
 function inRange(value: number | null | undefined, min: number, max: number, round = true) {
@@ -83,13 +93,8 @@ function parseWorkout(item: unknown): HealthWorkoutInput | string {
   };
 }
 
-export function parseHealthPayload(body: unknown): ParsedHealthPayload {
-  if (!body || typeof body !== "object") return { ok: false, error: "Nieprawidłowe dane." };
-  const b = body as Record<string, unknown>;
-  if (typeof b.date !== "string" || !validDate(b.date)) {
-    return { ok: false, error: "Pole „date” musi mieć format RRRR-MM-DD." };
-  }
-  const daily: HealthDailyInput = { date: b.date };
+function parseDaily(b: Record<string, unknown>): HealthDailyInput | string {
+  const daily: HealthDailyInput = { date: b.date as string };
   const hr = (b.heartRate && typeof b.heartRate === "object" ? b.heartRate : {}) as Record<string, unknown>;
   const fields: [Exclude<keyof HealthDailyInput, "date">, unknown, number, number][] = [
     ["steps", b.steps, 0, 200_000],
@@ -101,22 +106,36 @@ export function parseHealthPayload(body: unknown): ParsedHealthPayload {
   ];
   for (const [key, raw, min, max] of fields) {
     const checked = inRange(toNumber(raw), min, max);
-    if (!checked.ok) return { ok: false, error: `Niepoprawna wartość pola ${key}.` };
+    if (!checked.ok) return `Niepoprawna wartość pola ${key}.`;
     if (checked.value !== undefined) daily[key] = checked.value;
   }
+  return daily;
+}
 
-  const rawWorkouts = b.workouts ?? [];
-  if (!Array.isArray(rawWorkouts)) return { ok: false, error: "Pole „workouts” musi być listą." };
-  if (rawWorkouts.length > MAX_HEALTH_WORKOUTS_PER_SUBMIT) {
-    return { ok: false, error: `Najwyżej ${MAX_HEALTH_WORKOUTS_PER_SUBMIT} treningów w jednym wysłaniu.` };
-  }
+function parseWorkouts(raw: unknown): HealthWorkoutInput[] | string {
+  const list = raw ?? [];
+  if (!Array.isArray(list)) return "Pole „workouts” musi być listą.";
+  if (list.length > MAX_HEALTH_WORKOUTS_PER_SUBMIT)
+    return `Najwyżej ${MAX_HEALTH_WORKOUTS_PER_SUBMIT} treningów w jednym wysłaniu.`;
   const workouts: HealthWorkoutInput[] = [];
-  for (const item of rawWorkouts) {
+  for (const item of list) {
     const parsed = parseWorkout(item);
-    if (typeof parsed === "string") return { ok: false, error: parsed };
+    if (typeof parsed === "string") return parsed;
     workouts.push(parsed);
   }
+  return workouts;
+}
 
+export function parseHealthPayload(body: unknown): ParsedHealthPayload {
+  if (!body || typeof body !== "object") return { ok: false, error: "Nieprawidłowe dane." };
+  const b = body as Record<string, unknown>;
+  if (typeof b.date !== "string" || !validDate(b.date)) {
+    return { ok: false, error: "Pole „date” musi mieć format RRRR-MM-DD." };
+  }
+  const daily = parseDaily(b);
+  if (typeof daily === "string") return { ok: false, error: daily };
+  const workouts = parseWorkouts(b.workouts);
+  if (typeof workouts === "string") return { ok: false, error: workouts };
   if (Object.keys(daily).length === 1 && workouts.length === 0)
     return { ok: false, error: "Brak danych do zapisania." };
   return { ok: true, daily, workouts };

@@ -2,13 +2,28 @@
 //
 // Zgoda na przekazywanie danych o zdrowiu ze Skrótów iOS i jej cofnięcie (z usunięciem danych).
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import { HeartPulse, ShieldOff } from "lucide-react";
 import { SecondaryFullButton } from "@/components/ui/CommonButtons";
 import { useHealthConsent } from "@/hooks/useHealthConsent";
 import { useToast } from "@/providers/ToastProvider";
 
+const noSubscribe = () => () => {};
+
+/**
+ * Adres dla Skrótu z bieżącej domeny: przekierowanie (np. bez „www”) usuwa nagłówek Authorization,
+ * więc Skrót musi wywoływać dokładnie domenę, na której działa aplikacja.
+ */
+function useOrigin(): string {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => window.location.origin,
+    () => "https://www.dzisiaj.fun"
+  );
+}
+
 export default function HealthConsentSection() {
+  const origin = useOrigin();
   const { hasConsent, consentAt, consentVersion, grant, revoke } = useHealthConsent();
   const { toast } = useToast();
   const [checked, setChecked] = useState(false);
@@ -55,8 +70,7 @@ export default function HealthConsentSection() {
         <>
           <p className="text-sm text-text">
             Zgoda udzielona {consentAt ? new Date(consentAt).toLocaleDateString("pl-PL") : ""} (wersja treści:{" "}
-            {consentVersion}). Adres dla Skrótu:{" "}
-            <code className="break-all">https://dzisiaj.fun/api/health/shortcut</code>
+            {consentVersion}). Adres dla Skrótu: <code className="break-all">{origin}/api/health/shortcut</code>
           </p>
           <SecondaryFullButton Icon={ShieldOff} variant="danger" onClick={() => void onRevoke()} disabled={busy}>
             Cofnij zgodę i usuń dane

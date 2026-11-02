@@ -71,3 +71,20 @@ describe("parseHealthPayload", () => {
     expect(parseHealthPayload(body)).toEqual({ ok: false, error: expect.stringContaining(fragment) });
   });
 });
+
+describe("toNumber – wartości z jednostkami z Apple Zdrowie", () => {
+  it.each([
+    ["8 423 kroki", 8423],
+    ["8\u00a0423 kroków", 8423],
+    ["72 uderz./min", 72],
+    ["431,5 min", 431.5],
+    ["98%", 98],
+  ])("%j → %d", (raw, expected) => {
+    expect(toNumber(raw)).toBe(expected);
+  });
+
+  it("tekst bez liczby na początku lub z kolejnymi cyframi po jednostce jest odrzucany", () => {
+    expect(toNumber("kroki 8423")).toBeNull();
+    expect(toNumber("72 / 80")).toBeNull();
+  });
+});

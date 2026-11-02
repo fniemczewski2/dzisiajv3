@@ -16,7 +16,10 @@ vi.mock("@/lib/server/rateLimit", () => ({ enforceRateLimit: async () => true, c
 vi.mock("@/lib/server/shortcutTokens", () => ({ looksLikeShortcutToken: (t: unknown) => t === "dobry-token" }));
 vi.mock("@/lib/server/shortcutAuth", () => ({
   extractShortcutToken: (req: { headers: Record<string, string> }) => req.headers.authorization ?? null,
-  resolveShortcutUser: async () => h.userId,
+  resolveShortcutUser: async () => {
+    if (h.userId === "BŁĄD") throw new Error("baza");
+    return h.userId;
+  },
 }));
 vi.mock("@/lib/server/supabaseAdmin", () => ({
   supabaseAdmin: () => ({
@@ -90,5 +93,15 @@ describe("POST /api/health/shortcut", () => {
     await handler(b.req, b.res);
     expect(b.res.statusCode).toBe(400);
     expect(h.upserts).toHaveLength(0);
+  });
+
+  it("błąd bazy przy sprawdzaniu tokenu: 500, nie 401", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    h.userId = "BŁĄD";
+    const { req, res } = call({ date: "2026-10-30", steps: 1 });
+    await handler(req, res);
+    expect(res.statusCode).toBe(500);
+    expect(h.upserts).toHaveLength(0);
+    spy.mockRestore();
   });
 });

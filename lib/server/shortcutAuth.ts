@@ -21,7 +21,12 @@ export async function resolveShortcutUser(admin: SupabaseClient, token: string):
     .select("user_id")
     .eq("token_hash", hashShortcutToken(token))
     .maybeSingle<{ user_id: string }>();
-  if (error || !data) return null;
+  if (error) {
+    // Błąd bazy (np. brak klucza service role) to nie zły token – nie maskujemy go odpowiedzią 401.
+    console.error("[shortcutAuth] odczyt shortcut_tokens:", error.message);
+    throw new Error("Nie udało się sprawdzić tokenu skrótów.");
+  }
+  if (!data) return null;
 
   await admin.from("shortcut_tokens").update({ last_used_at: new Date().toISOString() }).eq("user_id", data.user_id);
 

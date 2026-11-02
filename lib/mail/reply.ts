@@ -3,6 +3,8 @@
 // Budowa odpowiedzi w formacie RFC 5322 (MIME, UTF-8) i kodowanie dla Gmail API.
 // Odpowiedź jest tylko przygotowywana; wysyła ją klient po zatwierdzeniu przez użytkownika.
 
+import { trimChars } from "@/lib/text";
+
 const HEADER_UNSAFE = /[\r\n]/;
 
 export interface ReplyInput {
@@ -33,7 +35,7 @@ export function utf8ToBase64(value: string): string {
 
 /** base64url (bez paddingu) – format wymagany przez Gmail API w polu `raw`. */
 export function toBase64Url(value: string): string {
-  return utf8ToBase64(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return trimChars(utf8ToBase64(value).replace(/\+/g, "-").replace(/\//g, "_"), "=", "end");
 }
 
 export function buildReplyMime(input: ReplyInput): string {

@@ -5,4 +5,4 @@ main = "worker.js"
 compatibility_date = "2026-10-01"
 
 [vars]
-INBOUND_URL = "https://dzisiaj.fun/api/mail/inbound"
+INBOUND_URL = "https://www.dzisiaj.fun/api/mail/inbound"

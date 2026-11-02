@@ -157,59 +157,10 @@ export async function handleMailOAuthCallback(
     return;
   }
 
-  let tokens: TokenSet | null;
-  try {
-    const tokenRes = await fetchWithTimeout(config.tokenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: credentials.clientId,
-        client_secret: credentials.clientSecret,
-        code,
-        redirect_uri: redirectUri(config),
-        grant_type: "authorization_code",
-      }),
-    });
-    const body: unknown = await tokenRes.json().catch(() => null);
-    tokens = tokenRes.ok ? parseTokenResponse(body) : null;
-    if (!tokens) {
-      // Kod i opis błędu dostawcy (np. AADSTS…, invalid_grant) – bez tokenów i sekretów.
-      const { error: code_, error_description: description } = (body ?? {}) as Record<string, unknown>;
-      console.error(`[mailOAuth] ${config.provider}: wymiana kodu odrzucona`, {
-        status: tokenRes.status,
-        redirectUri: redirectUri(config),
-        error: code_,
-        description: typeof description === "string" ? description.slice(0, 500) : undefined,
-      });
-      {
-        back("error=token_failed");
-        return;
-      }
-    }
-  } catch (err) {
-    console.error(`[mailOAuth] ${config.provider}: brak odpowiedzi przy wymianie kodu`, err);
-    {
-      back("error=token_failed");
-      return;
-    }
-  }
-
-  let email: string | null;
-  try {
-    const profileRes = await fetchWithTimeout(config.profileUrl, {
-      headers: { Authorization: `Bearer ${tokens.accessToken}` },
-    });
-    const profile: unknown = profileRes.ok ? await profileRes.json().catch(() => null) : null;
-    if (!profileRes.ok) console.error(`[mailOAuth] ${config.provider}: profil konta`, profileRes.status);
-    email = normalizeEmail(config.extractEmail(profile) ?? "");
-  } catch (err) {
-    console.error(`[mailOAuth] ${config.provider}: profil konta`, err);
-    email = null;
-  }
-  if (!email) {
-    back("error=profile_failed");
-    return;
-  }
+  const tokens = await exchangeCode(config, credentials, code);
+  if (!tokens) return back("error=token_failed");
+  const email = await accountEmail(config, tokens.accessToken);
+  if (!email) return back("error=profile_failed");
 
   try {
     const result = await saveMailAccount(supabase, {
@@ -223,9 +174,57 @@ export async function handleMailOAuthCallback(
   } catch (err) {
     // Np. brak klucza szyfrowania tokenów – to nie jest odmowa dostawcy.
     console.error(`[mailOAuth] ${config.provider}: zapis konta`, err);
-    {
-      back("error=save_failed");
-      return;
+    back("error=save_failed");
+  }
+}
+
+/** Wymiana kodu na tokeny; przy odmowie loguje kod i opis błędu dostawcy (bez tokenów i sekretów). */
+async function exchangeCode(
+  config: MailOAuthConfig,
+  credentials: OAuthCredentials,
+  code: string
+): Promise<TokenSet | null> {
+  try {
+    const tokenRes = await fetchWithTimeout(config.tokenUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: credentials.clientId,
+        client_secret: credentials.clientSecret,
+        code,
+        redirect_uri: redirectUri(config),
+        grant_type: "authorization_code",
+      }),
+    });
+    const body: unknown = await tokenRes.json().catch(() => null);
+    const tokens = tokenRes.ok ? parseTokenResponse(body) : null;
+    if (!tokens) {
+      const { error: providerError, error_description: description } = (body ?? {}) as Record<string, unknown>;
+      console.error(`[mailOAuth] ${config.provider}: wymiana kodu odrzucona`, {
+        status: tokenRes.status,
+        redirectUri: redirectUri(config),
+        error: providerError,
+        description: typeof description === "string" ? description.slice(0, 500) : undefined,
+      });
     }
+    return tokens;
+  } catch (err) {
+    console.error(`[mailOAuth] ${config.provider}: brak odpowiedzi przy wymianie kodu`, err);
+    return null;
+  }
+}
+
+/** Adres konta z profilu dostawcy; null, gdy nie da się go odczytać. */
+async function accountEmail(config: MailOAuthConfig, accessToken: string): Promise<string | null> {
+  try {
+    const profileRes = await fetchWithTimeout(config.profileUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!profileRes.ok) console.error(`[mailOAuth] ${config.provider}: profil konta`, profileRes.status);
+    const profile: unknown = profileRes.ok ? await profileRes.json().catch(() => null) : null;
+    return normalizeEmail(config.extractEmail(profile) ?? "") || null;
+  } catch (err) {
+    console.error(`[mailOAuth] ${config.provider}: profil konta`, err);
+    return null;
   }
 }

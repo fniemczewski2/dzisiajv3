@@ -24,7 +24,7 @@ export default function MeetingsPage() {
       <Seo
         title="Ustalanie terminów"
         description="Twórz ankiety dostępności, wysyłaj uczestnikom link – bez zakładania konta – i zapisuj wybrany termin w kalendarzu."
-        canonical="https://dzisiaj.fun/meetings"
+        canonical="https://www.dzisiaj.fun/meetings"
         keywords="ustalanie terminu, ankieta dostępności, spotkanie zespołu, planowanie spotkań"
       />
       <div className="mx-auto w-full max-w-3xl">

@@ -147,7 +147,7 @@ export default function TasksPage() {
       <Seo
         title="Zadania"
         description="Lista zadań z priorytetami, terminami i godziną wykonania. Zlecaj zadania innym osobom i synchronizuj je z listami w Slacku."
-        canonical="https://dzisiaj.fun/tasks"
+        canonical="https://www.dzisiaj.fun/tasks"
         keywords="zadania, lista to-do, projekty, priorytety, zarządzanie projektami"
       />
       <div className="mb-6 flex items-center justify-between">

@@ -8,7 +8,7 @@ export default function PrivacyPage() {
       <Seo
         title="Polityka prywatności"
         description="Polityka prywatności aplikacji Dzisiaj.Fun: jakie dane przetwarzamy, w jakim celu, komu je przekazujemy, jak długo je przechowujemy i jakie masz prawa."
-        canonical="https://dzisiaj.fun/privacy"
+        canonical="https://www.dzisiaj.fun/privacy"
         keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności, google calendar, outlook"
       />
 
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <p>
             Administratorem Twoich danych osobowych przetwarzanych w aplikacji <strong>Dzisiaj.Fun</strong> (dostępnej
             pod adresem{" "}
-            <a href="https://dzisiaj.fun" className="text-primary hover:underline">
+            <a href="https://www.dzisiaj.fun" className="text-primary hover:underline">
               dzisiaj.fun
             </a>
             {") jest "}

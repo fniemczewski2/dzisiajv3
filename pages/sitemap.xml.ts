@@ -3,7 +3,7 @@
 import { CACHE_CONTROL } from "@/config/server";
 import type { GetServerSideProps } from "next";
 
-const BASE_URL = "https://dzisiaj.fun";
+const BASE_URL = "https://www.dzisiaj.fun";
 
 const STATIC_PAGES: Array<{
   url: string;

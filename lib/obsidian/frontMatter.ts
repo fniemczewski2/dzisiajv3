@@ -7,7 +7,21 @@
 export type FrontMatterValue = string | number | boolean | null | string[];
 export type FrontMatter = Record<string, FrontMatterValue>;
 
-const KEY_RE = /^([A-Za-z_][\w-]*):\s*(.*)$/;
+const KEY_NAME = /^[A-Za-z_][\w-]*$/;
+
+/** „klucz: wartość” → [klucz, wartość]; null, gdy linia nie jest parą. */
+function keyValue(line: string): [string, string] | null {
+  const colon = line.indexOf(":");
+  if (colon <= 0) return null;
+  const key = line.slice(0, colon);
+  return KEY_NAME.test(key) ? [key, line.slice(colon + 1).trim()] : null;
+}
+
+/** „- element” → element; null, gdy linia nie jest elementem listy. */
+function listItem(line: string): string | null {
+  const t = line.trimStart();
+  return t.startsWith("- ") ? t.slice(2).trim() : null;
+}
 
 export function stringifyFrontMatter(data: FrontMatter): string {
   const lines = Object.entries(data)
@@ -38,18 +52,18 @@ export function parseFrontMatter(text: string): { data: FrontMatter; body: strin
   const data: FrontMatter = {};
   let listKey: string | null = null;
   for (const line of normalized.slice(4, end).split("\n")) {
-    const item = /^\s*-\s+(.*)$/.exec(line);
-    if (item && listKey) {
+    const item = listItem(line);
+    if (item !== null && listKey) {
       const list = (data[listKey] as string[] | null) ?? [];
-      list.push(String(parseScalar(item[1]) ?? ""));
+      list.push(String(parseScalar(item) ?? ""));
       data[listKey] = list;
       continue;
     }
-    const m = KEY_RE.exec(line);
-    if (!m) continue;
-    const value = parseScalar(m[2]);
-    data[m[1]] = value;
-    listKey = value === null ? m[1] : null;
+    const pair = keyValue(line);
+    if (!pair) continue;
+    const value = parseScalar(pair[1]);
+    data[pair[0]] = value;
+    listKey = value === null ? pair[0] : null;
   }
   // Pomijamy resztę linii zamykającej i jedną pustą linię oddzielającą nagłówek od treści.
   const afterHeader = normalized

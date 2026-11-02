@@ -47,7 +47,7 @@ export type SyncAction =
 
 /** Skrót treści (cyrb53) po normalizacji końców linii i końcowych odstępów. */
 export function contentHash(text: string): string {
-  const s = text.replaceAll("\r\n", "\n").replace(/\s+$/, "");
+  const s = text.replaceAll("\r\n", "\n").trimEnd();
   let h1 = 0xdeadbeef;
   let h2 = 0x41c6ce57;
   for (let i = 0; i < s.length; i++) {
@@ -78,47 +78,58 @@ export function planSync(
   state: readonly SyncStateRow[],
   today: string
 ): SyncAction[] {
-  const actions: SyncAction[] = [];
   const stateById = new Map(state.map((s) => [s.itemId, s]));
-  const fileById = new Map<string, RemoteFile>();
+  const { byId, imports } = indexFiles(files, stateById);
+  const actions: SyncAction[] = [...imports];
+  for (const item of app) {
+    const action = decide(item, byId.get(item.id), stateById.get(item.id), today);
+    if (action) actions.push(action);
+  }
+  // Pliki z dzisiaj_id nieobecnym w aplikacji (wpis usunięty w aplikacji) – bez działania: usunięcia nie są przenoszone.
+  return actions;
+}
 
+/** Pliki według dzisiaj_id; pliki bez identyfikatora w znanych folderach – do importu; kopie konfliktów pomijane. */
+function indexFiles(
+  files: readonly RemoteFile[],
+  stateById: Map<string, SyncStateRow>
+): { byId: Map<string, RemoteFile>; imports: SyncAction[] } {
+  const byId = new Map<string, RemoteFile>();
+  const imports: SyncAction[] = [];
   for (const file of files) {
     const identity = vaultIdentity(file.content);
     if (identity.conflictOf) continue;
-    if (identity.id) {
-      // Ten sam identyfikator w kilku plikach (np. ręczna kopia) – liczy się plik znany z poprzedniej synchronizacji.
-      const known = stateById.get(identity.id)?.fileId;
-      if (!fileById.has(identity.id) || file.fileId === known) fileById.set(identity.id, file);
+    if (!identity.id) {
+      const type = typeFromPath(file.path);
+      if (type) imports.push({ kind: "import", type, file });
       continue;
     }
-    const type = typeFromPath(file.path);
-    if (type) actions.push({ kind: "import", type, file });
+    // Ten sam identyfikator w kilku plikach (np. ręczna kopia) – liczy się plik znany z poprzedniej synchronizacji.
+    if (!byId.has(identity.id) || file.fileId === stateById.get(identity.id)?.fileId) byId.set(identity.id, file);
   }
+  return { byId, imports };
+}
 
-  for (const item of app) {
-    const file = fileById.get(item.id);
-    const st = stateById.get(item.id);
-    if (!file) {
-      actions.push({ kind: "upload", itemId: item.id, path: item.path, markdown: item.markdown, fileId: null });
-      continue;
-    }
-    const appHash = contentHash(item.markdown);
-    const remoteHash = contentHash(file.content);
-    if (!st) {
-      if (appHash === remoteHash) actions.push({ kind: "link", itemId: item.id, fileId: file.fileId });
-      else actions.push(conflict(item, file, today));
-      continue;
-    }
-    const appChanged = appHash !== st.appHash;
-    const remoteChanged = remoteHash !== st.remoteHash;
-    if (appChanged && remoteChanged) actions.push(conflict(item, file, today));
-    else if (appChanged)
-      actions.push({ kind: "upload", itemId: item.id, path: file.path, markdown: item.markdown, fileId: file.fileId });
-    else if (remoteChanged) actions.push({ kind: "updateApp", itemId: item.id, type: item.type, file });
-  }
-
-  // Pliki z dzisiaj_id nieobecnym w aplikacji (wpis usunięty w aplikacji) – bez działania: usunięcia nie są przenoszone.
-  return actions;
+function decide(
+  item: AppEntry,
+  file: RemoteFile | undefined,
+  st: SyncStateRow | undefined,
+  today: string
+): SyncAction | null {
+  if (!file) return { kind: "upload", itemId: item.id, path: item.path, markdown: item.markdown, fileId: null };
+  const appHash = contentHash(item.markdown);
+  const remoteHash = contentHash(file.content);
+  if (!st)
+    return appHash === remoteHash
+      ? { kind: "link", itemId: item.id, fileId: file.fileId }
+      : conflict(item, file, today);
+  const appChanged = appHash !== st.appHash;
+  const remoteChanged = remoteHash !== st.remoteHash;
+  if (appChanged && remoteChanged) return conflict(item, file, today);
+  if (appChanged)
+    return { kind: "upload", itemId: item.id, path: file.path, markdown: item.markdown, fileId: file.fileId };
+  if (remoteChanged) return { kind: "updateApp", itemId: item.id, type: item.type, file };
+  return null;
 }
 
 function conflict(item: AppEntry, file: RemoteFile, today: string): SyncAction {

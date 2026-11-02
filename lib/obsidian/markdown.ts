@@ -3,6 +3,7 @@
 // Notatki, przepisy, osoby i protokoły jako Markdown z nagłówkiem YAML (format Obsidiana) i z powrotem.
 // Nagłówek zawsze zawiera dzisiaj_id i dzisiaj_type – po nich synchronizacja rozpoznaje wpis.
 
+import { trimChars } from "@/lib/text";
 import type { Note } from "@/types/notes";
 import type { Recipe } from "@/types/recipes";
 import type { Person } from "@/types/people";
@@ -23,9 +24,9 @@ function sections(body: string): Record<string, string> {
   const out: Record<string, string> = {};
   let current = "";
   for (const line of body.split("\n")) {
-    const h = /^##\s+(.+?)\s*$/.exec(line);
-    if (h) {
-      current = h[1].toLowerCase();
+    const heading = /^##\s/.test(line) ? line.slice(2).trim() : "";
+    if (heading) {
+      current = heading.toLowerCase();
       out[current] = "";
     } else if (current) {
       out[current] += `${line}\n`;
@@ -38,7 +39,10 @@ function sections(body: string): Record<string, string> {
 function bullets(text: string | undefined): string[] {
   return (text ?? "")
     .split("\n")
-    .map((l) => /^\s*[-*]\s+(.*)$/.exec(l)?.[1]?.trim() ?? "")
+    .map((l) => {
+      const t = l.trimStart();
+      return t.startsWith("- ") || t.startsWith("* ") ? t.slice(2).trim() : "";
+    })
     .filter(Boolean);
 }
 
@@ -56,7 +60,7 @@ export function noteFromMarkdown(
   fallbackTitle: string
 ): Pick<Note, "title" | "items"> & { folder: string | null } {
   const { data, body } = parseFrontMatter(text);
-  const items = body.replace(/\n+$/, "").split("\n");
+  const items = trimChars(body, "\n", "end").split("\n");
   while (items.length > 0 && items[0].trim() === "") items.shift();
   return { title: str(data.title) || fallbackTitle, items, folder: optional(data.folder) };
 }
@@ -119,12 +123,30 @@ export function personFromMarkdown(text: string): Partial<Person> {
 }
 
 // --- Protokoły -----------------------------------------------------------------------
-const TASK_LINE = /^- \[[ xX]\]\s+(.+?)(?:\s+—\s+(.*?))?(?:\s+—\s+(\d{4}-\d{2}-\d{2}))?\s*$/;
+const TASK_PREFIXES = ["- [ ] ", "- [x] ", "- [X] "];
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** „- [ ] zadanie — osoba — RRRR-MM-DD” → części; osoba i data opcjonalne. */
+function parseTaskLine(line: string): ReportTask | null {
+  const prefix = TASK_PREFIXES.find((p) => line.startsWith(p));
+  if (!prefix) return null;
+  const parts = line
+    .slice(prefix.length)
+    .split("—")
+    .map((p) => p.trim());
+  const data = parts.length > 1 && ISO_DAY.test(parts.at(-1) ?? "") ? (parts.pop() as string) : "";
+  const zadanie = parts.shift() ?? "";
+  return zadanie ? { zadanie, osoba: parts.join(" — "), data } : null;
+}
+
+function taskToLine(t: ReportTask): string {
+  const osoba = t.osoba ? ` — ${t.osoba}` : "";
+  const data = t.data ? ` — ${t.data}` : "";
+  return `- [ ] ${t.zadanie}${osoba}${data}`;
+}
 
 export function reportToMarkdown(report: Report): string {
-  const tasks = report.tasks.map(
-    (t) => `- [ ] ${t.zadanie}${t.osoba ? ` — ${t.osoba}` : ""}${t.data ? ` — ${t.data}` : ""}`
-  );
+  const tasks = report.tasks.map(taskToLine);
   return `${header("report", report.id, undefined, { topic: report.topic, date: report.date, participants: report.participants })}
 ## Porządek
 ${bulletList(report.agenda)}
@@ -143,10 +165,9 @@ export function reportFromMarkdown(text: string, previous?: Pick<Report, "tasks"
   const s = sections(body);
   const tasks: ReportTask[] = (s["zadania"] ?? "")
     .split("\n")
-    .map((l) => TASK_LINE.exec(l.trim()))
-    .filter((m): m is RegExpExecArray => m !== null)
-    .map((m) => {
-      const task: ReportTask = { zadanie: m[1].trim(), osoba: (m[2] ?? "").trim(), data: m[3] ?? "" };
+    .map((l) => parseTaskLine(l.trim()))
+    .filter((t): t is ReportTask => t !== null)
+    .map((task) => {
       const match = previous?.tasks.find((p) => p.zadanie === task.zadanie && p.osoba === task.osoba);
       return match?.app_task_id ? { ...task, app_task_id: match.app_task_id } : task;
     });

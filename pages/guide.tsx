@@ -73,7 +73,7 @@ export default function GuidePage() {
       <Seo
         title="Instrukcja"
         description="Opis modułów aplikacji Dzisiaj.Fun z instrukcjami krok po kroku i wskazówkami."
-        canonical="https://dzisiaj.fun/guide"
+        canonical="https://www.dzisiaj.fun/guide"
         keywords="przewodnik, pomoc, instrukcja obsługi, tutorial, faq"
       />
       <div className="mx-auto mb-10 max-w-4xl px-1 sm:px-2">

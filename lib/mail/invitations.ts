@@ -3,6 +3,7 @@
 // Wykrywanie zaproszeń na spotkania: załącznik iCalendar (.ics), linki do konferencji
 // oraz wiadomości z zaproszeniem bez załącznika. Czysta logika, bez zależności od sieci.
 
+import { trimChars } from "@/lib/text";
 import { findDateMention } from "@/lib/mail/dateMentions";
 import type { MailAttachment } from "@/lib/mail/types";
 
@@ -32,7 +33,7 @@ export interface Invitation {
 }
 
 export function findConferenceLinks(text: string): string[] {
-  const found = [...text.matchAll(CONFERENCE_RE)].map((m) => m[0].replace(/[.,;]+$/, ""));
+  const found = [...text.matchAll(CONFERENCE_RE)].map((m) => trimChars(m[0], ".,;", "end"));
   return [...new Set(found)];
 }
 
