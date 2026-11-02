@@ -279,4 +279,23 @@ describe("POST /api/health/shortcut – rejestr tętna", () => {
     expect(res.payload.error).toContain("nr 2");
     expect(h.upserts).toHaveLength(0);
   });
+
+  it("rejestr tętna przesłany jako tekst z obiektami oddzielonymi nową linią (tak Skróty zamieniają listę) jest zapisywany", async () => {
+    const asText = `{\n  "bpm" : 63,\n  "time" : "2026-11-02T06:10:00+01:00"\n}\n{\n  "bpm" : 55,\n  "time" : "2026-11-02T06:15:00+01:00"\n}`;
+    const { req, res } = call({ date: "2026-11-02", heartRateSamples: asText });
+    await handler(req, res);
+    expect(res.statusCode).toBe(201);
+    expect((h.upserts[0].row as { bpm: number }[]).map((r) => r.bpm)).toEqual([63, 55]);
+  });
+
+  it("pomiar z datą z roku 1 jest odrzucany i nie trafia do bazy", async () => {
+    const { req, res } = call({
+      date: "2026-11-02",
+      heartRateSamples: [{ time: "0001-01-01T00:00:10+01:24", bpm: 63 }],
+    });
+    await handler(req, res);
+    expect(res.statusCode).toBe(400);
+    expect(res.payload.error).toContain("rok 2000–2100");
+    expect(h.upserts).toHaveLength(0);
+  });
 });

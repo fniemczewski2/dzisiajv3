@@ -234,3 +234,82 @@ describe("treningi – duplikaty w jednym wysłaniu", () => {
     expect(r.ok && r.workouts[0].energy_kcal).toBe(200);
   });
 });
+
+describe("listy w formacie ze Skrótów (tekst zamiast tablicy)", () => {
+  // Tak Skróty zamieniają listę słowników na tekst: obiekty JSON oddzielone nową linią.
+  const asText = `{
+  "bpm" : 63,
+  "time" : "2026-11-02T06:10:00+01:00"
+}
+{
+  "bpm" : 55,
+  "time" : "2026-11-02T06:15:00+01:00"
+}`;
+
+  it("rejestr tętna jako tekst z obiektami oddzielonymi nową linią", () => {
+    const r = parseHealthPayload({ date: "2026-11-02", heartRateSamples: asText });
+    expect(r.ok && r.heartRateSamples).toEqual([
+      { recorded_at: "2026-11-02T05:10:00.000Z", bpm: 63 },
+      { recorded_at: "2026-11-02T05:15:00.000Z", bpm: 55 },
+    ]);
+  });
+
+  it("tekst z tablicą JSON, pojedynczy obiekt i pusty tekst", () => {
+    const one = { time: "2026-11-02T06:10:00+01:00", bpm: 63 };
+    expect(parseHealthPayload({ date: "2026-11-02", heartRateSamples: JSON.stringify([one, one]) }).ok).toBe(true);
+    expect(parseHealthPayload({ date: "2026-11-02", heartRateSamples: one })).toMatchObject({
+      ok: true,
+      heartRateSamples: [{ bpm: 63 }],
+    });
+    expect(parseHealthPayload({ date: "2026-11-02", steps: 1, heartRateSamples: "" })).toMatchObject({
+      ok: true,
+      heartRateSamples: [],
+    });
+  });
+
+  it("fazy snu i treningi jako tekst z obiektami", () => {
+    const sleepText = `{ "stage" : "Głęboki", "start" : "2026-11-02T01:00:00+01:00", "end" : "2026-11-02T02:00:00+01:00" }
+{ "stage" : "REM", "start" : "2026-11-02T02:00:00+01:00", "end" : "2026-11-02T02:30:00+01:00" }`;
+    const r = parseHealthPayload({ date: "2026-11-02", sleepSegments: sleepText });
+    expect(r.ok && r.sleepSegments.map((s) => s.stage)).toEqual(["deep", "rem"]);
+    const w = parseHealthPayload({
+      date: "2026-11-02",
+      workouts: '{ "type" : "Bieg", "start" : "2026-11-02T06:00:00Z" }',
+    });
+    expect(w.ok && w.workouts).toHaveLength(1);
+  });
+
+  it("tekst, który nie jest listą obiektów, nadal daje czytelny błąd", () => {
+    expect(parseHealthPayload({ date: "2026-11-02", heartRateSamples: "nie lista" })).toEqual({
+      ok: false,
+      error: "Pole „heartRateSamples” musi być listą.",
+    });
+  });
+});
+
+describe("czas spoza lat 2000–2100 (błąd formatu daty w skrócie)", () => {
+  it("pomiar z datą z roku 1 (liczba sekund sformatowana jako data) jest odrzucany", () => {
+    expect(
+      parseHealthPayload({ date: "2026-11-02", heartRateSamples: [{ time: "0001-01-01T00:00:10+01:24", bpm: 63 }] })
+    ).toEqual({ ok: false, error: expect.stringContaining("rok 2000–2100") });
+  });
+
+  it("odcinek snu i trening z taką datą też", () => {
+    expect(
+      parseHealthPayload({
+        date: "2026-11-02",
+        sleepSegments: [{ stage: "core", start: "0001-01-01T00:00:10+01:24", end: "0001-01-01T01:00:10+01:24" }],
+      })
+    ).toEqual({ ok: false, error: expect.stringContaining("rok 2000–2100") });
+    expect(
+      parseHealthPayload({ date: "2026-11-02", workouts: [{ type: "Bieg", start: "0001-01-01T00:00:10Z" }] }).ok
+    ).toBe(false);
+  });
+
+  it("granice zakresu: 2000-01-01 przechodzi, 1999-12-31 i 2100-01-01 nie", () => {
+    const at = (time: string) => parseHealthPayload({ date: "2026-11-02", heartRateSamples: [{ time, bpm: 60 }] }).ok;
+    expect(at("2000-01-01T00:00:00Z")).toBe(true);
+    expect(at("1999-12-31T23:59:59Z")).toBe(false);
+    expect(at("2100-01-01T00:00:00Z")).toBe(false);
+  });
+});

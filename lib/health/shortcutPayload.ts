@@ -86,10 +86,32 @@ function validDate(value: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
 }
 
+/** Dane zdrowotne z lat 2000–2100; inne daty to zwykle błąd skrótu (np. liczba sekund sformatowana jako data z roku 1). */
+const MIN_INSTANT_MS = Date.UTC(2000, 0, 1);
+const MAX_INSTANT_MS = Date.UTC(2100, 0, 1);
+
 function isoInstant(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 40) return null;
   const ms = Date.parse(value);
-  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+  return Number.isNaN(ms) || ms < MIN_INSTANT_MS || ms >= MAX_INSTANT_MS ? null : new Date(ms).toISOString();
+}
+
+/**
+ * Lista ze Skrótu: tablica JSON, tekst z tablicą JSON, tekst z obiektami oddzielonymi nową linią („{…}\n{…}” – tak Skróty
+ * zamieniają listę słowników na tekst) albo pojedynczy obiekt. Pusty tekst to brak danych; inne wartości bez zmian.
+ */
+function asList(raw: unknown): unknown {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object") return [raw];
+  if (typeof raw !== "string") return raw;
+  const text = raw.trim();
+  if (text === "") return [];
+  try {
+    const parsed: unknown = JSON.parse(text.startsWith("[") ? text : `[${text.replaceAll(/}\s*{/g, "},{")}]`);
+    return Array.isArray(parsed) ? parsed : raw;
+  } catch {
+    return raw;
+  }
 }
 
 function parseWorkout(item: unknown): HealthWorkoutInput | string {
@@ -141,7 +163,7 @@ function lastByKey<T>(items: readonly T[], key: (item: T) => string): T[] {
 }
 
 function parseWorkouts(raw: unknown): HealthWorkoutInput[] | string {
-  const list = raw ?? [];
+  const list = asList(raw) ?? [];
   if (!Array.isArray(list)) return "Pole „workouts” musi być listą.";
   if (list.length > MAX_HEALTH_WORKOUTS_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_WORKOUTS_PER_SUBMIT} treningów w jednym wysłaniu.`;
@@ -157,18 +179,19 @@ function parseWorkouts(raw: unknown): HealthWorkoutInput[] | string {
 
 /** Rejestr tętna: lista { time (ISO 8601), bpm }. */
 function parseHeartRateSamples(raw: unknown): HeartRateSampleInput[] | string {
-  if (raw === undefined || raw === null) return [];
-  if (!Array.isArray(raw)) return "Pole „heartRateSamples” musi być listą.";
-  if (raw.length > MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT) {
+  const list = asList(raw);
+  if (list === undefined || list === null) return [];
+  if (!Array.isArray(list)) return "Pole „heartRateSamples” musi być listą.";
+  if (list.length > MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT} pomiarów tętna w jednym wysłaniu.`;
   }
   const samples: HeartRateSampleInput[] = [];
-  for (const [index, item] of raw.entries()) {
+  for (const [index, item] of list.entries()) {
     const sample = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     const recordedAt = isoInstant(sample.time);
     const bpm = inRange(toNumber(sample.bpm), 20, 250);
     if (!recordedAt || !bpm.ok || bpm.value === undefined) {
-      return `Niepoprawny pomiar tętna nr ${index + 1} (wymagane „time” w ISO 8601 i „bpm” 20–250).`;
+      return `Niepoprawny pomiar tętna nr ${index + 1} (wymagane „time” w ISO 8601, rok 2000–2100, i „bpm” 20–250).`;
     }
     samples.push({ recorded_at: recordedAt, bpm: bpm.value });
   }
@@ -179,13 +202,14 @@ const MAX_SLEEP_SEGMENT_MS = 24 * 3_600_000;
 
 /** Fazy snu: lista { stage, start, end }; nazwy faz jak w Apple Zdrowie (polskie i angielskie). */
 function parseSleepSegments(raw: unknown): SleepSegmentInput[] | string {
-  if (raw === undefined || raw === null) return [];
-  if (!Array.isArray(raw)) return "Pole „sleepSegments” musi być listą.";
-  if (raw.length > MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT) {
+  const list = asList(raw);
+  if (list === undefined || list === null) return [];
+  if (!Array.isArray(list)) return "Pole „sleepSegments” musi być listą.";
+  if (list.length > MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT} odcinków snu w jednym wysłaniu.`;
   }
   const segments: SleepSegmentInput[] = [];
-  for (const [index, item] of raw.entries()) {
+  for (const [index, item] of list.entries()) {
     const segment = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     const stage = normalizeSleepStage(segment.stage);
     if (!stage) {
@@ -195,7 +219,7 @@ function parseSleepSegments(raw: unknown): SleepSegmentInput[] | string {
     const start = isoInstant(segment.start);
     const end = isoInstant(segment.end);
     if (!start || !end || end <= start || Date.parse(end) - Date.parse(start) > MAX_SLEEP_SEGMENT_MS) {
-      return `Niepoprawny czas odcinka snu nr ${index + 1} („start” i „end” w ISO 8601, koniec po początku, do 24 h).`;
+      return `Niepoprawny czas odcinka snu nr ${index + 1} („start” i „end” w ISO 8601, rok 2000–2100, koniec po początku, do 24 h).`;
     }
     segments.push({ stage, started_at: start, ended_at: end });
   }
