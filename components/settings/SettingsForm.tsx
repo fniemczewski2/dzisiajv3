@@ -258,7 +258,16 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="nawyki"
         title="Nawyki i plan dnia"
         description="Nawyki i widgety na planie dnia."
-        keys={["show_habits", "custom_habits", "show_water_tracker", "show_mood_tracker", "mood_options", "daily_steps_goal"] as const}
+        keys={
+          [
+            "show_habits",
+            "custom_habits",
+            "show_water_tracker",
+            "show_mood_tracker",
+            "mood_options",
+            "daily_steps_goal",
+          ] as const
+        }
       >
         {(d, set) => (
           <>

@@ -9,6 +9,9 @@ import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 
+/** Wszystkie tabele z danymi o zdrowiu – cofnięcie zgody usuwa je wszystkie. */
+const HEALTH_TABLES = ["health_workouts", "health_daily", "health_sleep_segments", "health_heart_rate"] as const;
+
 export function useHealthConsent() {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
@@ -25,7 +28,7 @@ export function useHealthConsent() {
 
   const revoke = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
-    for (const table of ["health_workouts", "health_daily"] as const) {
+    for (const table of HEALTH_TABLES) {
       const { error } = await supabase.from(table).delete().eq("user_id", user.id);
       if (error) {
         toast.error("Nie udało się usunąć danych o zdrowiu. Zgoda nie została cofnięta.", { cause: error });

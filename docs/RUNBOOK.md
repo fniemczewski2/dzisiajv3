@@ -237,22 +237,32 @@ adres wiadomość z kodem potwierdzającym – pojawi się na liście przekierow
 
 ## Skróty iOS: dane o zdrowiu (Apple Zdrowie)
 
-Warunki: migracja `supabase/sql/2026-10-30_health_shortcuts.sql`, token skrótów (Ustawienia → Skróty) i zgoda w
-Ustawieniach → „Zdrowie ze Skrótów iOS”. Bez aktualnej zgody endpoint zwraca `403` i niczego nie zapisuje.
+Warunki: migracje `supabase/sql/2026-10-30_health_shortcuts.sql` i `supabase/sql/2026-11-03_health_tab.sql`, token
+skrótów (Ustawienia → Skróty) i zgoda w Ustawieniach → „Zdrowie ze Skrótów iOS”. Zgoda ma wersję treści
+(`HEALTH_CONSENT_VERSION`): po zmianie treści trzeba udzielić jej ponownie. Bez aktualnej zgody endpoint zwraca `403`
+i niczego nie zapisuje.
 
-`POST https://www.dzisiaj.fun/api/health/shortcut`, nagłówek z tokenem jak w pozostałych skrótach, treść JSON:
+`POST https://www.dzisiaj.fun/api/health/shortcut`, nagłówek `Authorization: Bearer <token>` (bez ręcznego
+`Content-Type`), treść JSON. Wymagane jest tylko `date`; pozostałe pola są opcjonalne i można je wysyłać osobnymi
+skrótami (pole pominięte niczego nie zmienia).
 
 ```json
 {
-  "date": "2026-10-30",
+  "date": "2026-11-02",
   "steps": 8423,
-  "heartRate": { "avg": 72, "min": 51, "max": 148, "resting": 55 },
-  "sleepMinutes": 431,
+  "sleepSegments": [
+    { "stage": "Głęboki", "start": "2026-11-01T23:05:00+01:00", "end": "2026-11-02T00:35:00+01:00" },
+    { "stage": "REM", "start": "2026-11-02T00:35:00+01:00", "end": "2026-11-02T01:10:00+01:00" }
+  ],
+  "heartRateSamples": [
+    { "time": "2026-11-02T07:10:00+01:00", "bpm": 72 },
+    { "time": "2026-11-02T07:15:00+01:00", "bpm": "75" }
+  ],
   "workouts": [
     {
       "type": "Bieg",
-      "start": "2026-10-30T07:10:00+01:00",
-      "end": "2026-10-30T07:45:00+01:00",
+      "start": "2026-11-02T07:10:00+01:00",
+      "end": "2026-11-02T07:45:00+01:00",
       "durationMinutes": 35,
       "distanceKm": "6,2",
       "energyKcal": 410,
@@ -262,11 +272,34 @@ Ustawieniach → „Zdrowie ze Skrótów iOS”. Bez aktualnej zgody endpoint zw
 }
 ```
 
-- Wymagane jest tylko `date`; pozostałe pola są opcjonalne. Pole pominięte nie zmienia zapisanej wartości, więc
-  osobne automatyzacje (np. sen rano, kroki wieczorem) nie nadpisują się.
-- Liczby mogą być tekstem z przecinkiem. Czas treningu w ISO 8601 (w Skrótach: „Formatuj datę” → ISO 8601).
-- Trening jest identyfikowany przez rodzaj i początek – ponowne wysłanie aktualizuje go zamiast duplikować.
+| Pole                        | Zasada                                                                                                                                                                                                                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `date`                      | `RRRR-MM-DD`. Dla snu: doba, czyli data przebudzenia                                                                                                                                                                                                                                                |
+| `steps`                     | Łączna liczba kroków od początku dnia. Kolejne wysłanie z tą samą datą **zastępuje** wartość (300, potem 1200 → 1200)                                                                                                                                                                               |
+| `sleepSegments`             | Odcinki faz: `stage`, `start`, `end` (ISO 8601). Faza: Głęboki, REM, Podstawowy (Rdzeń), Przebudzenie (Czuwanie), Nieokreślony (Śpi), W łóżku; także angielskie nazwy, identyfikatory HealthKit i liczby 0–5. Ponowne wysłanie tej doby **zastępuje** jej odcinki. Do 200 odcinków, odcinek do 24 h |
+| `heartRateSamples`          | Rejestr pomiarów: `time` (ISO 8601), `bpm` (20–250). Pomiar o tym samym czasie zastępuje poprzedni, pozostałe są **dodawane** (nic nie jest usuwane), więc skrót można uruchamiać wielokrotnie. Do 5000 pomiarów w jednym wysłaniu                                                                  |
+| `workouts`                  | Do 20 treningów; trening to rodzaj + początek, ponowne wysłanie aktualizuje go                                                                                                                                                                                                                      |
+| `sleepMinutes`, `heartRate` | Starsze, zbiorcze pola dnia (średnia, min, maks, spoczynkowe). Pokazywane tylko, gdy brak pełnych danych                                                                                                                                                                                            |
 
-Budowa Skrótu (nazwy akcji mogą się różnić zależnie od wersji iOS): „Znajdź próbki zdrowia” dla kroków (suma z
-dzisiaj), tętna i analizy snu → obliczenia → „Słownik” z polami jak wyżej → „Pobierz zawartość adresu URL” (POST,
-JSON, nagłówek z tokenem). Automatyzacja osobista „O określonej godzinie” (np. 23:30) wysyła dane codziennie.
+Aplikacja sama wylicza z rejestru tętna: ostatni pomiar, średnią arytmetyczną dnia, minimum i maksimum, a ze snu: czas
+snu, przebudzeń i w łóżku oraz czas w fazach. Nakładające się odcinki (np. telefon i zegarek) nie są liczone dwa razy.
+Dane są widoczne w zakładce Zdrowie (sen, tętno) i w module Trening (kroki, treningi).
+
+Budowa skrótów (nazwy akcji zależą od wersji iOS; po każdym kroku warto użyć „Pokaż wynik”):
+
+| Skrót | Akcje                                                                                                                                                                                                                                                                                                               |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sen   | „Znajdź próbki zdrowia” (Analiza snu, data zakończenia: dziś) → „Powtarzaj z każdym”: „Słownik” z `stage` (wartość próbki), `start` i `end` (daty sformatowane jako ISO 8601) → „Dodaj do zmiennej” (Odcinki) → po pętli „Słownik” `date` + `sleepSegments` = Odcinki → „Pobierz zawartość adresu URL” (POST, JSON) |
+| Tętno | „Znajdź próbki zdrowia” (Tętno, data rozpoczęcia: w ciągu ostatnich 2 godzin) → „Powtarzaj z każdym”: „Słownik” z `time` (ISO 8601) i `bpm` (liczba) → „Dodaj do zmiennej” (Pomiary) → po pętli „Słownik” `date` + `heartRateSamples` = Pomiary → „Pobierz zawartość adresu URL”                                    |
+| Kroki | „Znajdź próbki zdrowia” (Kroki, dziś) → „Oblicz statystyki” (Suma) → `steps`                                                                                                                                                                                                                                        |
+
+Pętla w Skrótach jest wolna przy setkach pozycji. Zamiast jednego wysłania całego dnia uruchamiaj skrót tętna co kilka
+godzin z oknem „ostatnie 2 godziny” – wysyłki się uzupełniają, a powtórzone pomiary są scalane.
+
+Test bez iPhone’a (PowerShell):
+
+```powershell
+$body = '{"date":"2026-11-02","heartRateSamples":[{"time":"2026-11-02T07:10:00+01:00","bpm":72}]}'
+Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/health/shortcut" `
+  -Headers @{ Authorization = "Bearer <TOKEN>" } -ContentType "application/json" -Body $body
+```

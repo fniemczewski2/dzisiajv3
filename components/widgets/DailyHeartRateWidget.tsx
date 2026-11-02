@@ -13,9 +13,9 @@ export default function DailyHeartRateWidget({ date }: Readonly<DailyHeartRateWi
   const id = useId();
   const day = date ?? getAppDate();
   const { data } = useHealthDays(day, day);
-  
+
   const heartRate = data?.[0]?.heart_rate_resting;
-  
+
   if (heartRate === undefined || heartRate === null) return null;
 
   const [minLimit, maxLimit] = HEART_RATE_LIMITS;
@@ -25,7 +25,7 @@ export default function DailyHeartRateWidget({ date }: Readonly<DailyHeartRateWi
   const barColor = isHeartRateNormal ? "bg-[var(--theme-fill)]" : "bg-warning";
 
   return (
-    <section aria-labelledby={`${id}-h`} className="widget relative overflow-hidden px-4 py-3 w-full">
+    <section aria-labelledby={`${id}-h`} className="widget relative w-full overflow-hidden px-4 py-3">
       <h2 id={`${id}-h`} className="sr-only">
         Tętno
       </h2>
@@ -35,9 +35,9 @@ export default function DailyHeartRateWidget({ date }: Readonly<DailyHeartRateWi
           {heartRate}&nbsp;bpm
         </div>
       </div>
-      
+
       {/* Pasek postępu */}
-      <div 
+      <div
         className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ease-out ${barColor}`}
         style={{ width: `${percentage}%` }}
         aria-hidden="true"

@@ -22,21 +22,14 @@ export default function DailySpendingWidget({ date }: Readonly<DailySpendingForm
 
   const selectedNames = useMemo(() => settings.daily_spending_categories ?? [], [settings.daily_spending_categories]);
   const total = dailySpending(transactions, targetDate, selectedNames, categories);
-  
-  if (loading) return null;
 
-  // Pobierz limit z ustawień (zmień nazwę klucza, jeśli w DB nazywa się inaczej)
-  const limit = settings.daily_spending_limit || 0; 
-  console.log(settings, "DailySpendingWidget - total:", total, "limit:", limit); // Debugging log
-  
-  // Oblicz procent postępu (zabezpieczenie przed dzieleniem przez 0 i przekroczeniem 100%)
+  if (loading) return null;
+  const limit = settings.daily_spending_limit || 0;
   const percentage = limit > 0 ? Math.min(100, Math.max(0, (total / limit) * 100)) : 0;
   const isOverLimit = total > limit;
 
-
   return (
-    // Dodano `relative` oraz `overflow-hidden` (aby pasek nie wychodził poza zaokrąglone rogi kontenera)
-    <section aria-labelledby={`${id}-h`} className="widget relative overflow-hidden px-4 py-3 w-full">
+    <section aria-labelledby={`${id}-h`} className="widget relative w-full overflow-hidden px-4 py-3">
       <h2 id={`${id}-h`} className="sr-only">
         Wydatki dnia
       </h2>
@@ -49,7 +42,7 @@ export default function DailySpendingWidget({ date }: Readonly<DailySpendingForm
 
       {/* Pasek postępu udający border na samym dole */}
       {limit > 0 && (
-        <div 
+        <div
           className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ease-out ${isOverLimit ? "bg-warning" : "bg-(--theme-fill)"}`}
           style={{ width: `${percentage}%` }}
           aria-hidden="true"

@@ -4,7 +4,12 @@
 // („6,2”), dlatego wartości liczbowe są normalizowane. Brak pola = brak zmiany (zapis częściowy),
 // więc osobne automatyzacje (np. sen rano, kroki wieczorem) nie nadpisują się nawzajem.
 
-import { MAX_HEALTH_WORKOUTS_PER_SUBMIT } from "@/config/limits";
+import {
+  MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT,
+  MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT,
+  MAX_HEALTH_WORKOUTS_PER_SUBMIT,
+} from "@/config/limits";
+import { normalizeSleepStage, type SleepStage } from "@/lib/health/sleepStages";
 
 export interface HealthDailyInput {
   date: string;
@@ -26,8 +31,26 @@ export interface HealthWorkoutInput {
   heart_rate_avg: number | null;
 }
 
+export interface HeartRateSampleInput {
+  recorded_at: string;
+  bpm: number;
+}
+
+export interface SleepSegmentInput {
+  stage: SleepStage;
+  started_at: string;
+  ended_at: string;
+}
+
 export type ParsedHealthPayload =
-  { ok: true; daily: HealthDailyInput; workouts: HealthWorkoutInput[] } | { ok: false; error: string };
+  | {
+      ok: true;
+      daily: HealthDailyInput;
+      workouts: HealthWorkoutInput[];
+      heartRateSamples: HeartRateSampleInput[];
+      sleepSegments: SleepSegmentInput[];
+    }
+  | { ok: false; error: string };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -112,18 +135,71 @@ function parseDaily(b: Record<string, unknown>): HealthDailyInput | string {
   return daily;
 }
 
+/** Duplikaty w jednym wysłaniu (ten sam klucz) skracamy do ostatniego – inaczej zapis zbiorczy kończy się błędem bazy. */
+function lastByKey<T>(items: readonly T[], key: (item: T) => string): T[] {
+  return [...new Map(items.map((item) => [key(item), item] as const)).values()];
+}
+
 function parseWorkouts(raw: unknown): HealthWorkoutInput[] | string {
   const list = raw ?? [];
   if (!Array.isArray(list)) return "Pole „workouts” musi być listą.";
-  if (list.length > MAX_HEALTH_WORKOUTS_PER_SUBMIT)
+  if (list.length > MAX_HEALTH_WORKOUTS_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_WORKOUTS_PER_SUBMIT} treningów w jednym wysłaniu.`;
+  }
   const workouts: HealthWorkoutInput[] = [];
   for (const item of list) {
     const parsed = parseWorkout(item);
     if (typeof parsed === "string") return parsed;
     workouts.push(parsed);
   }
-  return workouts;
+  return lastByKey(workouts, (w) => `${w.started_at}|${w.activity}`);
+}
+
+/** Rejestr tętna: lista { time (ISO 8601), bpm }. */
+function parseHeartRateSamples(raw: unknown): HeartRateSampleInput[] | string {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) return "Pole „heartRateSamples” musi być listą.";
+  if (raw.length > MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT) {
+    return `Najwyżej ${MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT} pomiarów tętna w jednym wysłaniu.`;
+  }
+  const samples: HeartRateSampleInput[] = [];
+  for (const [index, item] of raw.entries()) {
+    const sample = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    const recordedAt = isoInstant(sample.time);
+    const bpm = inRange(toNumber(sample.bpm), 20, 250);
+    if (!recordedAt || !bpm.ok || bpm.value === undefined) {
+      return `Niepoprawny pomiar tętna nr ${index + 1} (wymagane „time” w ISO 8601 i „bpm” 20–250).`;
+    }
+    samples.push({ recorded_at: recordedAt, bpm: bpm.value });
+  }
+  return lastByKey(samples, (s) => s.recorded_at);
+}
+
+const MAX_SLEEP_SEGMENT_MS = 24 * 3_600_000;
+
+/** Fazy snu: lista { stage, start, end }; nazwy faz jak w Apple Zdrowie (polskie i angielskie). */
+function parseSleepSegments(raw: unknown): SleepSegmentInput[] | string {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) return "Pole „sleepSegments” musi być listą.";
+  if (raw.length > MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT) {
+    return `Najwyżej ${MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT} odcinków snu w jednym wysłaniu.`;
+  }
+  const segments: SleepSegmentInput[] = [];
+  for (const [index, item] of raw.entries()) {
+    const segment = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    const stage = normalizeSleepStage(segment.stage);
+    if (!stage) {
+      const shown = typeof segment.stage === "string" ? segment.stage.slice(0, 40) : "brak";
+      return `Nieznana faza snu „${shown}” w odcinku nr ${index + 1}.`;
+    }
+    const start = isoInstant(segment.start);
+    const end = isoInstant(segment.end);
+    if (!start || !end || end <= start || Date.parse(end) - Date.parse(start) > MAX_SLEEP_SEGMENT_MS) {
+      return `Niepoprawny czas odcinka snu nr ${index + 1} („start” i „end” w ISO 8601, koniec po początku, do 24 h).`;
+    }
+    segments.push({ stage, started_at: start, ended_at: end });
+  }
+  return lastByKey(segments, (s) => `${s.started_at}|${s.stage}`);
 }
 
 export function parseHealthPayload(body: unknown): ParsedHealthPayload {
@@ -136,7 +212,12 @@ export function parseHealthPayload(body: unknown): ParsedHealthPayload {
   if (typeof daily === "string") return { ok: false, error: daily };
   const workouts = parseWorkouts(b.workouts);
   if (typeof workouts === "string") return { ok: false, error: workouts };
-  if (Object.keys(daily).length === 1 && workouts.length === 0)
-    return { ok: false, error: "Brak danych do zapisania." };
-  return { ok: true, daily, workouts };
+  const heartRateSamples = parseHeartRateSamples(b.heartRateSamples);
+  if (typeof heartRateSamples === "string") return { ok: false, error: heartRateSamples };
+  const sleepSegments = parseSleepSegments(b.sleepSegments);
+  if (typeof sleepSegments === "string") return { ok: false, error: sleepSegments };
+  const nothing =
+    Object.keys(daily).length === 1 && [workouts, heartRateSamples, sleepSegments].every((list) => list.length === 0);
+  if (nothing) return { ok: false, error: "Brak danych do zapisania." };
+  return { ok: true, daily, workouts, heartRateSamples, sleepSegments };
 }

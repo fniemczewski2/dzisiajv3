@@ -136,3 +136,12 @@ export const MAIL_FRAME_MIN_HEIGHT = 120;
 // --- Zdrowie (Skróty iOS) ----------------------------------------------------
 /** Treningi w jednym wysłaniu ze Skrótu. */
 export const MAX_HEALTH_WORKOUTS_PER_SUBMIT = 20;
+/** Pomiary tętna w jednym wysłaniu (Apple Watch zapisuje kilkaset pomiarów na dobę). */
+export const MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT = 5000;
+/** Odcinki faz snu w jednym wysłaniu. */
+export const MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT = 200;
+/** Rekordy pokazywane na liście naraz (kolejne po „Pokaż więcej”). */
+export const HEALTH_LIST_PAGE_SIZE = 100;
+/** Wiersze pobierane jednym zapytaniem; baza zwraca zwykle najwyżej 1000. */
+export const HEALTH_QUERY_PAGE_SIZE = 1000;
+export const HEALTH_QUERY_MAX_PAGES = 10;

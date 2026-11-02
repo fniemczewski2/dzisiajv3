@@ -11,6 +11,7 @@ import {
   Wallet,
   Settings,
   Dumbbell,
+  HeartPulse,
   ShoppingCart,
   Clapperboard,
   Pen,
@@ -780,6 +781,27 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Edycja daty startu.</K> Możesz zmienić datę startu (np. jeśli zapomnisz dodać cel od razu). Karta
         automatycznie przeliczy liczbę dni, tygodni, miesięcy i lat.
+      </>,
+    ],
+  },
+
+  {
+    id: "health",
+    title: "Zdrowie",
+    mainIcon: <HeartPulse className="h-6 w-6" />,
+    iconColorClass: "text-danger",
+    listItems: [
+      <>
+        <K>Zgoda.</K> Dane o zdrowiu przetwarzamy tylko za Twoją zgodą (Ustawienia → Zdrowie ze Skrótów iOS). Cofnięcie
+        zgody usuwa wszystkie zapisane dane.
+      </>,
+      <>
+        <K>Sen.</K> Skrót iOS przesyła fazy snu (głęboki, REM, podstawowy, przebudzenia). Aplikacja liczy czas snu,
+        przebudzeń i w łóżku oraz pokazuje przebieg nocy. Ponowne wysłanie tej samej doby zastępuje jej dane.
+      </>,
+      <>
+        <K>Tętno.</K> Skrót przesyła pełny rejestr pomiarów. Aplikacja sama wylicza ostatni pomiar, średnią, minimum i
+        maksimum dnia i pokazuje listę pomiarów. Kroki i treningi (także własne) są w module Trening.
       </>,
     ],
   },

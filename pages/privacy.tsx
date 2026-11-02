@@ -158,10 +158,10 @@ export default function PrivacyPage() {
             synchronizacji.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-            <strong>Dane o zdrowiu ze Skrótów iOS (opcjonalne):</strong> liczba kroków, tętno, czas snu i treningi
-            przesyłane przez Ciebie z Apple Zdrowie. Przetwarzamy je wyłącznie na podstawie Twojej wyraźnej zgody (art.
-            9 ust. 2 lit. a RODO), w celu wyświetlania w aplikacji. Bez zgody dane nie są przyjmowane. Cofnięcie zgody w
-            ustawieniach usuwa zapisane dane.
+            <strong>Dane o zdrowiu ze Skrótów iOS (opcjonalne):</strong> liczba kroków, pomiary tętna, fazy snu i
+            treningi przesyłane przez Ciebie z Apple Zdrowie lub wpisywane ręcznie. Przetwarzamy je wyłącznie na
+            podstawie Twojej wyraźnej zgody (art. 9 ust. 2 lit. a RODO), w celu wyświetlania w aplikacji. Bez zgody dane
+            nie są przyjmowane. Cofnięcie zgody w ustawieniach usuwa zapisane dane.
           </p>
         </Section>
 

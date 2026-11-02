@@ -14,6 +14,7 @@ import {
   ScrollText,
   Sun,
   Dumbbell,
+  HeartPulse,
   Coins,
   ChartColumnBig,
   CookingPot,
@@ -101,6 +102,7 @@ export const NAVIGATION_BUTTONS: NavigationButton[] = [
   { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy", group: "Dom i zdrowie" },
   { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy", group: "Dom i zdrowie" },
   { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening", group: "Dom i zdrowie" },
+  { path: "/health", title: "Zdrowie", icon: HeartPulse, label: "Zdrowie", group: "Dom i zdrowie" },
 
   { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda", group: "Podróże" },
   { path: "/transport", title: "Komunikacja miejska", icon: BusFront, label: "Komunikacja", group: "Podróże" },

@@ -19,6 +19,11 @@ const STORAGE_KEY = "tanstack-query";
 const NOT_PERSISTED = new Set([
   // Treść poczty: tylko w pamięci (polityka prywatności – treść wiadomości nie jest zapisywana).
   "mail",
+  // Dane o zdrowiu (art. 9 RODO): tylko w pamięci, bez zapisu w przeglądarce.
+  "health-daily",
+  "health-workouts",
+  "health-heart-rate",
+  "health-sleep",
   "nearby-departures",
   "favorite-departures",
   "station-board",

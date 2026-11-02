@@ -101,4 +101,4 @@ export const REQUIRED_CATEGORIES = [
   "Inne",
 ];
 
-export const HEART_RATE_LIMITS = [60, 100]
+export const HEART_RATE_LIMITS = [60, 100];

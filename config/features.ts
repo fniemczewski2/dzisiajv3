@@ -331,6 +331,13 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         guideId: "training",
       },
       {
+        title: "Zdrowie",
+        description: "Sen z fazami i rejestr tętna z Apple Zdrowie (Skróty iOS): wartości dnia i lista pomiarów.",
+        icon: HeartPulse,
+        path: "/health",
+        guideId: "health",
+      },
+      {
         title: "Wiadomości",
         description:
           "Czytnik RSS: wybierasz źródła (Poznań, NGO i granty, kolej, klimat, prawa człowieka, technologia) i dodajesz własne kanały.",

@@ -62,8 +62,8 @@ export default function HealthConsentSection() {
         <HeartPulse className="h-5 w-5" aria-hidden="true" /> Zdrowie ze Skrótów iOS
       </h2>
       <p className="text-sm text-text-secondary">
-        Skrót może przesyłać z Apple Zdrowie: liczbę kroków, tętno (średnie, minimalne, maksymalne, spoczynkowe), czas
-        snu i treningi. To dane dotyczące zdrowia – zapisujemy je tylko za Twoją wyraźną zgodą, wyłącznie do
+        Skrót może przesyłać z Apple Zdrowie: liczbę kroków, pomiary tętna, fazy snu i treningi. Własne treningi możesz
+        też dodawać ręcznie. To dane dotyczące zdrowia – zapisujemy je tylko za Twoją wyraźną zgodą, wyłącznie do
         wyświetlania w aplikacji. Zgodę możesz cofnąć w każdej chwili; dane zostaną wtedy usunięte.
       </p>
       {hasConsent ? (
@@ -81,8 +81,9 @@ export default function HealthConsentSection() {
           <label className="flex items-start gap-2 text-sm text-text">
             <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1" />
             <span>
-              Wyrażam zgodę na przetwarzanie moich danych dotyczących zdrowia (kroki, tętno, sen, treningi) przesyłanych
-              ze Skrótów iOS, w celu ich wyświetlania w aplikacji (art. 9 ust. 2 lit. a RODO).
+              Wyrażam zgodę na przetwarzanie moich danych dotyczących zdrowia (kroki, pomiary tętna, fazy snu, treningi)
+              przesyłanych ze Skrótów iOS lub wpisywanych przeze mnie ręcznie, w celu ich wyświetlania w aplikacji (art.
+              9 ust. 2 lit. a RODO).
             </span>
           </label>
           <SecondaryFullButton Icon={HeartPulse} onClick={() => void onGrant()} disabled={!checked || busy}>

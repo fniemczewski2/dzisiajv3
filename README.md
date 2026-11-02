@@ -37,6 +37,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Harmonogram dnia** - powtarzalne schematy dnia, które same pojawiają się w planie
 - **Czas pracy** - ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
 - **Obsidian** - synchronizacja dwukierunkowa notatek (z folderami), przepisów, osób i protokołów jako Markdown z vaultem w OneDrive (folder aplikacji) lub Google Drive
+- **Zdrowie** - sen z fazami i rejestr tętna z Apple Zdrowie (Skróty iOS): wartości dnia wyliczane w aplikacji, lista pomiarów; kroki i własne treningi w module Trening
 - **Poczta** - konta Gmail i Outlook (odczyt, wyszukiwanie, odpowiedź po potwierdzeniu, usuwanie z aplikacji lub do kosza) albo przekierowanie poczty bez dostępu do skrzynki; zadanie „Odpowiedz: temat” i wydarzenie z zaproszenia jednym przyciskiem
 
 ### 🗓️ Organizacja

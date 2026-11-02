@@ -42,3 +42,12 @@ describe("poczta nie jest utrwalana", () => {
     expect(shouldPersistQuery(query(["mail", "accounts"]))).toBe(false);
   });
 });
+
+describe("dane o zdrowiu nie są utrwalane w przeglądarce (art. 9 RODO)", () => {
+  it.each(["health-daily", "health-workouts", "health-heart-rate", "health-sleep"])(
+    "%s zostaje tylko w pamięci",
+    (key) => {
+      expect(shouldPersistQuery(q(key))).toBe(false);
+    }
+  );
+});

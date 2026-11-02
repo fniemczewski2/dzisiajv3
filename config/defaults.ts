@@ -110,7 +110,7 @@ export const VCARD_DEFAULT_COLOR_DARK = "#0A2947";
  */
 export const MOOD_CONSENT_VERSION = "2026-10-18";
 /** Wersja treści zgody na dane o zdrowiu ze Skrótów iOS; zmiana wymaga ponownej zgody. */
-export const HEALTH_CONSENT_VERSION = "2026-10-30";
+export const HEALTH_CONSENT_VERSION = "2026-11-03";
 export const MOOD_CONSENT_LEGACY_VERSION = "2026-10-18";
 
 /** Priorytet zadania, gdy źródło go nie podaje (import ze Slacka, protokoły, szybkie notatki). */

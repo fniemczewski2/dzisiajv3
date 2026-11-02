@@ -72,6 +72,20 @@ export const USER_TABLES: readonly UserTable[] = [
   { table: "health_daily", label: "Zdrowie – dane dzienne", owner: "user_id", stage: 1 },
   { table: "health_workouts", label: "Zdrowie – treningi", owner: "user_id", stage: 1 },
   {
+    table: "health_sleep_segments",
+    label: "Zdrowie – fazy snu",
+    owner: "user_id",
+    exportColumns: "id, date, stage, started_at, ended_at",
+    stage: 1,
+  },
+  {
+    table: "health_heart_rate",
+    label: "Zdrowie – pomiary tętna",
+    owner: "user_id",
+    exportColumns: "recorded_at, bpm",
+    stage: 1,
+  },
+  {
     table: "vault_connections",
     label: "Połączenie z vaultem Obsidiana",
     owner: "user_id",
