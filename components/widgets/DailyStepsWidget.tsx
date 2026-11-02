@@ -23,7 +23,7 @@ export default function DailyStepsWidget({ date }: Readonly<{ date?: string }>) 
       <div className="flex items-center justify-between gap-3">
         <Footprints className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
         <div className="text-right text-sm font-bold text-text-secondary tabular-nums sm:text-base">
-          {formatSteps(steps)} kroków
+          {formatSteps(steps)}
         </div>
       </div>
     </section>

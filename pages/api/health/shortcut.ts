@@ -59,6 +59,8 @@ async function saveHealthData(
     return;
   }
 
+  // Jeden wiersz na dzień: kolejne wysłanie z tą samą datą zastępuje przesłane pola (np. kroki 300 → 1200),
+  // bez sumowania. Skrót wysyła więc łączną wartość od początku dnia; pola pominięte pozostają bez zmian.
   if (Object.keys(daily).length > 1) {
     const { error } = await admin
       .from("health_daily")

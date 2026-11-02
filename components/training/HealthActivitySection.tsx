@@ -34,7 +34,7 @@ function DaysTable({ rows }: Readonly<{ rows: HealthDailyRow[] }>) {
               Sen
             </th>
             <th scope="col" className="py-1 text-right font-semibold">
-              Tętno spocz.
+              Tętno
             </th>
           </tr>
         </thead>

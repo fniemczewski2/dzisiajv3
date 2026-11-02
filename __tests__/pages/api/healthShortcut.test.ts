@@ -9,7 +9,7 @@ const h = vi.hoisted(() => ({
     string,
     unknown
   > | null,
-  upserts: [] as { table: string; row: unknown }[],
+  upserts: [] as { table: string; row: unknown; options?: unknown }[],
 }));
 
 vi.mock("@/lib/server/rateLimit", () => ({ enforceRateLimit: async () => true, clientIp: () => "1.1.1.1" }));
@@ -25,8 +25,8 @@ vi.mock("@/lib/server/supabaseAdmin", () => ({
   supabaseAdmin: () => ({
     from: (table: string) => ({
       select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: h.settings }) }) }),
-      upsert: async (row: unknown) => {
-        h.upserts.push({ table, row });
+      upsert: async (row: unknown, options?: unknown) => {
+        h.upserts.push({ table, row, options });
         return { error: null };
       },
     }),
@@ -103,5 +103,17 @@ describe("POST /api/health/shortcut", () => {
     expect(res.statusCode).toBe(500);
     expect(h.upserts).toHaveLength(0);
     spy.mockRestore();
+  });
+
+  it("kroki z tej samej daty nadpisują poprzednią wartość (300 o 8:00, potem 1200 → 1200, nie 1500)", async () => {
+    for (const steps of [300, 1200]) {
+      const { req, res } = call({ date: "2026-11-02", steps });
+      await handler(req, res);
+      expect(res.statusCode).toBe(201);
+    }
+    const daily = h.upserts.filter((u) => u.table === "health_daily");
+    expect(daily.map((u) => (u.row as { steps: number }).steps)).toEqual([300, 1200]);
+    // Konflikt po (user_id, date) aktualizuje wiersz; ignoreDuplicates zostawiłoby starą wartość.
+    for (const u of daily) expect(u.options).toEqual({ onConflict: "user_id,date" });
   });
 });
