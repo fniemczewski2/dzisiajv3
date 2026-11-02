@@ -31,8 +31,11 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
 
   return (
     <section aria-labelledby={`${id}-h`} className="widget px-4 py-3">
+      <h2 id={`${id}-h`} className="sr-only">
+        Wydatki dnia
+      </h2>
       <div className="flex items-center justify-between gap-3">
-        <Coins className="h-5 w-5 sm:h-6 sm:w-6" />
+        <Coins className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
         <div className="text-right text-sm font-bold text-text-secondary tabular-nums sm:text-base">
           {formatPln(total)}
         </div>

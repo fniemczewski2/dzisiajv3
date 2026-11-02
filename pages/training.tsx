@@ -5,6 +5,7 @@ import UniversalTimer from "@/components/ui/Timer";
 import { useIntervalTraining } from "@/hooks/useIntervalTraining";
 import { X, Settings2 } from "lucide-react";
 import Seo from "@/components/ui/SEO";
+import HealthActivitySection from "@/components/training/HealthActivitySection";
 
 export default function TrainingPage() {
   const [workSec, setWorkSec] = useState(30);
@@ -157,6 +158,7 @@ export default function TrainingPage() {
             </div>
           )}
         </div>
+        <HealthActivitySection />
       </div>
     </>
   );
