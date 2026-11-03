@@ -115,11 +115,13 @@ describe("useHeartRateDay", () => {
 });
 
 describe("useSleepNight", () => {
-  it("pobiera odcinki doby chronologicznie", async () => {
+  it("pobiera odcinki z oknem wokół dnia (sen kończący się tego dnia mógł zacząć się wcześniej), chronologicznie", async () => {
     h.page = () => [{ stage: "core", started_at: "a", ended_at: "b" }];
     const { result } = renderHook(() => useSleepNight("2026-11-02"), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(h.calls).toContainEqual(["health_sleep_segments", "eq", "date", "2026-11-02"]);
+    // Doba 2.11 (Warszawa): 2026-11-01T23:00Z – 2026-11-02T23:00Z, z zapasem 18 godzin z każdej strony.
+    expect(h.calls).toContainEqual(["health_sleep_segments", "gte", "ended_at", "2026-11-01T05:00:00.000Z"]);
+    expect(h.calls).toContainEqual(["health_sleep_segments", "lt", "started_at", "2026-11-03T17:00:00.000Z"]);
     expect(h.calls).toContainEqual(["health_sleep_segments", "order", "started_at", { ascending: true }]);
     expect(result.current.data).toHaveLength(1);
   });

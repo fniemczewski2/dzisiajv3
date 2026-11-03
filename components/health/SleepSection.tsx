@@ -8,12 +8,16 @@ import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { SLEEP_STAGES, SLEEP_STAGE_LABELS, type SleepStage } from "@/lib/health/sleepStages";
 import { summarizeSleep, type SleepSegment, type SleepSummary } from "@/lib/health/summary";
+import { sleepSessionsEndingOn } from "@/lib/health/sleepSessions";
 import { warsawTime } from "@/lib/health/time";
 import { formatMinutes } from "@/lib/health/format";
 import StatTile from "./StatTile";
 
 interface Props {
+  /** Odcinki z okolic dnia (z hooka useSleepNight); sny z wybranego dnia wybiera komponent. */
   segments: SleepSegment[];
+  /** Dzień (RRRR-MM-DD), dla którego pokazujemy sen: dzień przebudzenia. */
+  date: string;
   loading: boolean;
   /** Czas snu przesłany bez faz (starsze wysyłki) – pokazywany, gdy brak odcinków. */
   fallbackMinutes?: number | null;
@@ -116,24 +120,48 @@ function Timeline({ timeline }: Readonly<{ timeline: SleepSegment[] }>) {
   );
 }
 
-export default function SleepSection({ segments, loading, fallbackMinutes = null }: Readonly<Props>) {
-  const summary = useMemo(() => summarizeSleep(segments), [segments]);
+function SleepSession({ summary }: Readonly<{ summary: SleepSummary }>) {
+  return (
+    <>
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile label="Sen" value={formatMinutes(summary.asleepMinutes)} />
+        <StatTile label="Przebudzenia" value={formatMinutes(summary.awakeMinutes)} />
+        <StatTile label="Czas w łóżku" value={formatMinutes(summary.inBedMinutes)} />
+        <StatTile label="Okno snu" value={`${warsawTime(summary.startedAt)}–${warsawTime(summary.endedAt)}`} />
+      </dl>
+      <StageBreakdown summary={summary} />
+      <Timeline timeline={summary.timeline} />
+    </>
+  );
+}
+
+export default function SleepSection({ segments, date, loading, fallbackMinutes = null }: Readonly<Props>) {
+  // Sny kończące się w wybranym dniu: noc i drzemka (albo dwie noce wysłane razem) nie zlewają się w jeden sen.
+  const summaries = useMemo(
+    () =>
+      sleepSessionsEndingOn(segments, date)
+        .map((session) => summarizeSleep(session))
+        .filter((summary): summary is SleepSummary => summary !== null),
+    [segments, date]
+  );
 
   let body: React.ReactNode;
   if (loading) {
     body = <SkeletonList count={3} variant="row" />;
-  } else if (summary) {
+  } else if (summaries.length === 1) {
+    body = <SleepSession summary={summaries[0]} />;
+  } else if (summaries.length > 1) {
     body = (
-      <>
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="Sen" value={formatMinutes(summary.asleepMinutes)} />
-          <StatTile label="Przebudzenia" value={formatMinutes(summary.awakeMinutes)} />
-          <StatTile label="Czas w łóżku" value={formatMinutes(summary.inBedMinutes)} />
-          <StatTile label="Okno snu" value={`${warsawTime(summary.startedAt)}–${warsawTime(summary.endedAt)}`} />
-        </dl>
-        <StageBreakdown summary={summary} />
-        <Timeline timeline={summary.timeline} />
-      </>
+      <div className="space-y-6">
+        {summaries.map((summary, index) => (
+          <div key={summary.startedAt} className="space-y-3">
+            <h3 className="text-sm font-semibold text-text">
+              Sen {index + 1}: {warsawTime(summary.startedAt)}–{warsawTime(summary.endedAt)}
+            </h3>
+            <SleepSession summary={summary} />
+          </div>
+        ))}
+      </div>
     );
   } else if (fallbackMinutes !== null) {
     body = (
@@ -142,7 +170,7 @@ export default function SleepSection({ segments, loading, fallbackMinutes = null
       </dl>
     );
   } else {
-    body = <NoResultsState text="danych o śnie" hint="Skrót iOS nie przesłał jeszcze snu z tej doby." />;
+    body = <NoResultsState text="danych o śnie" hint="Skrót iOS nie przesłał jeszcze snu z tego dnia." />;
   }
 
   return (

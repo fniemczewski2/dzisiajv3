@@ -9,6 +9,7 @@ import { HEALTH_QUERY_MAX_PAGES, HEALTH_QUERY_PAGE_SIZE } from "@/config/limits"
 import { useAuth } from "@/providers/AuthProvider";
 import { useHealthConsent } from "@/hooks/useHealthConsent";
 import { dayBounds } from "@/lib/health/time";
+import { SLEEP_FETCH_MARGIN_MS } from "@/lib/health/sleepSessions";
 import type { HeartRateRecord, SleepSegment } from "@/lib/health/summary";
 import type { ManualWorkoutRow } from "@/lib/health/manualWorkout";
 
@@ -112,22 +113,31 @@ export function useHeartRateDay(date: string) {
   });
 }
 
-/** Odcinki snu doby (data przebudzenia), chronologicznie. */
+/**
+ * Odcinki snu wokół wybranego dnia (z zapasem, bo sen kończący się tego dnia mógł zacząć się wcześniej). Podział na sny
+ * i wybór snów z danego dnia robi lib/health/sleepSessions.ts.
+ */
 export function useSleepNight(date: string) {
   const { user, supabase } = useAuth();
   const { hasConsent } = useHealthConsent();
+  const bounds = useMemo(() => dayBounds(date), [date]);
   return useQuery({
     queryKey: ["health-sleep", user?.id ?? null, date],
-    enabled: Boolean(user && hasConsent),
-    queryFn: () =>
-      fetchAllPages<SleepSegment>((from, to) =>
+    enabled: Boolean(user && hasConsent && bounds),
+    queryFn: async (): Promise<SleepSegment[]> => {
+      if (!bounds) return [];
+      const from = new Date(Date.parse(bounds.from) - SLEEP_FETCH_MARGIN_MS).toISOString();
+      const to = new Date(Date.parse(bounds.to) + SLEEP_FETCH_MARGIN_MS).toISOString();
+      return fetchAllPages<SleepSegment>((start, end) =>
         supabase
           .from("health_sleep_segments")
           .select("stage, started_at, ended_at")
-          .eq("date", date)
+          .gte("ended_at", from)
+          .lt("started_at", to)
           .order("started_at", { ascending: true })
-          .range(from, to)
-      ),
+          .range(start, end)
+      );
+    },
   });
 }
 

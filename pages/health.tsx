@@ -41,6 +41,7 @@ export default function HealthPage() {
             <SleepSection
               key={`sleep-${date}`}
               segments={sleep.data ?? []}
+              date={date}
               loading={sleep.isLoading}
               fallbackMinutes={legacy?.sleep_minutes ?? null}
             />

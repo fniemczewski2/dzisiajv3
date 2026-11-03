@@ -39,6 +39,14 @@ vi.mock("@/lib/server/supabaseAdmin", () => ({
             filters.push([`eq:${column}`, value]);
             return query;
           },
+          gte: (column: string, value: unknown) => {
+            filters.push([`gte:${column}`, value]);
+            return query;
+          },
+          lte: (column: string, value: unknown) => {
+            filters.push([`lte:${column}`, value]);
+            return query;
+          },
           lt: async (column: string, value: unknown) => {
             filters.push([`lt:${column}`, value]);
             h.deletes.push({ table, filters });
@@ -178,23 +186,50 @@ describe("POST /api/health/shortcut – sen (fazy)", () => {
     { stage: "REM", start: "2026-11-02T00:30:00+01:00", end: "2026-11-02T01:00:00+01:00" },
   ];
 
-  it("zapisuje odcinki z datą doby, a potem usuwa starsze odcinki tej doby (wysłanie zastępuje dobę)", async () => {
+  it("odcinki są kluczowane czasem, a po zapisie usuwane są stare odcinki z tego samego przedziału czasu", async () => {
     const { req, res } = call({ date: "2026-11-02", sleepSegments: night });
     await handler(req, res);
     expect(res.statusCode).toBe(201);
     expect(h.log).toEqual(["upsert:health_sleep_segments", "delete:health_sleep_segments"]);
 
     const [{ row, options }] = h.upserts;
-    const rows = row as { user_id: string; date: string; stage: string; synced_at: string }[];
+    const rows = row as { user_id: string; stage: string; synced_at: string }[];
     expect(rows.map((r) => r.stage)).toEqual(["deep", "rem"]);
-    expect(rows.every((r) => r.user_id === "u1" && r.date === "2026-11-02")).toBe(true);
+    expect(rows.every((r) => r.user_id === "u1")).toBe(true);
     expect(new Set(rows.map((r) => r.synced_at)).size).toBe(1);
-    expect(options).toEqual({ onConflict: "user_id,date,started_at,stage" });
-    // Usuwane są tylko wiersze tej doby zapisane przed tym wysłaniem – nowe zostają.
+    expect(options).toEqual({ onConflict: "user_id,started_at,stage" });
+    // Usuwane są tylko wiersze zapisane przed tym wysłaniem, których początek mieści się w przedziale wysłanych odcinków.
     expect(h.deletes[0].filters).toEqual([
       ["eq:user_id", "u1"],
-      ["eq:date", "2026-11-02"],
+      ["gte:started_at", "2026-11-01T22:00:00.000Z"],
+      ["lte:started_at", "2026-11-01T23:30:00.000Z"],
       ["lt:synced_at", rows[0].synced_at],
+    ]);
+  });
+
+  it("ten sam sen wysłany z inną datą ma ten sam klucz (nie tworzy duplikatu)", async () => {
+    for (const date of ["2026-11-02", "2026-11-03"]) {
+      const { req, res } = call({ date, sleepSegments: night });
+      await handler(req, res);
+      expect(res.statusCode).toBe(201);
+    }
+    const [first, second] = h.upserts;
+    expect(second.options).toEqual(first.options);
+    const key = (u: typeof first) =>
+      (u.row as { started_at: string; stage: string }[]).map((r) => `${r.started_at}|${r.stage}`);
+    expect(key(second)).toEqual(key(first));
+  });
+
+  it("dwa sny w jednym wysłaniu: czyszczenie obejmuje przedział od pierwszego do ostatniego początku", async () => {
+    const two = [
+      { stage: "Podstawowy", start: "2026-11-02T00:32:00+01:00", end: "2026-11-02T02:25:00+01:00" },
+      { stage: "Nieokreślony", start: "2026-11-03T01:14:43+01:00", end: "2026-11-03T03:25:52+01:00" },
+    ];
+    const { req, res } = call({ date: "2026-11-03", sleepSegments: two });
+    await handler(req, res);
+    expect(h.deletes[0].filters.slice(1, 3)).toEqual([
+      ["gte:started_at", "2026-11-01T23:32:00.000Z"],
+      ["lte:started_at", "2026-11-03T00:14:43.000Z"],
     ]);
   });
 

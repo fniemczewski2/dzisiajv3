@@ -102,8 +102,10 @@ async function writeWorkouts(admin: SupabaseClient, userId: string, { workouts }
 }
 
 /**
- * Sen doby: najpierw zapis nowych odcinków (znacznik synced_at), potem usunięcie starszych odcinków tej doby.
- * Gdy zapis się nie uda, poprzednie dane zostają.
+ * Sen: odcinki są kluczowane czasem (użytkownik, początek, faza), więc ten sam odcinek wysłany wielokrotnie – także z
+ * inną datą – nie tworzy duplikatu. Nowe odcinki zastępują dotychczasowe z tego samego przedziału czasu (Apple Zdrowie
+ * potrafi przeklasyfikować fazy). Najpierw zapis, potem usunięcie starych – gdy zapis się nie uda, dane zostają.
+ * Podział na sny i dzień snu wyznacza aplikacja z czasu odcinków; pole `date` jest tylko informacją.
  */
 async function writeSleep(
   admin: SupabaseClient,
@@ -113,16 +115,18 @@ async function writeSleep(
   if (sleepSegments.length === 0) return null;
   const syncedAt = new Date().toISOString();
   const rows = sleepSegments.map((s) => ({ ...s, user_id: userId, date: daily.date, synced_at: syncedAt }));
-  const saved = await admin.from("health_sleep_segments").upsert(rows, { onConflict: "user_id,date,started_at,stage" });
+  const saved = await admin.from("health_sleep_segments").upsert(rows, { onConflict: "user_id,started_at,stage" });
   if (saved.error) {
     console.error("[health/shortcut] sen:", saved.error.message);
     return "Nie udało się zapisać snu.";
   }
+  const starts = sleepSegments.map((s) => s.started_at).sort((a, b) => a.localeCompare(b));
   const cleaned = await admin
     .from("health_sleep_segments")
     .delete()
     .eq("user_id", userId)
-    .eq("date", daily.date)
+    .gte("started_at", starts[0])
+    .lte("started_at", starts[starts.length - 1])
     .lt("synced_at", syncedAt);
   if (cleaned.error) console.error("[health/shortcut] sen (czyszczenie):", cleaned.error.message);
   return null;

@@ -797,7 +797,8 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Sen.</K> Skrót iOS przesyła fazy snu (głęboki, REM, podstawowy, przebudzenia). Aplikacja liczy czas snu,
-        przebudzeń i w łóżku oraz pokazuje przebieg nocy. Ponowne wysłanie tej samej doby zastępuje jej dane.
+        przebudzeń i w łóżku oraz pokazuje przebieg nocy. Sny (noc, drzemka) są rozpoznawane po przerwach w danych, więc
+        ponowne wysłanie niczego nie dubluje.
       </>,
       <>
         <K>Tętno.</K> Skrót przesyła pełny rejestr pomiarów. Aplikacja sama wylicza ostatni pomiar, średnią, minimum i

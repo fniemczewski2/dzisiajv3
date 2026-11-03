@@ -2,8 +2,9 @@
 import React, { useId } from "react";
 import { Heart } from "lucide-react";
 import { getAppDate } from "@/lib/dateUtils";
-import { useHealthDays } from "@/hooks/db/useHealthData";
+import { useHealthDays, useHeartRateDay } from "@/hooks/db/useHealthData";
 import { HEART_RATE_LIMITS } from "@/config/constants";
+import { summarizeHeartRate } from "@/lib/health/summary";
 
 interface DailyHeartRateWidgetProps {
   date?: string;
@@ -12,9 +13,8 @@ interface DailyHeartRateWidgetProps {
 export default function DailyHeartRateWidget({ date }: Readonly<DailyHeartRateWidgetProps>) {
   const id = useId();
   const day = date ?? getAppDate();
-  const { data } = useHealthDays(day, day);
-
-  const heartRate = data?.[0]?.heart_rate_resting;
+  const heart = useHeartRateDay(day);
+  const heartRate = heart?.data?.sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())?.[0]?.bpm;
 
   if (heartRate === undefined || heartRate === null) return null;
 

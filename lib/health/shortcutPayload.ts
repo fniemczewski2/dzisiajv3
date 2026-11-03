@@ -114,6 +114,13 @@ function asList(raw: unknown): unknown {
   }
 }
 
+/** Czas trwania z początku i końca (minuty), gdy Skrót go nie przesłał; null przy braku końca lub wyniku poza dobą. */
+function derivedDuration(startedAt: string, endedAt: string | null): number | null {
+  if (!endedAt) return null;
+  const minutes = Math.round((Date.parse(endedAt) - Date.parse(startedAt)) / 60_000);
+  return minutes >= 0 && minutes <= 1440 ? minutes : null;
+}
+
 function parseWorkout(item: unknown): HealthWorkoutInput | string {
   if (!item || typeof item !== "object") return "Nieprawidłowy trening.";
   const w = item as Record<string, unknown>;
@@ -131,7 +138,7 @@ function parseWorkout(item: unknown): HealthWorkoutInput | string {
     activity,
     started_at: started,
     ended_at: ended,
-    duration_minutes: duration.value ?? null,
+    duration_minutes: duration.value ?? derivedDuration(started, ended),
     distance_km: distance.value ?? null,
     energy_kcal: energy.value ?? null,
     heart_rate_avg: avgHr.value ?? null,
@@ -164,7 +171,7 @@ function lastByKey<T>(items: readonly T[], key: (item: T) => string): T[] {
 
 function parseWorkouts(raw: unknown): HealthWorkoutInput[] | string {
   const list = asList(raw) ?? [];
-  if (!Array.isArray(list)) return "Pole „workouts” musi być listą.";
+  if (!Array.isArray(list)) return notListError("workouts", raw);
   if (list.length > MAX_HEALTH_WORKOUTS_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_WORKOUTS_PER_SUBMIT} treningów w jednym wysłaniu.`;
   }
@@ -181,7 +188,7 @@ function parseWorkouts(raw: unknown): HealthWorkoutInput[] | string {
 function parseHeartRateSamples(raw: unknown): HeartRateSampleInput[] | string {
   const list = asList(raw);
   if (list === undefined || list === null) return [];
-  if (!Array.isArray(list)) return "Pole „heartRateSamples” musi być listą.";
+  if (!Array.isArray(list)) return notListError("heartRateSamples", raw);
   if (list.length > MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_HEART_RATE_SAMPLES_PER_SUBMIT} pomiarów tętna w jednym wysłaniu.`;
   }
@@ -204,7 +211,7 @@ const MAX_SLEEP_SEGMENT_MS = 24 * 3_600_000;
 function parseSleepSegments(raw: unknown): SleepSegmentInput[] | string {
   const list = asList(raw);
   if (list === undefined || list === null) return [];
-  if (!Array.isArray(list)) return "Pole „sleepSegments” musi być listą.";
+  if (!Array.isArray(list)) return notListError("sleepSegments", raw);
   if (list.length > MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT) {
     return `Najwyżej ${MAX_HEALTH_SLEEP_SEGMENTS_PER_SUBMIT} odcinków snu w jednym wysłaniu.`;
   }
@@ -224,6 +231,20 @@ function parseSleepSegments(raw: unknown): SleepSegmentInput[] | string {
     segments.push({ stage, started_at: start, ended_at: end });
   }
   return lastByKey(segments, (s) => `${s.started_at}|${s.stage}`);
+}
+
+const NON_LIST_TYPES: Record<string, string> = { number: "liczbę", boolean: "wartość logiczną" };
+
+/**
+ * Komunikat dla pola, które nie jest listą. Podaje tylko typ, długość i pierwszy znak – bez treści (dane o zdrowiu
+ * nie trafiają do odpowiedzi ani logów), a wystarcza do rozpoznania błędu w skrócie (np. wpisany tekst zamiast zmiennej).
+ */
+function notListError(field: string, raw: unknown): string {
+  const base = `Pole „${field}” musi być listą`;
+  if (typeof raw === "string") {
+    return `${base} (otrzymano tekst: ${raw.length} znaków, zaczyna się od „${raw.trim().slice(0, 1)}”, nie jest poprawnym JSON-em).`;
+  }
+  return `${base} (otrzymano ${NON_LIST_TYPES[typeof raw] ?? "nieobsługiwany typ"}).`;
 }
 
 export function parseHealthPayload(body: unknown): ParsedHealthPayload {

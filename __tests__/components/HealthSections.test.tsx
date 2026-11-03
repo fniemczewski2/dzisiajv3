@@ -86,7 +86,7 @@ describe("SleepSection", () => {
   ];
 
   it("kafelki: sen, przebudzenia, czas w łóżku i okno snu", () => {
-    render(<SleepSection segments={night} loading={false} />);
+    render(<SleepSection date="2026-11-03" segments={night} loading={false} />);
     expect(screen.getByRole("heading", { level: 2, name: "Sen" })).toBeInTheDocument();
     expect(tile("Sen")).toHaveTextContent("6 h 50 min");
     expect(tile("Przebudzenia")).toHaveTextContent("10 min");
@@ -95,7 +95,7 @@ describe("SleepSection", () => {
   });
 
   it("tabela faz: czas i udział; opis paska dla czytników ekranu", () => {
-    render(<SleepSection segments={night} loading={false} />);
+    render(<SleepSection date="2026-11-03" segments={night} loading={false} />);
     const table = screen.getByRole("table", { name: "Czas w poszczególnych fazach snu" });
     const deepRow = within(table).getByText("Sen głęboki").closest("tr") as HTMLElement;
     expect(deepRow).toHaveTextContent("1 h 30 min");
@@ -106,7 +106,7 @@ describe("SleepSection", () => {
   });
 
   it("przebieg nocy: kolejne fazy z godzinami", () => {
-    render(<SleepSection segments={night} loading={false} />);
+    render(<SleepSection date="2026-11-03" segments={night} loading={false} />);
     const timeline = screen.getByRole("table", { name: "Przebieg nocy: kolejne fazy snu" });
     const rows = within(timeline).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(5);
@@ -116,15 +116,21 @@ describe("SleepSection", () => {
   });
 
   it("nakładające się odcinki nie zawyżają czasu snu", () => {
-    render(<SleepSection segments={[seg("core", "23:00", "07:00"), seg("core", "23:00", "07:00")]} loading={false} />);
+    render(
+      <SleepSection
+        date="2026-11-03"
+        segments={[seg("core", "23:00", "07:00"), seg("core", "23:00", "07:00")]}
+        loading={false}
+      />
+    );
     expect(tile("Sen")).toHaveTextContent("8 h");
   });
 
   it("bez odcinków: czas snu z podsumowania dnia (bez faz) albo informacja o braku danych", () => {
-    const { rerender } = render(<SleepSection segments={[]} loading={false} fallbackMinutes={431} />);
+    const { rerender } = render(<SleepSection date="2026-11-03" segments={[]} loading={false} fallbackMinutes={431} />);
     expect(tile("Sen")).toHaveTextContent("7 h 11 min");
     expect(screen.getByText("Bez podziału na fazy")).toBeInTheDocument();
-    rerender(<SleepSection segments={[]} loading={false} />);
+    rerender(<SleepSection date="2026-11-03" segments={[]} loading={false} />);
     expect(screen.getByText(/Brak danych o śnie do wyświetlenia/)).toBeInTheDocument();
   });
 });
@@ -144,5 +150,75 @@ describe("HealthDateNav", () => {
     render(<HealthDateNav date="2026-11-05" today="2026-11-05" onChange={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Następny dzień" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Poprzedni dzień" })).toBeEnabled();
+  });
+});
+
+describe("SleepSection – kilka snów w danych (regresja z rzeczywistej bazy)", () => {
+  const seg = (stage: SleepSegment["stage"], from: string, to: string): SleepSegment => ({
+    stage,
+    started_at: from,
+    ended_at: to,
+  });
+  // Sen 1: zegarek, fazy, 2.11 00:32–02:25 (UTC+1). Sen 2: telefon, bez faz, 3.11 01:14–03:25.
+  const sleep1 = [
+    seg("core", "2026-11-01T23:32:00Z", "2026-11-01T23:51:36Z"),
+    seg("deep", "2026-11-01T23:51:36Z", "2026-11-01T23:59:08Z"),
+    seg("awake", "2026-11-01T23:59:08Z", "2026-11-02T00:00:09Z"),
+    seg("core", "2026-11-02T00:00:09Z", "2026-11-02T00:38:50Z"),
+    seg("rem", "2026-11-02T00:38:50Z", "2026-11-02T00:42:21Z"),
+    seg("core", "2026-11-02T00:42:21Z", "2026-11-02T01:25:34Z"),
+  ];
+  const sleep2 = [
+    seg("asleep", "2026-11-03T00:14:43Z", "2026-11-03T00:27:17Z"),
+    seg("awake", "2026-11-03T00:27:17Z", "2026-11-03T00:27:47Z"),
+    seg("asleep", "2026-11-03T00:27:47Z", "2026-11-03T01:31:36Z"),
+    seg("awake", "2026-11-03T01:31:36Z", "2026-11-03T01:35:07Z"),
+    seg("asleep", "2026-11-03T01:35:07Z", "2026-11-03T01:54:43Z"),
+    seg("awake", "2026-11-03T01:54:43Z", "2026-11-03T01:58:14Z"),
+    seg("asleep", "2026-11-03T01:58:14Z", "2026-11-03T02:13:49Z"),
+    seg("awake", "2026-11-03T02:13:49Z", "2026-11-03T02:15:19Z"),
+    seg("asleep", "2026-11-03T02:15:19Z", "2026-11-03T02:25:52Z"),
+  ];
+  const both = [...sleep1, ...sleep2];
+
+  it("3 listopada: tylko drugi sen (bez faz), bez snu z poprzedniej doby", () => {
+    render(<SleepSection date="2026-11-03" segments={both} loading={false} />);
+    expect(tile("Sen")).toHaveTextContent("2 h 2 min");
+    expect(tile("Przebudzenia")).toHaveTextContent("9 min");
+    expect(tile("Czas w łóżku")).toHaveTextContent("2 h 11 min");
+    expect(tile("Okno snu")).toHaveTextContent("01:14–03:25");
+    const table = screen.getByRole("table", { name: "Czas w poszczególnych fazach snu" });
+    expect(within(table).getByText("Sen (bez podziału na fazy)")).toBeInTheDocument();
+    expect(within(table).queryByText("Sen głęboki")).toBeNull();
+    expect(screen.queryByRole("heading", { level: 3 })).toBeNull();
+  });
+
+  it("2 listopada: tylko pierwszy sen z fazami", () => {
+    render(<SleepSection date="2026-11-02" segments={both} loading={false} />);
+    expect(tile("Sen")).toHaveTextContent("1 h 53 min");
+    expect(tile("Przebudzenia")).toHaveTextContent("1 min");
+    expect(tile("Czas w łóżku")).toHaveTextContent("1 h 54 min");
+    expect(tile("Okno snu")).toHaveTextContent("00:32–02:25");
+    expect(
+      within(screen.getByRole("table", { name: "Czas w poszczególnych fazach snu" })).getByText("Sen głęboki")
+    ).toBeInTheDocument();
+  });
+
+  it("dzień bez snu kończącego się tego dnia: informacja o braku danych", () => {
+    render(<SleepSection date="2026-11-04" segments={both} loading={false} />);
+    expect(screen.getByText(/Brak danych o śnie do wyświetlenia/)).toBeInTheDocument();
+  });
+
+  it("ten sam odcinek zapisany dwa razy (duplikat) nie zmienia wyników", () => {
+    render(<SleepSection date="2026-11-02" segments={[...both, ...sleep1]} loading={false} />);
+    expect(tile("Sen")).toHaveTextContent("1 h 53 min");
+  });
+
+  it("dwa sny kończące się tego samego dnia (noc i drzemka): osobne bloki z nagłówkami, bez sumowania", () => {
+    const nap = [seg("core", "2026-11-03T06:00:00Z", "2026-11-03T07:00:00Z")];
+    render(<SleepSection date="2026-11-03" segments={[...sleep2, ...nap]} loading={false} />);
+    expect(screen.getByRole("heading", { level: 3, name: "Sen 1: 01:14–03:25" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Sen 2: 07:00–08:00" })).toBeInTheDocument();
+    expect(screen.getAllByText("Sen", { selector: "dt" })).toHaveLength(2);
   });
 });

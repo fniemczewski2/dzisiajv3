@@ -282,7 +282,8 @@ describe("listy w formacie ze Skrótów (tekst zamiast tablicy)", () => {
   it("tekst, który nie jest listą obiektów, nadal daje czytelny błąd", () => {
     expect(parseHealthPayload({ date: "2026-11-02", heartRateSamples: "nie lista" })).toEqual({
       ok: false,
-      error: "Pole „heartRateSamples” musi być listą.",
+      error:
+        "Pole „heartRateSamples” musi być listą (otrzymano tekst: 9 znaków, zaczyna się od „n”, nie jest poprawnym JSON-em).",
     });
   });
 });
@@ -311,5 +312,61 @@ describe("czas spoza lat 2000–2100 (błąd formatu daty w skrócie)", () => {
     expect(at("2000-01-01T00:00:00Z")).toBe(true);
     expect(at("1999-12-31T23:59:59Z")).toBe(false);
     expect(at("2100-01-01T00:00:00Z")).toBe(false);
+  });
+});
+
+describe("komunikat „musi być listą” pomaga znaleźć błąd w skrócie", () => {
+  it("podaje typ, długość i pierwszy znak, ale nie treść", () => {
+    const secret = "Głęboki-tajne-dane";
+    const r = parseHealthPayload({ date: "2026-11-02", sleepSegments: `{ "stage" : "${secret}" ` });
+    expect(r).toEqual({
+      ok: false,
+      error: expect.stringContaining("Pole „sleepSegments” musi być listą (otrzymano tekst:"),
+    });
+    expect(r.ok === false && r.error).toContain("zaczyna się od „{”");
+    expect(r.ok === false && r.error).not.toContain(secret);
+  });
+
+  it("wpisana nazwa zamiast zmiennej (typowy błąd w skrócie) jest rozpoznawalna po długości i pierwszym znaku", () => {
+    expect(parseHealthPayload({ date: "2026-11-02", sleepSegments: "Odcinki" })).toEqual({
+      ok: false,
+      error:
+        "Pole „sleepSegments” musi być listą (otrzymano tekst: 7 znaków, zaczyna się od „O”, nie jest poprawnym JSON-em).",
+    });
+  });
+
+  it("liczba i wartość logiczna", () => {
+    expect(parseHealthPayload({ date: "2026-11-02", sleepSegments: 5 })).toEqual({
+      ok: false,
+      error: "Pole „sleepSegments” musi być listą (otrzymano liczbę).",
+    });
+    expect(parseHealthPayload({ date: "2026-11-02", workouts: true })).toEqual({
+      ok: false,
+      error: "Pole „workouts” musi być listą (otrzymano wartość logiczną).",
+    });
+  });
+});
+
+describe("czas trwania treningu", () => {
+  const parse = (workout: Record<string, unknown>) => {
+    const r = parseHealthPayload({
+      date: "2026-11-02",
+      workouts: [{ type: "Bieg", start: "2026-11-02T06:00:00Z", ...workout }],
+    });
+    return r.ok ? r.workouts[0].duration_minutes : "błąd";
+  };
+
+  it("bez durationMinutes liczony z początku i końca (minuty)", () => {
+    expect(parse({ end: "2026-11-02T06:35:00Z" })).toBe(35);
+    expect(parse({ end: "2026-11-02T06:00:40Z" })).toBe(1);
+  });
+
+  it("przesłany durationMinutes ma pierwszeństwo", () => {
+    expect(parse({ end: "2026-11-02T06:35:00Z", durationMinutes: 40 })).toBe(40);
+  });
+
+  it("bez końca albo z czasem dłuższym niż doba: brak wartości", () => {
+    expect(parse({})).toBeNull();
+    expect(parse({ end: "2026-11-03T08:00:00Z" })).toBeNull();
   });
 });
