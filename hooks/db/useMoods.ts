@@ -8,6 +8,7 @@ import { MoodEntry } from "@/types/moods";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
+import { cols } from "@/lib/db/columns";
 
 const NO_MOODS: MoodEntry[] = [];
 
@@ -23,7 +24,7 @@ export function useMoods(startDate?: string, endDate?: string) {
       if (!userId) throw new NotSignedInError();
       try {
         const { data, error } = await withRetry(() => {
-          let query = supabase.from("mood_entries").select("*").eq("user_id", userId);
+          let query = supabase.from("mood_entries").select(cols("mood_entries")).eq("user_id", userId);
           if (startDate) query = query.gte("date", startDate);
           if (endDate) query = query.lte("date", endDate);
           return query.abortSignal(signal);
@@ -67,7 +68,7 @@ export function useMoods(startDate?: string, endDate?: string) {
           supabase
             .from("mood_entries")
             .upsert({ user_id: userId, date, mood_id: moodId }, { onConflict: "user_id, date" })
-            .select()
+            .select(cols("mood_entries"))
             .single()
         );
 

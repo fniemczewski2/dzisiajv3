@@ -61,6 +61,12 @@ function memoryRepo(data: VaultData) {
       data.notes.push(row);
       return row;
     },
+    async insertItem(type, values) {
+      const list = { recipe: data.recipes, person: data.people, report: data.reports }[type] as { id: string }[];
+      const row = { ...values, id: `new-${type}-${list.length}`, user_id: "u" } as never;
+      list.push(row);
+      return row;
+    },
   };
   return { repo, updates, getState: () => state };
 }
@@ -141,16 +147,41 @@ describe("runVaultSync", () => {
     expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ updatedInApp: 0, uploaded: 0 });
   });
 
-  it("nowa notatka z Obsidiana: import z folderem ze ścieżki i dopisanie dzisiaj_id; nowy przepis: pominięty", async () => {
+  it("nowe pliki z Obsidiana: notatka (folder ze ścieżki), przepis, osoba i protokół są importowane i dostają dzisiaj_id", async () => {
     const vault = memoryVault();
     const { repo } = memoryRepo({ notes: [], recipes: [], people: [], reports: [] });
     vault.files.set("x1", { path: "Notatki/Fundacja/Pomysły.md", content: "pierwszy\ndrugi\n" });
     vault.files.set("x2", { path: "Przepisy/Placki.md", content: "## Składniki\n- mąka\n" });
-    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 1, skippedImports: 1 });
-    const content = vault.files.get("x1")?.content ?? "";
-    expect(content).toContain('dzisiaj_id: "new-0"');
-    expect(content).toContain('folder: "Fundacja"');
-    expect(content).toContain('title: "Pomysły"');
+    vault.files.set("x3", {
+      path: "Osoby/Jan Kowalski.md",
+      content: "---\nrelationship: kolega\npriority: 3\nbirthday: 1990-05-17\nphones:\n  - 600100200\n---\nuwagi\n",
+    });
+    vault.files.set("x4", {
+      path: "Protokoły/2026-11-01 Zebranie zarządu.md",
+      content: "## Porządek\n- punkt pierwszy\n\n## Zadania\n- [ ] Zrobić X — Anna — 2026-11-10\n\n## Notatki\nOk\n",
+    });
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 4, skippedImports: 0 });
+    const note = vault.files.get("x1")?.content ?? "";
+    expect(note).toContain('dzisiaj_id: "new-0"');
+    expect(note).toContain('folder: "Fundacja"');
+    expect(note).toContain('title: "Pomysły"');
+    expect(vault.files.get("x2")?.content).toContain('dzisiaj_id: "new-recipe-0"');
+    expect(vault.files.get("x3")?.content).toContain('dzisiaj_id: "new-person-0"');
+    expect(vault.files.get("x3")?.content).toContain('first_name: "Jan"');
+    expect(vault.files.get("x4")?.content).toContain('dzisiaj_id: "new-report-0"');
+    expect(vault.files.get("x4")?.content).toContain('topic: "Zebranie zarządu"');
+  });
+
+  it("zaimportowane pliki nie są importowane ponownie przy kolejnej synchronizacji", async () => {
+    const vault = memoryVault();
+    const d: VaultData = { notes: [], recipes: [], people: [], reports: [] };
+    const { repo } = memoryRepo(d);
+    vault.files.set("x2", { path: "Przepisy/Placki.md", content: "## Składniki\n- mąka\n" });
+    vault.files.set("x3", { path: "Osoby/Jan Kowalski.md", content: "uwagi\n" });
+    await runVaultSync(repo, vault, OPTS);
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 0, uploaded: 0, conflicts: 0 });
+    expect(d.recipes).toHaveLength(1);
+    expect(d.people).toHaveLength(1);
   });
 
   it("zmiana po obu stronach: wersja aplikacji w pliku i kopia konfliktu", async () => {

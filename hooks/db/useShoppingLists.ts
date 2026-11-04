@@ -12,8 +12,10 @@ import { MAX_SHOPPING_LISTS } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
+import { useSharedListNotifier } from "@/hooks/useSharedListNotifier";
 
 import { omit } from "@/lib/objectUtils";
+import { cols } from "@/lib/db/columns";
 function deleteQuestion(isOwner: boolean, isShared: boolean): string {
   if (!isOwner) {
     return "Czy chcesz wypisać się z tej listy? Zniknie z Twoich list, a właściciel zachowa ją u siebie.";
@@ -37,6 +39,9 @@ export function useShoppingLists() {
   const writeQueueRef = useRef<Record<string, Promise<void>>>({});
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { track: trackSharedChange } = useSharedListNotifier(supabase, (listId) =>
+    Promise.allSettled([writeQueueRef.current[listId]])
+  );
 
   const queryLists = useCallback(
     async ({ signal }: { signal: AbortSignal }): Promise<ShoppingList[]> => {
@@ -46,7 +51,7 @@ export function useShoppingLists() {
           () =>
             supabase
               .from("shopping_lists")
-              .select("*")
+              .select(cols("shopping_lists"))
               .or(ownedOrSharedFilter("user_id", "shared_with_id", userId))
               .limit(MAX_SHOPPING_LISTS)
               .abortSignal(signal),
@@ -196,6 +201,8 @@ export function useShoppingLists() {
       const current = listsRef.current.find((l) => l.id === id);
       if (!current) return;
       const next = change(current.elements);
+      // Wspólna lista: zmiana trafia do zbiorczego powiadomienia dla drugiej osoby.
+      if (current.shared_with_id) trackSharedChange(id, current.elements, next);
       listsRef.current = listsRef.current.map((l) => (l.id === id ? { ...l, elements: next } : l));
       setLists(listsRef.current);
 
@@ -214,7 +221,7 @@ export function useShoppingLists() {
       });
       writeQueueRef.current[id] = queued;
     },
-    [supabase, toast, listsRef, setLists]
+    [supabase, toast, listsRef, setLists, trackSharedChange]
   );
 
   const deleteOwnList = useCallback(

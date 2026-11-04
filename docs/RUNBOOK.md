@@ -304,3 +304,53 @@ $body = '{"date":"2026-11-02","heartRateSamples":[{"time":"2026-11-02T07:10:00+0
 Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/health/shortcut" `
   -Headers @{ Authorization = "Bearer <TOKEN>" } -ContentType "application/json" -Body $body
 ```
+
+## Ankiety w trybie zapisów
+
+Ankieta może być w trybie **zapisów**: terminy z ograniczoną liczbą miejsc (`slot_capacity`) i limitem terminów na osobę
+(`max_slots_per_person`). Uczestnik zapisuje się przez `/meet/<token>` (formularz `PublicSignupForm`), organizator widzi
+zapisy w `/meetings/<id>` (grupowanie według slotów, usuwanie zapisu, eksport CSV).
+
+Wdrożenie:
+
+1. Migracja `supabase/sql/2026-11-05_poll_signups.sql` (kolumny `mode`, `slot_capacity`, `max_slots_per_person`, tabela
+   `meeting_poll_bookings` z RLS, funkcja `book_meeting_poll_slots`) – **przed wdrożeniem kodu**: wybór kolumn w
+   `lib/db/columns.ts` i eksport konta zakładają nowe kolumny.
+2. Opcjonalnie `supabase/sql/2026-11-05_fk_indexes.sql` (indeksy wskazane przez introspekcję).
+
+Działanie i gwarancje:
+
+- Zapis wykonuje wyłącznie serwer (`pages/api/meeting-polls/public/[token]/book.ts`, rola `service_role`): walidacja
+  danych i siatki terminów, limit żądań (`pollBook`: 6 na 10 min na ankietę i IP), pułapka na boty (pole `website`),
+  wymagana zgoda (wersja zgody w `SIGNUP_CONSENT_VERSION` trafia do bazy).
+- Pojemność i limit na osobę pilnuje funkcja bazy: blokuje wiersz ankiety (`FOR UPDATE`), więc równoczesne zapisy na ostatnie
+  miejsce są serializowane; operacja jest atomowa (przy odmowie na którymkolwiek slocie nic się nie zapisuje).
+- Osoba jest rozpoznawana po e-mailu (małe litery), a bez e-maila po imieniu (małe litery). To ochrona przed
+  przypadkowym duplikatem, nie przed celowym obejściem (inne imię lub inny e-mail) – bez logowania uczestników nie da się
+  tego pewnie rozstrzygnąć; ogranicza to limit żądań, a organizator może usunąć zapis.
+- Publiczny odczyt zajętości (`.../slots`) zwraca tylko liczby zapisów na slot; imiona i e-maile widzi wyłącznie
+  organizator (RLS na `meeting_poll_bookings`). Dane uczestników nie są utrwalane w IndexedDB (`lib/queryPersister.ts`).
+- Eksport i usunięcie konta organizatora obejmują zapisy (`meeting_poll_bookings`); usunięcie ankiety kasuje je kaskadowo.
+- Eksport CSV neutralizuje komórki zaczynające się od `=`, `+`, `-`, `@` (CSV injection).
+
+Testy bazy (wymagają PostgreSQL; nie wymagają Supabase):
+
+```bash
+createdb poll_test
+psql -d poll_test -v ON_ERROR_STOP=1 -f supabase/tests/poll_signups.sql          # reguły funkcji i uprawnień
+PGDATABASE=poll_test ./supabase/tests/poll_signups_concurrency.sh               # 20 równoległych sesji, 3 miejsca
+```
+
+## Powiadomienia o zmianach wspólnej listy
+
+Dodanie i usunięcie pozycji na liście dzielonej z drugą osobą wysyła jej powiadomienie (aplikacja + push, ustawienie
+`notif_shared_lists`). Kolejne akcje jedna po drugiej są zbierane do jednego powiadomienia: klient
+(`hooks/useSharedListNotifier.ts`) czeka `SHARED_LIST_NOTIFY_DELAY_MS` (5 s) od ostatniej zmiany, scala je (pozycja dodana
+i od razu usunięta znosi się, odhaczenie nie jest zmianą) i wywołuje funkcję `notify-shared`. Zaległe zmiany są wysyłane
+także przy ukryciu karty i zamknięciu widoku.
+
+- Treść: „Dodano 3 pozycje do listy „X””, „Usunięto 2 pozycje z listy „X””, „Dodano 3 i usunięto 2 pozycje na liście „X””;
+  przy jednej zmianie – z nazwą pozycji.
+- Liczby ustala serwer ze stanu listy w bazie (dodana pozycja musi na niej być, usunięta nie może); klient nie wpłynie
+  na liczby. Odbiorca zawsze wynika z bazy (druga osoba listy).
+- Po zmianie kodu funkcji wykonaj `supabase functions deploy notify-shared`.

@@ -497,6 +497,12 @@ export const guideSections: GuideSection[] = [
         zbuduje z tego siatkę dostępności. Przycisk <em>Najbliższe 5 dni robocze</em> dodaje dni jednym kliknięciem.
       </>,
       <>
+        <K>Zapisy na terminy.</K> Przy tworzeniu wybierz rodzaj <em>Zapisy na terminy</em>, ustaw liczbę miejsc w jednym
+        terminie i limit terminów na osobę. Uczestnicy (także bez konta) widzą wolne miejsca i zapisują się podając
+        imię, opcjonalnie e-mail oraz zgodę na przetwarzanie danych. W widoku ankiety widzisz zapisy pogrupowane według
+        terminów, możesz usunąć zapis (zwalnia miejsce) i pobrać listę jako plik CSV.
+      </>,
+      <>
         <K>Lista ankiet.</K> Ankiety są podzielone na otwarte i zamknięte, a przy każdej widać liczbę odpowiedzi, liczbę
         dni i termin zamknięcia. Zamkniętą ankietę możesz otworzyć ponownie.
       </>,

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
 import type { Task } from "@/types/tasks";
+import { cols } from "@/lib/db/columns";
 
 export const RECURRING_TASKS_KEY = "recurring-tasks";
 
@@ -18,7 +19,7 @@ export function useRecurringTasks() {
     queryFn: async (): Promise<Task[]> => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("*")
+        .select(cols("tasks"))
         .or(ownedOrSharedFilter("user_id", "for_user_id", userId as string))
         .eq("is_recurring", true)
         .order("title", { ascending: true });

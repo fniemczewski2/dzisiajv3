@@ -139,7 +139,7 @@ describe("HealthDateNav", () => {
   it("pokazuje dzień po polsku i przełącza o jeden dzień", () => {
     const onChange = vi.fn();
     render(<HealthDateNav date="2026-11-02" today="2026-11-05" onChange={onChange} />);
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("poniedziałek, 2 listopada 2026");
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("poniedziałek, 2 lis");
     fireEvent.click(screen.getByRole("button", { name: "Poprzedni dzień" }));
     expect(onChange).toHaveBeenLastCalledWith("2026-11-01");
     fireEvent.click(screen.getByRole("button", { name: "Następny dzień" }));

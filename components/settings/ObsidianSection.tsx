@@ -50,7 +50,7 @@ function describeSummary(s: Summary): string {
     `zaimportowano ${s.imported}`,
     `konflikty ${s.conflicts}`,
   ];
-  if (s.skippedImports > 0) parts.push(`pominięte nowe pliki (poza notatkami) ${s.skippedImports}`);
+  if (s.skippedImports > 0) parts.push(`pominięte pliki ${s.skippedImports}`);
   return `Synchronizacja zakończona: ${parts.join(", ")}.`;
 }
 

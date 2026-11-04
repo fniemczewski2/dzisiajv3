@@ -15,7 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseHealthPayload, type ParsedHealthPayload } from "@/lib/health/shortcutPayload";
 
 /**
- * Normalizacja payloadu. Zabezpiecza przed zachowaniem Skrótów iOS, 
+ * Normalizacja payloadu. Zabezpiecza przed zachowaniem Skrótów iOS,
  * które potrafią przesyłać zagnieżdżone listy (np. z akcji "Tekst") jako zwykłe stringi.
  */
 function jsonBody(body: unknown): unknown {
@@ -34,7 +34,7 @@ function jsonBody(body: unknown): unknown {
   if (parsedBody && typeof parsedBody === "object") {
     const obj = parsedBody as Record<string, unknown>;
     const arrayFields = ["sleepSegments", "heartRateSamples", "workouts"];
-    
+
     for (const field of arrayFields) {
       if (typeof obj[field] === "string") {
         try {

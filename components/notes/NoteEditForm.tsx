@@ -9,6 +9,7 @@ import NoteColorPicker from "@/components/notes/NoteColorPicker";
 import NoteFormatToolbar from "./NoteFormatToolbar";
 import { normalizeNoteLine } from "@/lib/notesUtils";
 import { handleListContinuation } from "@/lib/noteEditing";
+import { MAX_FOLDER_LENGTH, normalizeFolder } from "@/lib/notes/folders";
 
 interface NoteEditFormProps {
   note: Note;
@@ -16,9 +17,18 @@ interface NoteEditFormProps {
   onCancel: () => void;
   onChange: (note: Note) => void;
   loading: boolean;
+  /** Istniejące foldery – podpowiedzi w polu folderu. */
+  folders?: string[];
 }
 
-export default function NoteEditForm({ note, onSave, onCancel, onChange, loading }: Readonly<NoteEditFormProps>) {
+export default function NoteEditForm({
+  note,
+  onSave,
+  onCancel,
+  onChange,
+  loading,
+  folders = [],
+}: Readonly<NoteEditFormProps>) {
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,13 +38,13 @@ export default function NoteEditForm({ note, onSave, onCancel, onChange, loading
 
   const handleSave = () => {
     if (!itemsRef.current) {
-      onSave(note);
+      onSave({ ...note, folder: normalizeFolder(note.folder) });
       return;
     }
 
     const normalizedItems = itemsRef.current.value.split("\n").map(normalizeNoteLine).filter(Boolean);
 
-    onSave({ ...note, items: normalizedItems });
+    onSave({ ...note, items: normalizedItems, folder: normalizeFolder(note.folder) });
   };
 
   const handleTextareaKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -64,6 +74,29 @@ export default function NoteEditForm({ note, onSave, onCancel, onChange, loading
             onChange={(e) => onChange({ ...note, title: e.target.value })}
             className="input-field bg-card/60 font-medium"
           />
+        </div>
+        <div>
+          <label className="form-label" htmlFor="edit-folder">
+            Folder (opcjonalnie):
+          </label>
+          <input
+            id="edit-folder"
+            type="text"
+            list="note-folders-edit"
+            maxLength={MAX_FOLDER_LENGTH}
+            value={note.folder ?? ""}
+            onChange={(e) => onChange({ ...note, folder: e.target.value })}
+            placeholder="np. Fundacje/Zapłon"
+            className="input-field bg-card/60"
+            disabled={loading}
+          />
+          <datalist id="note-folders-edit">
+            {folders.map((folder) => (
+              <option key={folder} value={folder}>
+                {folder}
+              </option>
+            ))}
+          </datalist>
         </div>
         <div>
           <label className="form-label" htmlFor="desc">

@@ -18,6 +18,7 @@ import { UNDO_WINDOW_MS } from "@/config/timing";
 import { enqueueInsert, isOffline } from "@/lib/offlineQueue";
 
 import { omit } from "@/lib/objectUtils";
+import { cols } from "@/lib/db/columns";
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {
     case "due_date":
@@ -111,7 +112,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         const { data, error: queryError } = await withRetry(() => {
           let query = supabase
             .from("tasks")
-            .select("*")
+            .select(cols("tasks"))
             .or(ownedOrSharedFilter("user_id", "for_user_id", userId));
           if (dateFrom) query = query.gte("due_date", dateFrom);
           if (dateTo) query = query.lte("due_date", dateTo);
@@ -184,7 +185,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
               for_user_id: finalForUserId,
               due_date: formatDate(taskData.due_date),
             })
-            .select()
+            .select(cols("tasks"))
             .single()
         );
         if (error) throw error;
@@ -411,7 +412,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
       try {
         const { data, error } = await withRetry(() =>
-          supabase.from("tasks").update({ due_date: newDate }).eq("id", taskId).select().single()
+          supabase.from("tasks").update({ due_date: newDate }).eq("id", taskId).select(cols("tasks")).single()
         );
         if (error) throw error;
         toast.success("Zmieniono termin zadania");

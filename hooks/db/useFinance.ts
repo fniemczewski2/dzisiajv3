@@ -17,6 +17,7 @@ import type { BudgetCategory } from "@/types/bills";
 import { type FinanceProfile, type NewTransaction, type RecurringBill, type Transaction } from "@/types/finance";
 
 import { BILL_TASK_CATEGORY, billTaskTitle } from "@/shared/bills";
+import { cols } from "@/lib/db/columns";
 
 // --- Profile ----------------------------------------------------------------------
 
@@ -32,7 +33,7 @@ export function useFinanceProfiles() {
     async ({ signal }: { signal: AbortSignal }): Promise<FinanceProfile[]> => {
       const { data, error } = await supabase
         .from("finance_profiles")
-        .select("*")
+        .select(cols("finance_profiles"))
         .eq("user_id", userId as string)
         .order("sort_order", { ascending: true })
         .abortSignal(signal);
@@ -58,7 +59,7 @@ export function useFinanceProfiles() {
       const { data, error } = await supabase
         .from("finance_profiles")
         .insert({ user_id: userId, name: name.trim().slice(0, 40), color, sort_order: profiles.length })
-        .select()
+        .select(cols("finance_profiles"))
         .single();
       if (error) {
         toast.error(error.code === "23514" ? error.message : "Nie udało się dodać profilu.");
@@ -117,7 +118,7 @@ export function useRecurringBills() {
     async ({ signal }: { signal: AbortSignal }): Promise<RecurringBill[]> => {
       const { data, error } = await supabase
         .from("recurring_bills")
-        .select("*")
+        .select(cols("recurring_bills"))
         .eq("user_id", userId as string)
         .order("name", { ascending: true })
         .abortSignal(signal);
@@ -181,11 +182,11 @@ export function useRecurringBills() {
         updated_at: new Date().toISOString(),
       };
       const query = bill.id
-        ? supabase.from("recurring_bills").update(row).eq("id", bill.id).select().single()
+        ? supabase.from("recurring_bills").update(row).eq("id", bill.id).select(cols("recurring_bills")).single()
         : supabase
             .from("recurring_bills")
             .insert({ ...row, user_id: userId })
-            .select()
+            .select(cols("recurring_bills"))
             .single();
       const { data, error } = await query;
       if (error || !data) {
@@ -243,7 +244,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
           () =>
             supabase
               .from("transactions")
-              .select("*")
+              .select(cols("transactions"))
               .eq("user_id", userId as string)
               .gte("date", from)
               .lte("date", to)
@@ -285,7 +286,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
     const since = format(addMonths(parseISO(getAppDate()), -FINANCE_HISTORY_MONTHS), "yyyy-MM-dd");
     const { data } = await supabase
       .from("transactions")
-      .select("*")
+      .select(cols("transactions"))
       .eq("user_id", userId)
       .gte("date", since)
       .or("category_id.not.is.null,recurring_bill_id.not.is.null")
@@ -334,7 +335,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
       const { data, error } = await supabase
         .from("transactions")
         .insert({ ...tx, user_id: userId, description: tx.description.trim().slice(0, 300) })
-        .select()
+        .select(cols("transactions"))
         .single();
       if (error || !data) {
         toast.error("Nie udało się dodać transakcji.");

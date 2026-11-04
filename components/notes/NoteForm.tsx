@@ -1,11 +1,12 @@
 // components/notes/NoteForm.tsx
 
 import { DEFAULT_NOTE_COLOR } from "@/config/noteColors";
-import React, { useRef, useState, SyntheticEvent, KeyboardEvent } from "react";
+import React, { useMemo, useRef, useState, SyntheticEvent, KeyboardEvent } from "react";
 import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
 import { useAuth } from "@/providers/AuthProvider";
 import { FormButtons } from "@/components/ui/CommonButtons";
+import { folderOptions, MAX_FOLDER_LENGTH, normalizeFolder } from "@/lib/notes/folders";
 import NoteColorPicker from "@/components/notes/NoteColorPicker";
 import NoteFormatToolbar from "./NoteFormatToolbar";
 import { normalizeNoteLine } from "@/lib/notesUtils";
@@ -17,10 +18,12 @@ interface NoteFormProps {
 }
 
 export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>) {
-  const { addNote, loading } = useNotes();
+  const { addNote, loading, notes } = useNotes();
+  const folders = useMemo(() => folderOptions(notes), [notes]);
   const { user } = useAuth();
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
+  const folderRef = useRef<HTMLInputElement>(null);
   const [bgColor, setBgColor] = useState(DEFAULT_NOTE_COLOR);
 
   const handleTextareaKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -40,6 +43,7 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
       title,
       items,
       bg_color: bgColor,
+      folder: normalizeFolder(folderRef.current?.value),
     } as Note;
 
     await addNote(payload);
@@ -79,6 +83,28 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
           required
           disabled={loading}
         />
+      </div>
+      <div>
+        <label className="form-label" htmlFor="folder">
+          Folder (opcjonalnie):
+        </label>
+        <input
+          id="folder"
+          ref={folderRef}
+          type="text"
+          list="note-folders"
+          maxLength={MAX_FOLDER_LENGTH}
+          placeholder="np. Fundacje/Zapłon"
+          className="input-field"
+          disabled={loading}
+        />
+        <datalist id="note-folders">
+          {folders.map((folder) => (
+            <option key={folder} value={folder}>
+              {folder}
+            </option>
+          ))}
+        </datalist>
       </div>
       <NoteColorPicker value={bgColor} onChange={setBgColor} disabled={loading} />
       <FormButtons onClickClose={onCancel} loading={loading} />

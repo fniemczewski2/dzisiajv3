@@ -55,12 +55,24 @@ function clip(value: string): string {
   return clean.length > MAX_SHARED_NOTIFY_TEXT ? `${clean.slice(0, MAX_SHARED_NOTIFY_TEXT - 1)}…` : clean;
 }
 
+/** Zmiana na liście zgłoszona przez klienta: etykiety dodanych i usuniętych pozycji (do weryfikacji po stronie serwera). */
+export interface ListChangeRequest {
+  added: string[];
+  removed: string[];
+}
+
+/** Zmiana potwierdzona danymi z bazy: liczby pozycji i – gdy zmieniono dokładnie jedną – jej etykieta. */
+export interface ListChangeSummary {
+  added: number;
+  removed: number;
+  label?: string;
+}
+
 /** Ustala odbiorcę; zwraca powód odmowy, gdy nadawca nie ma prawa powiadomić kogoś o tym wierszu. */
 export function resolveRecipient(
   kind: SharedKind,
   row: TaskRow | EventRow | ListRow,
-  senderId: string,
-  itemLabel?: string
+  senderId: string
 ): RecipientDecision {
   if (kind === "task") {
     const t = row as TaskRow;
@@ -83,16 +95,61 @@ export function resolveRecipient(
   else if (l.shared_with_id === senderId) recipientId = l.user_id;
   else return { ok: false, reason: "not_member" };
   if (recipientId === senderId) return { ok: false, reason: "no_recipient" };
-  if (!itemLabel || !l.elements.some((el) => el?.text === itemLabel)) {
-    return { ok: false, reason: "item_not_found" };
-  }
   return { ok: true, recipientId };
+}
+
+/**
+ * Liczby zmian potwierdzone stanem listy w bazie, nie deklaracją klienta: dodana pozycja musi być na liście,
+ * usunięta nie może na niej być. Pozycje bez pokrycia są pomijane, więc klient nie wyprodukuje fałszywych liczb
+ * (a pozycja usunięta w międzyczasie przez drugą osobę nie zawyża powiadomienia).
+ */
+export function summarizeListChange(row: ListRow, request: ListChangeRequest): ListChangeSummary {
+  const present = new Set(row.elements.map((el) => el?.text).filter((t): t is string => typeof t === "string"));
+  const added = request.added.filter((label) => present.has(label));
+  const removed = request.removed.filter((label) => !present.has(label));
+  const total = added.length + removed.length;
+  const single = total === 1 ? (added[0] ?? removed[0]) : undefined;
+  return { added: added.length, removed: removed.length, ...(single ? { label: single } : {}) };
+}
+
+/** „pozycję” (1), „pozycje” (2–4, poza 12–14), „pozycji” (pozostałe). */
+export function pozycjaForm(n: number): string {
+  if (n === 1) return "pozycję";
+  const lastTwo = n % 100;
+  const last = n % 10;
+  return last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? "pozycje" : "pozycji";
+}
+
+/** Tytuł i treść powiadomienia o zmianie listy: jedna pozycja z nazwą, kilka – zbiorczo z liczbami. */
+export function listChangeText(listName: string, change: ListChangeSummary): { title: string; message: string } {
+  const list = `„${listName || "Lista"}”`;
+  const { added, removed, label } = change;
+  if (added > 0 && removed === 0) {
+    return {
+      title: added === 1 ? "Nowa pozycja na wspólnej liście" : "Nowe pozycje na wspólnej liście",
+      message: clip(
+        label ? `Dodano „${label}” do listy ${list}` : `Dodano ${added} ${pozycjaForm(added)} do listy ${list}`
+      ),
+    };
+  }
+  if (removed > 0 && added === 0) {
+    return {
+      title: "Zmiany na wspólnej liście",
+      message: clip(
+        label ? `Usunięto „${label}” z listy ${list}` : `Usunięto ${removed} ${pozycjaForm(removed)} z listy ${list}`
+      ),
+    };
+  }
+  return {
+    title: "Zmiany na wspólnej liście",
+    message: clip(`Dodano ${added} i usunięto ${removed} ${pozycjaForm(removed)} na liście ${list}`),
+  };
 }
 
 export function notificationText(
   kind: SharedKind,
   row: TaskRow | EventRow | ListRow,
-  itemLabel?: string
+  change?: ListChangeSummary
 ): { title: string; message: string } {
   if (kind === "task") {
     return { title: "Nowe zadanie dla Ciebie", message: clip((row as TaskRow).title || "Zadanie bez tytułu") };
@@ -103,9 +160,5 @@ export function notificationText(
       message: clip((row as EventRow).title || "Wydarzenie bez tytułu"),
     };
   }
-  const l = row as ListRow;
-  return {
-    title: "Nowa pozycja na wspólnej liście",
-    message: clip(`Dodano „${itemLabel ?? ""}” do listy „${l.name || "Lista"}”`),
-  };
+  return listChangeText((row as ListRow).name, change ?? { added: 1, removed: 0 });
 }

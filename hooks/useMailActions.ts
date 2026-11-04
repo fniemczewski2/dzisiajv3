@@ -23,10 +23,9 @@ export function useMailActions(deps: {
   account: MailAccount | null;
   inbox: InboxItem[];
   open: { accountId: string; id: string } | null;
-  openId: string | null;
   setOpen: (value: { accountId: string; id: string } | null) => void;
 }) {
-  const { client, cache, toast, accounts, account, inbox, open, openId, setOpen } = deps;
+  const { client, cache, toast, accounts, account: selected, inbox, open, setOpen } = deps;
   const [busy, setBusy] = useState(false);
 
   const run = async (action: () => Promise<void>, failure: string) => {
@@ -57,7 +56,9 @@ export function useMailActions(deps: {
     }, "Nie udało się odłączyć konta.");
   };
 
-  const deleteMessage = async (message: Pick<MailMessageSummary, "id" | "subject">) => {
+  /** Usuwa wiadomość z konta wskazanego jawnie (widok wspólny) albo z wybranego konta. */
+  const deleteMessage = async (message: Pick<MailMessageSummary, "id" | "subject">, target?: MailAccount) => {
+    const account = target ?? selected;
     if (!account) return;
     const mode = await askDeleteMode(toast.confirm, {
       subject: message.subject,
@@ -71,7 +72,7 @@ export function useMailActions(deps: {
         list?.filter((m) => m.id !== message.id)
       );
       cache.removeQueries({ queryKey: MAIL_KEYS.message(account.id, message.id) });
-      if (openId === message.id) setOpen(null);
+      if (open?.accountId === account.id && open.id === message.id) setOpen(null);
       const providerName = account.provider === "gmail" ? "Gmailu" : "Outlooku";
       toast.success(
         mode === "mailbox"

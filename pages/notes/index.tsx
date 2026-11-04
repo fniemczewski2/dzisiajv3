@@ -6,7 +6,8 @@ import { Clapperboard } from "lucide-react";
 import { useNotes } from "@/hooks/db/useNotes";
 import NoteList from "@/components/notes/NoteList";
 import { useRouter } from "next/router";
-import { AddButton } from "@/components/ui/CommonButtons";
+import { AddButton, DownloadButton } from "@/components/ui/CommonButtons";
+import { downloadAllNotesMarkdown } from "@/lib/notes/export";
 import { useQuickAction } from "@/hooks/useQuickAction";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
@@ -46,7 +47,12 @@ export default function NotesPage() {
           </div>
         </div>
 
-        {!showForm && <AddButton onClick={openNew} />}
+        {!showForm && (
+          <div className="flex items-center gap-2">
+            {notes.length > 0 && <DownloadButton onClick={() => downloadAllNotesMarkdown(notes)} fileFormat=".md" />}
+            <AddButton onClick={openNew} />
+          </div>
+        )}
       </div>
 
       {showForm && (

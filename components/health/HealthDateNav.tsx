@@ -19,29 +19,34 @@ const NAV_BUTTON =
   "rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-40 sm:p-2.5";
 
 export default function HealthDateNav({ date, today, onChange }: Readonly<Props>) {
-  const label = format(new Date(`${date}T12:00:00`), "eeee, d MMMM yyyy", { locale: pl });
   return (
-    <nav className="card flex items-center p-1 shadow-sm" aria-label="Wybór dnia">
+    <div className="card flex w-full items-center p-1 hover:shadow-sm">
       <button
-        type="button"
         onClick={() => onChange(addDaysToDate(date, -1))}
+        type="button"
         className={NAV_BUTTON}
         title="Poprzedni dzień"
         aria-label="Poprzedni dzień"
       >
-        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+        <ChevronLeft aria-hidden="true" className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
-      <h2 className="period-title first-letter:uppercase">{label}</h2>
+
+      <div className="flex flex-1 flex-col items-center">
+        <h2 className="page-title text-center first-letter:uppercase" aria-live="polite">
+          {format(date, "eeee, d\u00A0MMM", { locale: pl })}
+        </h2>
+      </div>
+
       <button
-        type="button"
         onClick={() => onChange(addDaysToDate(date, 1))}
-        disabled={date >= today}
+        type="button"
         className={NAV_BUTTON}
+        disabled={date >= today}
         title="Następny dzień"
         aria-label="Następny dzień"
       >
-        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+        <ChevronRight aria-hidden="true" className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
-    </nav>
+    </div>
   );
 }

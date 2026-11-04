@@ -15,6 +15,9 @@ const poll: PublicMeetingPoll = {
   dates: ["2026-10-27", "2026-10-28"],
   status: "open",
   show_results_to_respondents: true,
+  mode: "availability",
+  slot_capacity: 1,
+  max_slots_per_person: 1,
 };
 
 describe("RespondentResultsGrid", () => {

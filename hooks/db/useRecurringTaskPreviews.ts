@@ -10,6 +10,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import type { Task } from "@/types/tasks";
 import { getAppDate } from "@/lib/dateUtils";
 import { projectTaskOccurrences } from "@/lib/taskOccurrences";
+import { cols } from "@/lib/db/columns";
 
 export function useRecurringTaskPreviews(from: string, to: string, refreshKey?: unknown) {
   const { user, supabase } = useAuth();
@@ -22,7 +23,7 @@ export function useRecurringTaskPreviews(from: string, to: string, refreshKey?: 
     void (async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("*")
+        .select(cols("tasks"))
         .or(ownedOrSharedFilter("user_id", "for_user_id", userId))
         .eq("is_recurring", true);
       if (!cancelled && !error) setTasks((data ?? []) as Task[]);

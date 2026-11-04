@@ -90,7 +90,7 @@ export default function NotificationPreferences() {
     {
       key: "notif_shared_lists",
       label: "Wspólne listy zakupów",
-      description: "Gdy ktoś doda pozycję do listy, którą dzielisz",
+      description: "Gdy ktoś doda lub usunie pozycje na liście, którą dzielisz (zbiorczo)",
       icon: ShoppingCart,
     },
     {

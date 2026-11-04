@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptToken } from "@/lib/server/tokenCrypto";
 import { DEFAULT_SLACK_IMPORT_CATEGORY, LEGACY_SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { ColumnMap, SyncTarget, TaskRow } from "./types";
+import { cols } from "@/lib/db/columns";
 
 interface SlackListRow {
   user_id: string;
@@ -19,7 +20,7 @@ interface SlackListRow {
 
 export async function loadTargets(admin: SupabaseClient, userId?: string): Promise<SyncTarget[]> {
   // „*”: kolumna import_category dochodzi migracją 1.40 – bez niej sync nadal działa.
-  let listQuery = admin.from("slack_lists").select("*");
+  let listQuery = admin.from("slack_lists").select(cols("slack_lists"));
   if (userId) listQuery = listQuery.eq("user_id", userId);
 
   const { data: listData, error: listError } = await listQuery;

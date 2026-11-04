@@ -4,8 +4,8 @@
 // Klucze zaczynają się od "mail" – lib/queryPersister nie zapisuje ich w IndexedDB (treść tylko w pamięci).
 
 import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createMailClient } from "@/lib/mail/client";
+import { useQueries, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import { createMailClient, type MailAccount, type MailMessageSummary } from "@/lib/mail/client";
 
 export const MAIL_KEYS = {
   all: ["mail"] as const,
@@ -37,6 +37,30 @@ export function useMailMessages(accountId: string | null, query: string) {
     queryFn: () => client.listMessages(accountId as string, query),
     enabled: Boolean(accountId),
     staleTime: LIST_STALE_MS,
+  });
+}
+
+/** Złączony wynik zapytań o listy wiadomości kilku kont (stała funkcja – wynik stabilny między renderami). */
+function combineAccountMessages(results: UseQueryResult<MailMessageSummary[]>[]) {
+  return {
+    data: results.map((r) => r.data),
+    isLoading: results.some((r) => r.isLoading),
+    isFetching: results.some((r) => r.isFetching),
+    error: results.find((r) => r.error)?.error ?? null,
+  };
+}
+
+/** Listy wiadomości wszystkich kont (te same klucze co widok jednego konta – wspólny cache). */
+export function useMailMessagesOfAccounts(accounts: readonly MailAccount[], query: string, enabled: boolean) {
+  const client = useMailClient();
+  return useQueries({
+    queries: accounts.map((account) => ({
+      queryKey: MAIL_KEYS.messages(account.id, query),
+      queryFn: () => client.listMessages(account.id, query),
+      enabled,
+      staleTime: LIST_STALE_MS,
+    })),
+    combine: combineAccountMessages,
   });
 }
 

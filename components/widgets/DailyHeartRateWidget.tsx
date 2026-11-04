@@ -2,9 +2,8 @@
 import React, { useId } from "react";
 import { Heart } from "lucide-react";
 import { getAppDate } from "@/lib/dateUtils";
-import { useHealthDays, useHeartRateDay } from "@/hooks/db/useHealthData";
+import { useHeartRateDay } from "@/hooks/db/useHealthData";
 import { HEART_RATE_LIMITS } from "@/config/constants";
-import { summarizeHeartRate } from "@/lib/health/summary";
 
 interface DailyHeartRateWidgetProps {
   date?: string;
@@ -14,7 +13,10 @@ export default function DailyHeartRateWidget({ date }: Readonly<DailyHeartRateWi
   const id = useId();
   const day = date ?? getAppDate();
   const heart = useHeartRateDay(day);
-  const heartRate = heart?.data?.sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())?.[0]?.bpm;
+  // Ostatni pomiar doby; kopia przed sortowaniem – dane z cache zapytania nie mogą być zmieniane w miejscu.
+  const heartRate = [...(heart?.data ?? [])].sort(
+    (a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime()
+  )[0]?.bpm;
 
   if (heartRate === undefined || heartRate === null) return null;
 

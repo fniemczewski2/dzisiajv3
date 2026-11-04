@@ -16,6 +16,7 @@ import type {
   FinalizeSlotInput,
   FinalizeResultSlot,
 } from "@/types/meetingPolls";
+import { cols } from "@/lib/db/columns";
 
 const MESSAGES = {
   fetchError: "Błąd pobierania ankiet.",
@@ -61,8 +62,11 @@ export function useMeetingPolls() {
           time_end: payload.time_end,
           share_token: shareToken,
           closes_at: closesAt.toISOString(),
+          mode: payload.mode ?? "availability",
+          slot_capacity: payload.slot_capacity ?? 1,
+          max_slots_per_person: payload.max_slots_per_person ?? 1,
         })
-        .select()
+        .select(cols("meeting_polls"))
         .single();
 
       if (pollError || !poll) {
@@ -111,7 +115,7 @@ export function useMeetingPolls() {
         .from("meeting_polls")
         .update({ ...patch, updated_at: new Date().toISOString() })
         .eq("id", id)
-        .select()
+        .select(cols("meeting_polls"))
         .single();
 
       if (error || !data) {
@@ -136,7 +140,7 @@ export function useMeetingPolls() {
     async (pollId: string): Promise<MeetingPollResults | null> => {
       const { data: poll, error: pollError } = await supabase
         .from("meeting_polls")
-        .select("*")
+        .select(cols("meeting_polls"))
         .eq("id", pollId)
         .single();
       if (pollError || !poll) {

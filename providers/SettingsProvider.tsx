@@ -19,6 +19,7 @@ import { DEFAULT_SETTINGS } from "@/config/defaults";
 import { MAX_FAVORITE_STOPS } from "@/config/limits";
 import { favoriteKey, isSameStopPlace, type FavoriteStop } from "@/shared/stopGrouping";
 import type { Settings } from "@/types/settings";
+import { cols } from "@/lib/db/columns";
 
 type SaveResult = { error: unknown };
 
@@ -60,7 +61,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
           () =>
             supabase
               .from("settings")
-              .select("*")
+              .select(cols("settings"))
               .eq("user_id", userId as string)
               .abortSignal(signal)
               .maybeSingle(),

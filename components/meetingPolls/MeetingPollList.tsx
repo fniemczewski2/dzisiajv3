@@ -3,7 +3,17 @@
 import { useOrigin } from "@/hooks/useIsClient";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChartNoAxesCombined, Clock, ExternalLink, Hourglass, Link2, Timer, Lock } from "lucide-react";
+import {
+  CalendarDays,
+  ChartNoAxesCombined,
+  Clock,
+  ExternalLink,
+  Hourglass,
+  Link2,
+  Timer,
+  Lock,
+  Users,
+} from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { useAuth } from "@/providers/AuthProvider";
 import {
@@ -80,13 +90,18 @@ function PollCard({
               {poll.time_start.slice(0, 5)}–{poll.time_end.slice(0, 5)}
             </Meta>
             <Meta icon={Timer}>{poll.slot_duration_minutes} min</Meta>
+            {poll.mode === "signup" && (
+              <Meta icon={Users}>
+                Zapisy: {poll.slot_capacity} {poll.slot_capacity === 1 ? "miejsce" : "miejsc"} / slot
+              </Meta>
+            )}
             {open && poll.closes_at && <Meta icon={Hourglass}>do {formatTime(poll.closes_at, true)}</Meta>}
             {!open && <Meta icon={Lock}>Zamknięta</Meta>}
           </ul>
         </div>
 
         <div className="shrink-0 text-right">
-          {counts?.responses !== undefined ? (
+          {counts?.responses !== undefined && poll.mode !== "signup" ? (
             <>
               <p className="font-display text-3xl leading-none font-bold text-text tabular-nums">{counts.responses}</p>
               <p className="mt-1 text-xs text-text-muted">{pluralizeResponses(counts.responses)}</p>
@@ -117,10 +132,10 @@ function PollCard({
         <Link
           className={actionButton({ color: "info", size: "default" })}
           href={resultsHref}
-          title="Pokaż wyniki ankiety"
+          title={poll.mode === "signup" ? "Pokaż zapisy" : "Pokaż wyniki ankiety"}
         >
           <ChartNoAxesCombined aria-hidden="true" className={actionIcon(false)} />
-          <span className={ACTION_LABEL_CLASS}>Wyniki</span>
+          <span className={ACTION_LABEL_CLASS}>{poll.mode === "signup" ? "Zapisy" : "Wyniki"}</span>
         </Link>
         <button type="button" onClick={onToggle} className={actionButton({ color: "info", size: "default" })}>
           {open ? (

@@ -14,6 +14,7 @@ import MessageList from "@/components/mail/MessageList";
 import MessageDetail from "@/components/mail/MessageDetail";
 import ForwardingPanel from "@/components/mail/ForwardingPanel";
 import InboxList from "@/components/mail/InboxList";
+import UnifiedMailList from "@/components/mail/UnifiedMailList";
 import NoResultsState from "@/components/ui/NoResultsState";
 import SearchBar from "@/components/ui/SearchBar";
 import { useResponsive } from "@/hooks/useResponsive";
@@ -25,12 +26,14 @@ import {
   useMailInbox,
   useMailMessage,
   useMailMessages,
+  useMailMessagesOfAccounts,
 } from "@/hooks/useMail";
 import { MAIL_SEARCH_DEBOUNCE_MS } from "@/config/timing";
 import { callbackNoticeFor } from "@/lib/mail/notices";
+import { filterInbox, mergeMail } from "@/lib/mail/unified";
 import { useMailActions } from "@/hooks/useMailActions";
 
-type View = "accounts" | "forwarded";
+type View = "all" | "accounts" | "forwarded";
 
 function emptyDetailHint(accountCount: number, openId: string | null): string {
   if (accountCount === 0) return "Podłącz konto Gmail lub Outlook.";
@@ -49,7 +52,7 @@ export default function MailPage() {
   const cache = useMailCache();
   const isSmallScreen = useResponsive();
 
-  const [view, setView] = useState<View>("accounts");
+  const [chosenView, setView] = useState<View>("all");
   const [chosenAccountId, setChosenAccountId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [searchedQuery, setSearchedQuery] = useState("");
@@ -62,14 +65,20 @@ export default function MailPage() {
   const account = accounts.find((a) => a.id === chosenAccountId) ?? accounts[0] ?? null;
   const accountId = account?.id ?? null;
 
-  const messagesQuery = useMailMessages(accountId, searchedQuery);
+  // Bez żadnego konta widok wspólny jest pusty – pokazujemy panel kont (połączenie pierwszego konta).
+  const view: View = chosenView === "all" && accounts.length === 0 ? "accounts" : chosenView;
+
+  const messagesQuery = useMailMessages(view === "accounts" ? accountId : null, searchedQuery);
   const messages = messagesQuery.data ?? [];
-  const openId = open && open.accountId === accountId ? open.id : null;
-  const messageQuery = useMailMessage(accountId, openId);
+  // Wiadomość otwarta w widoku wspólnym może pochodzić z dowolnego konta, w widoku konta – z wybranego.
+  const detailAccountId = view === "all" ? (open?.accountId ?? null) : accountId;
+  const openId = open && open.accountId === detailAccountId ? open.id : null;
+  const messageQuery = useMailMessage(detailAccountId, openId);
   const detail = messageQuery.data ?? null;
 
+  const allMessages = useMailMessagesOfAccounts(accounts, searchedQuery, view === "all");
   const forwardingQuery = useMailForwarding(view === "forwarded");
-  const inboxQueryResult = useMailInbox(view === "forwarded");
+  const inboxQueryResult = useMailInbox(view === "forwarded" || view === "all");
   const inbox = useMemo(() => inboxQueryResult.data ?? [], [inboxQueryResult.data]);
 
   // Wyszukiwanie u dostawcy z opóźnieniem – bez zapytania przy każdym znaku.
@@ -81,7 +90,12 @@ export default function MailPage() {
 
   // Błędy zapytań: jeden komunikat na błąd.
   const queryError =
-    accountsQuery.error ?? messagesQuery.error ?? messageQuery.error ?? forwardingQuery.error ?? inboxQueryResult.error;
+    accountsQuery.error ??
+    messagesQuery.error ??
+    allMessages.error ??
+    messageQuery.error ??
+    forwardingQuery.error ??
+    inboxQueryResult.error;
   useEffect(() => {
     if (queryError) toast.error(errorText(queryError, "Nie udało się pobrać danych poczty."), { cause: queryError });
   }, [queryError, toast]);
@@ -102,13 +116,72 @@ export default function MailPage() {
     return inbox.filter((i) => `${i.from}\n${i.subject}\n${i.text}`.toLowerCase().includes(q));
   }, [inbox, inboxQuery]);
 
+  const unified = useMemo(
+    () => mergeMail(accounts, allMessages.data, filterInbox(inbox, searchedQuery)),
+    [accounts, allMessages.data, inbox, searchedQuery]
+  );
+
   const { busy, connect, disconnect, deleteMessage, createForwarding, revokeForwarding, inboxAction, deleteInbox } =
-    useMailActions({ client, cache, toast, accounts, account, inbox, open, openId, setOpen });
+    useMailActions({ client, cache, toast, accounts, account, inbox, open, setOpen });
 
   const selectAccount = (id: string) => {
     setChosenAccountId(id);
     setOpen(null);
   };
+
+  const renderAll = () => (
+    <div className="grid w-full min-w-0 gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      {!(isSmallScreen && openId) && (
+        <div className="min-w-0 space-y-4">
+          <SearchBar
+            value={query}
+            onChange={setQuery}
+            placeholder="Szukaj we wszystkich skrzynkach…"
+            resultsCount={searchedQuery.trim() && !allMessages.isFetching ? unified.length : undefined}
+            resultsLabel="wiadomości"
+          />
+          <UnifiedMailList
+            items={unified}
+            loading={accountsQuery.isLoading || allMessages.isLoading || inboxQueryResult.isLoading}
+            searching={searchedQuery.trim().length > 0}
+            selected={open}
+            onSelect={(id, messageId) => setOpen({ accountId: id, id: messageId })}
+            onDeleteMessage={(id, message) =>
+              void deleteMessage(
+                message,
+                accounts.find((a) => a.id === id)
+              )
+            }
+            onTask={(id) => void inboxAction(id, "task")}
+            onEvent={(id) => void inboxAction(id, "event")}
+            onDeleteInbox={(id) => void deleteInbox(id)}
+            busy={busy}
+          />
+        </div>
+      )}
+      {(!isSmallScreen || openId) && (
+        <div className="min-w-0">
+          {detail && detailAccountId ? (
+            <MessageDetail
+              client={client}
+              accountId={detailAccountId}
+              message={detail.message}
+              invitation={detail.invitation}
+              onBack={isSmallScreen ? () => setOpen(null) : undefined}
+              onDelete={() =>
+                void deleteMessage(
+                  detail.message,
+                  accounts.find((a) => a.id === detailAccountId)
+                )
+              }
+            />
+          ) : (
+            <NoResultsState text="otwartej wiadomości" hint="Wybierz wiadomość z listy, aby ją przeczytać." />
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   const renderForwarded = () => (
     <div className="mx-auto w-full max-w-3xl space-y-8">
@@ -200,12 +273,15 @@ export default function MailPage() {
           <h1 className="page-title">Poczta</h1>
           <fieldset className="flex gap-2 border-0 p-0">
             <legend className="sr-only">Widok poczty</legend>
+            <ToggleChip label="Wszystkie" active={view === "all"} onClick={() => setView("all")} />
             <ToggleChip label="Konta" active={view === "accounts"} onClick={() => setView("accounts")} />
             <ToggleChip label="Przekierowania" active={view === "forwarded"} onClick={() => setView("forwarded")} />
           </fieldset>
         </div>
 
-        {view === "forwarded" ? renderForwarded() : renderAccounts()}
+        {view === "all" && renderAll()}
+        {view === "accounts" && renderAccounts()}
+        {view === "forwarded" && renderForwarded()}
       </div>
     </>
   );

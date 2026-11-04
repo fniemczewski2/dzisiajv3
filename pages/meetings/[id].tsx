@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Seo from "@/components/ui/SEO";
 import { SkeletonSlotGrid } from "@/components/ui/Skeleton";
 
-const MeetingPollResults = dynamic(() => import("@/components/meetingPolls/MeetingPollResults"), {
+const MeetingPollDetails = dynamic(() => import("@/components/meetingPolls/MeetingPollDetails"), {
   ssr: false,
   loading: () => <SkeletonSlotGrid />,
 });
@@ -20,7 +20,7 @@ export default function MeetingPollResultsPage() {
     <>
       <Seo
         title="Wyniki ankiety"
-        description="Wyniki ankiety dostępności – widoczne tylko dla organizatora."
+        description="Wyniki ankiety dostępności i zapisy na terminy – widoczne tylko dla organizatora."
         canonical="https://www.dzisiaj.fun/meetings"
         noindex={true}
       />
@@ -31,7 +31,7 @@ export default function MeetingPollResultsPage() {
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Wróć do listy ankiet
         </Link>
-        <MeetingPollResults pollId={id} />
+        <MeetingPollDetails pollId={id} />
       </div>
     </>
   );

@@ -13,6 +13,7 @@ import { GoogleEventsListResponse } from "@/types/googleCalendar";
 import { OutlookEventsResponse } from "@/types/outlookCalendar";
 
 import { mapPool, chunk, forEachPage } from "@/shared/asyncPool";
+import { cols } from "@/lib/db/columns";
 
 interface ImportedEventRow {
   user_id: string;
@@ -75,7 +76,7 @@ async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
   for (let from = 0; ; from += PAGING.calendarSyncPage) {
     const { data, error } = await supabaseAdmin()
       .from("connected_calendars")
-      .select("*")
+      .select(cols("connected_calendars"))
       .order("id")
       .range(from, from + PAGING.calendarSyncPage - 1)
       .overrideTypes<ConnectedCalendarRow[], { merge: false }>();
@@ -281,8 +282,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     timeMax.setFullYear(timeMax.getFullYear() + 1);
 
     const noop: CalendarSyncResult = { imported: 0, removed: 0 };
+    // Kalendarze jednego konta przetwarzane równolegle współdzielą jedno odświeżenie tokenu (także nieudane):
+    // cache wartości wypełnia się dopiero po odpowiedzi dostawcy, więc bez tego każdy kalendarz odświeżałby token osobno.
+    const tokenRequests = new Map<string, Promise<string | null>>();
+    const sharedAccessToken = (acc: ConnectedCalendarRow): Promise<string | null> => {
+      const key = `${acc.user_id}:${acc.provider}:${acc.account_email}`;
+      let request = tokenRequests.get(key);
+      if (!request) {
+        request = getAccessToken(acc, accounts, tokenCache, mainAccountsCache);
+        tokenRequests.set(key, request);
+      }
+      return request;
+    };
     const processAccount = async (acc: ConnectedCalendarRow): Promise<CalendarSyncResult> => {
-      const accessToken = await getAccessToken(acc, accounts, tokenCache, mainAccountsCache);
+      const accessToken = await sharedAccessToken(acc);
       if (!accessToken) return noop;
 
       if (acc.provider === "google") return syncGoogleCalendar(acc, accessToken, timeMin, timeMax);

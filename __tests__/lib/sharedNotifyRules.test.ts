@@ -4,8 +4,11 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  listChangeText,
   notificationText,
+  pozycjaForm,
   resolveRecipient,
+  summarizeListChange,
   PREFERENCE_BY_KIND,
   NOTIFICATION_TYPE_BY_KIND,
   type ListRow,
@@ -64,29 +67,115 @@ describe("wydarzenia", () => {
   });
 });
 
-describe("pozycje wspólnej listy", () => {
-  it("właściciel dodaje pozycję – odbiorcą jest osoba, z którą lista jest dzielona", () => {
-    expect(resolveRecipient("list_item", list(), ME, "mleko")).toEqual({ ok: true, recipientId: OTHER });
+describe("pozycje wspólnej listy – odbiorca", () => {
+  it("właściciel zmienia listę – odbiorcą jest osoba, z którą lista jest dzielona", () => {
+    expect(resolveRecipient("list_item", list(), ME)).toEqual({ ok: true, recipientId: OTHER });
   });
 
-  it("osoba, z którą lista jest dzielona, dodaje pozycję – odbiorcą jest właściciel", () => {
-    expect(resolveRecipient("list_item", list(), OTHER, "chleb")).toEqual({ ok: true, recipientId: ME });
+  it("osoba, z którą lista jest dzielona, zmienia listę – odbiorcą jest właściciel", () => {
+    expect(resolveRecipient("list_item", list(), OTHER)).toEqual({ ok: true, recipientId: ME });
   });
 
   it("obca osoba nie może powiadomić członków listy", () => {
-    expect(resolveRecipient("list_item", list(), STRANGER, "mleko")).toEqual({ ok: false, reason: "not_member" });
+    expect(resolveRecipient("list_item", list(), STRANGER)).toEqual({ ok: false, reason: "not_member" });
   });
 
   it("prywatna lista nie generuje powiadomień", () => {
-    expect(resolveRecipient("list_item", list({ shared_with_id: null }), ME, "mleko")).toEqual({
+    expect(resolveRecipient("list_item", list({ shared_with_id: null }), ME)).toEqual({
       ok: false,
       reason: "not_shared",
     });
   });
+});
 
-  it("klient nie może wymyślić pozycji, której nie ma na liście", () => {
-    expect(resolveRecipient("list_item", list(), ME, "szampan")).toEqual({ ok: false, reason: "item_not_found" });
-    expect(resolveRecipient("list_item", list(), ME, undefined)).toEqual({ ok: false, reason: "item_not_found" });
+describe("summarizeListChange – liczby potwierdzone stanem listy w bazie", () => {
+  it("dodane pozycje muszą być na liście, usunięte nie mogą na niej być", () => {
+    expect(summarizeListChange(list(), { added: ["mleko", "chleb"], removed: ["masło", "ser"] })).toEqual({
+      added: 2,
+      removed: 2,
+    });
+  });
+
+  it("klient nie wyprodukuje fałszywych liczb: pozycje bez pokrycia w bazie są pomijane", () => {
+    expect(summarizeListChange(list(), { added: ["szampan", "mleko"], removed: ["chleb"] })).toEqual({
+      added: 1,
+      removed: 0,
+      label: "mleko",
+    });
+    expect(summarizeListChange(list(), { added: ["szampan"], removed: ["chleb"] })).toEqual({ added: 0, removed: 0 });
+  });
+
+  it("jedna zmiana niesie etykietę, więcej – tylko liczby", () => {
+    expect(summarizeListChange(list(), { added: [], removed: ["masło"] })).toEqual({
+      added: 0,
+      removed: 1,
+      label: "masło",
+    });
+    expect(summarizeListChange(list(), { added: ["mleko"], removed: ["masło"] })).toEqual({ added: 1, removed: 1 });
+  });
+
+  it("powtórzone pozycje (np. dwa razy mleko) liczą się osobno", () => {
+    expect(summarizeListChange(list(), { added: ["mleko", "mleko"], removed: [] })).toEqual({ added: 2, removed: 0 });
+  });
+});
+
+describe("pozycjaForm", () => {
+  it.each([
+    [1, "pozycję"],
+    [2, "pozycje"],
+    [4, "pozycje"],
+    [5, "pozycji"],
+    [12, "pozycji"],
+    [14, "pozycji"],
+    [22, "pozycje"],
+    [25, "pozycji"],
+    [100, "pozycji"],
+    [101, "pozycji"],
+    [102, "pozycje"],
+  ])("%i → %s", (n, form) => {
+    expect(pozycjaForm(n)).toBe(form);
+  });
+});
+
+describe("listChangeText – treść powiadomienia o zmianach listy", () => {
+  it("jedna dodana pozycja: z nazwą pozycji i listy", () => {
+    expect(listChangeText("Zakupy", { added: 1, removed: 0, label: "mleko" })).toEqual({
+      title: "Nowa pozycja na wspólnej liście",
+      message: "Dodano „mleko” do listy „Zakupy”",
+    });
+  });
+
+  it("kilka dodanych: zbiorczo, z poprawną odmianą", () => {
+    expect(listChangeText("Zakupy", { added: 3, removed: 0 })).toEqual({
+      title: "Nowe pozycje na wspólnej liście",
+      message: "Dodano 3 pozycje do listy „Zakupy”",
+    });
+    expect(listChangeText("Zakupy", { added: 5, removed: 0 }).message).toBe("Dodano 5 pozycji do listy „Zakupy”");
+  });
+
+  it("usunięte: jedna z nazwą, kilka zbiorczo", () => {
+    expect(listChangeText("Zakupy", { added: 0, removed: 1, label: "chleb" }).message).toBe(
+      "Usunięto „chleb” z listy „Zakupy”"
+    );
+    expect(listChangeText("Zakupy", { added: 0, removed: 2 })).toEqual({
+      title: "Zmiany na wspólnej liście",
+      message: "Usunięto 2 pozycje z listy „Zakupy”",
+    });
+  });
+
+  it("dodane i usunięte razem: jedno zdanie z obiema liczbami", () => {
+    expect(listChangeText("Zakupy", { added: 3, removed: 2 })).toEqual({
+      title: "Zmiany na wspólnej liście",
+      message: "Dodano 3 i usunięto 2 pozycje na liście „Zakupy”",
+    });
+    expect(listChangeText("Zakupy", { added: 1, removed: 1 }).message).toBe(
+      "Dodano 1 i usunięto 1 pozycję na liście „Zakupy”"
+    );
+  });
+
+  it("lista bez nazwy dostaje nazwę zastępczą; zbyt długa treść jest ucinana", () => {
+    expect(listChangeText("", { added: 2, removed: 0 }).message).toContain("„Lista”");
+    expect(listChangeText("x".repeat(300), { added: 2, removed: 0 }).message.length).toBeLessThanOrEqual(120);
   });
 });
 
@@ -98,8 +187,11 @@ describe("treść i ustawienia", () => {
     expect(new Set(Object.values(NOTIFICATION_TYPE_BY_KIND)).size).toBe(3);
   });
 
-  it("tekst pozycji zawiera nazwę elementu i listy", () => {
-    expect(notificationText("list_item", list(), "mleko").message).toBe("Dodano „mleko” do listy „Zakupy”");
+  it("powiadomienie dla listy korzysta ze zbiorczej treści", () => {
+    expect(notificationText("list_item", list(), { added: 3, removed: 0 }).message).toBe(
+      "Dodano 3 pozycje do listy „Zakupy”"
+    );
+    expect(notificationText("list_item", list()).message).toBe("Dodano 1 pozycję do listy „Zakupy”");
   });
 
   it("zbyt długi tytuł jest ucinany", () => {

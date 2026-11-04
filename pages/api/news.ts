@@ -13,6 +13,7 @@ import { RSS_SOURCES, normalizeCustomFeeds, resolveEnabledSources } from "@/conf
 import { getFeed, checkPublicUrl } from "@/lib/server/rss";
 import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { mapPool } from "@/shared/asyncPool";
+import { cols } from "@/lib/db/columns";
 
 export interface NewsItem {
   sourceId: string;
@@ -47,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
-  const { data } = await supabase.from("settings").select("*").eq("user_id", user.id).maybeSingle();
+  const { data } = await supabase.from("settings").select(cols("settings")).eq("user_id", user.id).maybeSingle();
   const custom = normalizeCustomFeeds(data?.rss_custom);
   const enabled = new Set(
     resolveEnabledSources(

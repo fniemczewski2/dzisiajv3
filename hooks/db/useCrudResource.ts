@@ -9,6 +9,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { isAbortError } from "@/lib/abortUtils";
+import { cols, type KnownTable } from "@/lib/db/columns";
 
 type SelectBuilder = ReturnType<ReturnType<SupabaseClient["from"]>["select"]>;
 
@@ -24,7 +25,7 @@ export interface CrudMessages {
 }
 
 export interface CrudResourceConfig<T extends { id: string }, TInsert> {
-  table: string;
+  table: KnownTable;
   queryKey?: string;
   buildQuery?: (q: SelectBuilder, userId: string) => SelectBuilder;
   order?: { column: string; ascending?: boolean };
@@ -82,7 +83,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
       if (!userId) return [];
       try {
         const { data, error } = await withRetry(() => {
-          const base = supabase.from(cfg.table).select("*");
+          const base = supabase.from(cfg.table).select(cols(cfg.table));
           let query = cfg.buildQuery ? cfg.buildQuery(base, userId) : base.eq("user_id", userId);
           if (!cfg.buildQuery && cfg.order) {
             query = query.order(cfg.order.column, {
@@ -133,7 +134,9 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
       try {
         const row = cfg.prepareInsert ? cfg.prepareInsert(payload, userId) : { ...payload, user_id: userId };
 
-        const { data, error } = await withRetry(() => supabase.from(cfg.table).insert(row).select().single());
+        const { data, error } = await withRetry(() =>
+          supabase.from(cfg.table).insert(row).select(cols(cfg.table)).single()
+        );
         if (error) throw error;
 
         const created = transform(data);
@@ -168,7 +171,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
 
         if (cfg.applyServerRowOnEdit) {
           const { data, error } = await withRetry(() =>
-            supabase.from(cfg.table).update(payload).eq("id", id).select().single()
+            supabase.from(cfg.table).update(payload).eq("id", id).select(cols(cfg.table)).single()
           );
           if (error) throw error;
           const updated = transform(data);

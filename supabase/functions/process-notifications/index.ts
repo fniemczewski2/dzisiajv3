@@ -13,6 +13,7 @@ import {
 import { getErrorMessage } from "../_shared/errors.ts";
 import { usersNotifiedToday, rowsByUser, sentDataKeys, sentKey } from "./batch.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
+import { cols } from "../_shared/columns.ts";
 
 interface ScheduleEntry {
   label: string;
@@ -283,7 +284,7 @@ async function processUpcomingTaskType(ctx: NotifCtx): Promise<void> {
 
   const { data: tasksNow } = await supabase
     .from("tasks")
-    .select("*")
+    .select(cols("tasks"))
     .in("user_id", allowedIds)
     .neq("status", "done")
     .not("scheduled_time", "is", null)
@@ -313,7 +314,7 @@ async function processUpcomingTaskType(ctx: NotifCtx): Promise<void> {
 
   const { data: tasksLate } = await supabase
     .from("tasks")
-    .select("*")
+    .select(cols("tasks"))
     .in("user_id", allowedIds)
     .neq("status", "done")
     .not("scheduled_time", "is", null)
@@ -340,7 +341,7 @@ async function processUpcomingTaskType(ctx: NotifCtx): Promise<void> {
 
   const { data: tasksNoTime } = await supabase
     .from("tasks")
-    .select("*")
+    .select(cols("tasks"))
     .in("user_id", allowedIds)
     .neq("status", "done")
     .is("scheduled_time", null)
@@ -417,7 +418,7 @@ async function processUpcomingEventType(ctx: NotifCtx): Promise<void> {
   const nowMs = realNow.getTime();
   const { data: events } = await supabase
     .from("events")
-    .select("*")
+    .select(cols("events"))
     .gte("start_time", warsawWallClockNow(nowMs))
     .lte("start_time", warsawWallClockNow(nowMs + 8 * 24 * 60 * 60 * 1000));
 
@@ -496,7 +497,7 @@ function buildIncompleteHabitsList(s: HabitSettingsRow, habit: DailyHabitRow | n
 
 async function processDailyHabitsType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, startOfDayUTC, sendPushAndLog } = ctx;
-  const { data: usersSettings } = await supabase.from("settings").select("*").eq("notif_habits", true);
+  const { data: usersSettings } = await supabase.from("settings").select(cols("settings")).eq("notif_habits", true);
   const ids = (usersSettings ?? []).map((s) => s.user_id as string);
   const notified = await usersNotifiedToday(supabase, "daily_habits", startOfDayUTC, ids);
   const habitsByUser = await rowsByUser<DailyHabitRow & { user_id: string }>(supabase, "daily_habits", "*", ids, {
@@ -603,7 +604,7 @@ function activeSchemasForToday(
 async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
   const { supabase, plNow, today } = ctx;
   // „*”: kolumna is_default dochodzi migracją 1.40.
-  const { data: daySchemas } = await supabase.from("day_schemas").select("*");
+  const { data: daySchemas } = await supabase.from("day_schemas").select(cols("day_schemas"));
   const { data: choices } = await supabase.from("day_schema_choices").select("user_id, schema_id").eq("date", today);
 
   const currentTime = `${plNow.hour}:${plNow.timeStr.split(":")[1]}`;
@@ -894,7 +895,7 @@ async function processOnePerson(
 
 async function processPeopleType(ctx: NotifCtx): Promise<void> {
   const { supabase, realNow, plNow } = ctx;
-  const { data: people } = await supabase.from("people").select("*");
+  const { data: people } = await supabase.from("people").select(cols("people"));
   const { data: userSettings } = await supabase.from("settings").select("user_id, notif_birthdays, notif_contact");
 
   if (!people || people.length === 0) return;
@@ -996,7 +997,11 @@ async function processBillDueType(ctx: NotifCtx): Promise<void> {
   const userIds = (users ?? []).map((u: { user_id: string }) => u.user_id);
   if (userIds.length === 0) return;
 
-  const { data: bills } = await supabase.from("recurring_bills").select("*").eq("active", true).in("user_id", userIds);
+  const { data: bills } = await supabase
+    .from("recurring_bills")
+    .select(cols("recurring_bills"))
+    .eq("active", true)
+    .in("user_id", userIds);
   const due = (
     (bills ?? []) as Array<{
       id: string;

@@ -5,6 +5,7 @@ import { getAppDateTime } from "@/lib/dateUtils";
 import { looksLikeShortcutToken } from "@/lib/server/shortcutTokens";
 import { extractShortcutToken, resolveShortcutUser } from "@/lib/server/shortcutAuth";
 import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
+import { cols } from "@/lib/db/columns";
 
 interface ActionResult {
   status: number;
@@ -31,7 +32,7 @@ async function handleStart(userId: string, now: ReturnType<typeof getAppDateTime
         start_time: now,
       },
     ])
-    .select()
+    .select(cols("work_logs"))
     .maybeSingle();
 
   if (error) throw error;
@@ -41,7 +42,7 @@ async function handleStart(userId: string, now: ReturnType<typeof getAppDateTime
 async function handleEnd(userId: string, now: ReturnType<typeof getAppDateTime>): Promise<ActionResult> {
   const { data: openLog, error: fetchError } = await supabaseAdmin()
     .from("work_logs")
-    .select("*")
+    .select(cols("work_logs"))
     .eq("user_id", userId)
     .is("end_time", null)
     .order("start_time", { ascending: false })
@@ -55,7 +56,7 @@ async function handleEnd(userId: string, now: ReturnType<typeof getAppDateTime>)
     .update({ end_time: now })
     .eq("id", openLog.id)
     .eq("user_id", userId)
-    .select()
+    .select(cols("work_logs"))
     .maybeSingle();
 
   if (error) throw error;

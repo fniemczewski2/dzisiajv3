@@ -19,6 +19,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
 import { TrackedTrain, TrainInput } from "@/types/transport";
+import { cols } from "@/lib/db/columns";
 
 function mapDbRowToTrain(row: {
   id: string;
@@ -105,7 +106,7 @@ export function useTrains() {
           () =>
             supabase
               .from("user_trains")
-              .select("*")
+              .select(cols("user_trains"))
               .eq("user_id", userId)
               .gte("date", cutoffStr)
               .order("date", { ascending: true })
@@ -171,7 +172,7 @@ export function useTrains() {
                 seat: trainData.seat,
               },
             ])
-            .select()
+            .select(cols("user_trains"))
             .single()
         );
         if (error) throw error;
@@ -245,7 +246,7 @@ export function useTrainsForDate(dateStr: string) {
     queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from("user_trains")
-        .select("*")
+        .select(cols("user_trains"))
         .eq("user_id", userId as string)
         .eq("date", dateStr)
         .order("departure_time", { ascending: true })

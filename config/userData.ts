@@ -185,14 +185,17 @@ export const MEETING_POLL_EXPORT_LABELS = {
   dates: "Ankiety – dni",
   responses: "Ankiety – odpowiedzi uczestników",
   availabilities: "Ankiety – dostępność uczestników",
+  bookings: "Ankiety zapisów – zapisy uczestników",
   ownResponses: "Moje odpowiedzi w ankietach innych osób",
 } as const;
 
 /** Kolumny ankiet w eksporcie – bez tokenów udostępniania i edycji. */
 export const MEETING_POLL_EXPORT_COLUMNS = {
   polls:
-    "id, title, description, slot_duration_minutes, time_start, time_end, status, created_at, updated_at, closes_at, finalized_at",
+    "id, title, description, slot_duration_minutes, time_start, time_end, status, mode, slot_capacity, max_slots_per_person, created_at, updated_at, closes_at, finalized_at",
   responses: "id, poll_id, respondent_name, respondent_email, user_id, created_at, updated_at",
+  /** Bez klucza osoby (pochodna imienia i e-maila, wewnętrzna). */
+  bookings: "id, poll_id, date, start_time, name, email, consent_at, consent_version, created_at",
 } as const;
 
 /** Wiersze innych osób, które tylko wskazują na usuwane konto – zerujemy wskazanie. */

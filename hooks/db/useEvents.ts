@@ -17,6 +17,7 @@ import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
 
 import { omit } from "@/lib/objectUtils";
+import { cols } from "@/lib/db/columns";
 const NO_EVENTS: Event[] = [];
 
 export function useVirtualBirthdayEvents(): Event[] {
@@ -120,7 +121,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
           () =>
             supabase
               .from("events")
-              .select("*")
+              .select(cols("events"))
               .or(ownedOrSharedFilter("user_id", "shared_with_id", userId))
               // Tylko wydarzenia nachodzące na widok (±1 dzień zapasu na strefy czasowe)
               // oraz powtarzalne – te rozwijamy w pamięci, więc potrzebny jest ich początek.
@@ -200,7 +201,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
           supabase
             .from("events")
             .insert({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
-            .select()
+            .select(cols("events"))
             .single()
         );
         if (error) throw error;

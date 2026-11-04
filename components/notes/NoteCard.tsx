@@ -3,21 +3,30 @@
 import { noteColorClass } from "@/config/noteColors";
 import React from "react";
 import clsx from "clsx";
-import { Pin, Archive } from "lucide-react";
+import { Pin, Archive, Folder } from "lucide-react";
 import { Note } from "@/types/notes";
 import { formatTime } from "@/lib/dateUtils";
 import { groupNoteLines, renderNoteLineContent } from "@/lib/noteFormatting";
-import { ArchiveButton, DeleteButton, EditButton, PinButton } from "../ui/CommonButtons";
+import { ArchiveButton, DeleteButton, DownloadButton, EditButton, PinButton } from "../ui/CommonButtons";
 
 interface NoteCardProps {
   note: Note;
   onEdit: (note: Note) => void;
+  /** Pobranie notatki jako plik .md; bez tego przycisk się nie pokazuje. */
+  onDownload?: (note: Note) => void;
   onDelete: (id: string) => void;
   onTogglePin: (id: string) => void;
   onToggleArchive: (id: string) => void;
 }
 
-export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive }: Readonly<NoteCardProps>) {
+export default function NoteCard({
+  note,
+  onEdit,
+  onDownload,
+  onDelete,
+  onTogglePin,
+  onToggleArchive,
+}: Readonly<NoteCardProps>) {
   return (
     <li
       className={clsx(
@@ -43,6 +52,13 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
           {note.updated_at && formatTime(note.updated_at, true)}
         </p>
       </div>
+
+      {note.folder && (
+        <p className="mb-1 flex items-center gap-1 text-xs font-medium text-text-muted">
+          <Folder className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>{note.folder}</span>
+        </p>
+      )}
 
       {!note.archived && (
         <div className="my-2 space-y-1.5">
@@ -86,6 +102,7 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggle
       <div className="relative mt-auto flex flex-wrap justify-end gap-1.5 pt-3">
         <PinButton onClick={() => onTogglePin(note.id)} isPinned={!!note.pinned} />
         <ArchiveButton onClick={() => onToggleArchive(note.id)} isArchived={!!note.archived} />
+        {onDownload && <DownloadButton onClick={() => onDownload(note)} fileFormat=".md" />}
         <EditButton onClick={() => onEdit(note)} />
         <DeleteButton onClick={() => onDelete(note.id)} />
       </div>

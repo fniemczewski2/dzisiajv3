@@ -9,6 +9,7 @@ import { MAX_CATEGORIES } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
+import { cols } from "@/lib/db/columns";
 
 const NO_CATEGORIES: BudgetCategory[] = [];
 
@@ -29,7 +30,7 @@ export function useBudgetCategories(year: number) {
           () =>
             supabase
               .from("budget_categories")
-              .select("*")
+              .select(cols("budget_categories"))
               .eq("user_id", userId)
               .eq("year", year)
               .order("sort_order", { ascending: true })
@@ -96,7 +97,7 @@ export function useBudgetCategories(year: number) {
               is_monthly: payload.is_monthly,
               sort_order: categories.length,
             })
-            .select()
+            .select(cols("budget_categories"))
             .single()
         );
 
@@ -217,7 +218,10 @@ export function useBudgetCategories(year: number) {
         }));
 
         const { data, error } = await withRetry(() =>
-          supabase.from("budget_categories").upsert(rows, { onConflict: "user_id,year,name" }).select()
+          supabase
+            .from("budget_categories")
+            .upsert(rows, { onConflict: "user_id,year,name" })
+            .select(cols("budget_categories"))
         );
 
         if (error) throw error;
@@ -266,7 +270,7 @@ export function useBudgetCategories(year: number) {
         const { data, error } = await supabase
           .from("budget_categories")
           .upsert(rows, { onConflict: "user_id,year,name", ignoreDuplicates: true })
-          .select();
+          .select(cols("budget_categories"));
         if (error) throw error;
         await fetchCategories();
         const added = data?.length ?? 0;

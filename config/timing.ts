@@ -59,3 +59,9 @@ export const DOWNLOAD_URL_REVOKE_MS = 1000;
 
 /** Wyszukiwanie w poczcie (zapytanie do Gmail/Graph) – dłużej niż lokalne filtrowanie, żeby nie wysyłać żądania co znak. */
 export const MAIL_SEARCH_DEBOUNCE_MS = 400;
+
+/**
+ * Zbiorcze powiadomienia o zmianach na wspólnej liście: kolejne dodania i usunięcia pozycji jedna po drugiej
+ * trafiają do jednego powiadomienia, wysyłanego po tylu milisekundach bez nowej zmiany.
+ */
+export const SHARED_LIST_NOTIFY_DELAY_MS = 5000;

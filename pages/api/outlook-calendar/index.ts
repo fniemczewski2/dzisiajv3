@@ -12,6 +12,7 @@ import { refreshOutlookToken } from "@/lib/server/oauthTokens";
 import { outlookToSupabaseTime, warsawNaiveToRFC3339 } from "@/lib/server/calendarTime";
 import { mapPool, forEachPage } from "@/shared/asyncPool";
 import { resolveExportTarget, canAttachToTarget, type ExportTarget } from "@/lib/server/exportTarget";
+import { cols } from "@/lib/db/columns";
 async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: ConnectedCalendarRow): Promise<string> {
   let accessToken = decryptToken(mainAcc.access_token);
   const storedRefreshToken = decryptToken(mainAcc.refresh_token);
@@ -59,7 +60,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
   try {
     const { data: mainAcc, error: dbError } = await supabase
       .from("connected_calendars")
-      .select("*")
+      .select(cols("connected_calendars"))
       .eq("user_id", user.id)
       .eq("provider", "outlook")
       .eq("google_calendar_id", "@account_connection")
@@ -137,7 +138,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
 
     const { data: mainAcc } = await supabase
       .from("connected_calendars")
-      .select("*")
+      .select(cols("connected_calendars"))
       .eq("user_id", user.id)
       .eq("provider", "outlook")
       .eq("google_calendar_id", "@account_connection")
@@ -277,7 +278,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
     if (!calendarId) return res.status(400).json({ error: "Brak identyfikatora kalendarza." });
     let mainQuery = supabase
       .from("connected_calendars")
-      .select("*")
+      .select(cols("connected_calendars"))
       .eq("user_id", user.id)
       .eq("provider", "outlook")
       .eq("google_calendar_id", "@account_connection");
@@ -288,7 +289,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
 
     const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
 
-    let query = supabase.from("events").select("*").eq("user_id", user.id);
+    let query = supabase.from("events").select(cols("events")).eq("user_id", user.id);
     if (eventIds?.length) {
       query = query.in("id", eventIds);
     } else {
@@ -338,7 +339,7 @@ async function handleDeleteRemote(req: NextApiRequest, res: NextApiResponse, sup
     if (!target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
     const { data: mainAcc } = await supabase
       .from("connected_calendars")
-      .select("*")
+      .select(cols("connected_calendars"))
       .eq("user_id", user.id)
       .eq("provider", "outlook")
       .eq("google_calendar_id", "@account_connection")

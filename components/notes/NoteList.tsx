@@ -6,6 +6,9 @@ import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
 import { useSettings } from "@/hooks/db/useSettings";
 import SearchBar from "../ui/SearchBar";
+import { ToggleChip } from "../ui/CommonButtons";
+import { downloadNoteMarkdown } from "@/lib/notes/export";
+import { ALL_FOLDERS, folderCounts, folderOptions, matchesFolder, type FolderFilter } from "@/lib/notes/folders";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
 import { filterNotes, getNoteTitles } from "@/lib/notesUtils";
@@ -22,6 +25,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [folderFilter, setFolderFilter] = useState<FolderFilter>(ALL_FOLDERS);
 
   const sortedNotes = useMemo(() => {
     const sortType = settings?.sort_notes || "updated_desc";
@@ -40,7 +44,16 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
     });
   }, [notes, settings?.sort_notes]);
 
-  const filteredNotes = useMemo(() => filterNotes(sortedNotes, searchQuery), [sortedNotes, searchQuery]);
+  const folders = useMemo(() => folderOptions(notes), [notes]);
+  const counts = useMemo(() => folderCounts(notes), [notes]);
+  // Wybrany folder, który już nie istnieje (ostatnia notatka przeniesiona), traktujemy jak „Wszystkie”.
+  const activeFilter: FolderFilter =
+    folderFilter.kind === "folder" && !folders.includes(folderFilter.folder) ? ALL_FOLDERS : folderFilter;
+  const inFolder = useMemo(
+    () => sortedNotes.filter((n) => matchesFolder(n, activeFilter)),
+    [sortedNotes, activeFilter]
+  );
+  const filteredNotes = useMemo(() => filterNotes(inFolder, searchQuery), [inFolder, searchQuery]);
   const suggestions = useMemo(() => getNoteTitles(notes), [notes]);
 
   const resultsLabel = useMemo(() => {
@@ -85,6 +98,32 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
 
   return (
     <div>
+      {folders.length > 0 && (
+        <fieldset className="m-0 mb-4 flex min-w-0 flex-wrap gap-2 border-0 p-0">
+          <legend className="sr-only">Foldery notatek</legend>
+          <ToggleChip
+            label={`Wszystkie (${notes.length})`}
+            active={activeFilter.kind === "all"}
+            onClick={() => setFolderFilter(ALL_FOLDERS)}
+          />
+          {counts.none > 0 && (
+            <ToggleChip
+              label={`Bez folderu (${counts.none})`}
+              active={activeFilter.kind === "none"}
+              onClick={() => setFolderFilter({ kind: "none" })}
+            />
+          )}
+          {folders.map((folder) => (
+            <ToggleChip
+              key={folder}
+              label={`${folder} (${counts.byFolder.get(folder) ?? 0})`}
+              active={activeFilter.kind === "folder" && activeFilter.folder === folder}
+              onClick={() => setFolderFilter({ kind: "folder", folder })}
+            />
+          ))}
+        </fieldset>
+      )}
+
       <SearchBar
         value={searchQuery}
         onChange={setSearchQuery}
@@ -107,6 +146,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
                 onCancel={handleCancelEdit}
                 onChange={setEditedNote}
                 loading={loading}
+                folders={folders}
               />
             );
           }
@@ -115,6 +155,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
               key={note.id}
               note={note}
               onEdit={handleEdit}
+              onDownload={downloadNoteMarkdown}
               onDelete={handleDelete}
               onTogglePin={handleTogglePin}
               onToggleArchive={handleToggleArchive}

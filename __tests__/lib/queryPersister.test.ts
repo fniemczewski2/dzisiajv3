@@ -43,6 +43,12 @@ describe("poczta nie jest utrwalana", () => {
   });
 });
 
+describe("dane uczestników ankiet zapisów zostają tylko w pamięci", () => {
+  it.each(["meeting-poll-bookings", "public-signup-slots"])("%s nie jest utrwalane w IndexedDB", (key) => {
+    expect(shouldPersistQuery(q(key))).toBe(false);
+  });
+});
+
 describe("dane o zdrowiu nie są utrwalane w przeglądarce (art. 9 RODO)", () => {
   it.each(["health-daily", "health-workouts", "health-heart-rate", "health-sleep"])(
     "%s zostaje tylko w pamięci",

@@ -6,6 +6,7 @@ import { getErrorMessage } from "../_shared/errors.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
 import { nextOccurrenceAfter, normalizeRule, withMonthDay, type RecurrenceRule } from "../_shared/recurrence.ts";
 import { BILL_TASK_CATEGORY, billTaskTitle, isBillDueOn } from "../_shared/bills.ts";
+import { cols } from "../_shared/columns.ts";
 
 interface RecurringTask {
   id: number;
@@ -94,7 +95,10 @@ function todayInPoland(): string {
  * uruchomieniu.
  */
 async function createBillTasks(supabase: SupabaseClient, today: string): Promise<number> {
-  const { data: bills, error } = await supabase.from("recurring_bills").select("*").eq("active", true);
+  const { data: bills, error } = await supabase
+    .from("recurring_bills")
+    .select(cols("recurring_bills"))
+    .eq("active", true);
   if (error) {
     // Tabela jeszcze nie istnieje (przed migracją 1.40) – nic do zrobienia.
     console.warn("process-reminders: recurring_bills", error.message);
@@ -146,7 +150,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from("tasks")
-      .select("*") // „*”: kolumna recurrence może jeszcze nie istnieć przed migracją
+      .select(cols("tasks")) // „*”: kolumna recurrence może jeszcze nie istnieć przed migracją
       .eq("is_recurring", true)
       .eq("status", "done");
     if (error) throw error;

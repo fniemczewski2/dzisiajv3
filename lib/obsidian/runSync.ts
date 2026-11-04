@@ -19,6 +19,7 @@ import {
   reportToMarkdown,
 } from "@/lib/obsidian/markdown";
 import { folderFromNotePath, vaultPath, type VaultItemType } from "@/lib/obsidian/paths";
+import { importValues, type ImportableType, type ImportValues } from "@/lib/obsidian/importItems";
 import { contentHash, planSync, type AppEntry, type RemoteFile, type SyncStateRow } from "@/lib/obsidian/syncPlan";
 import type { VaultStorage } from "@/lib/obsidian/storage";
 
@@ -37,6 +38,8 @@ export interface VaultRepo {
   saveState(rows: SyncStateRow[]): Promise<void>;
   updateItem(type: VaultItemType, id: string, changes: Record<string, unknown>): Promise<void>;
   insertNote(note: { title: string; items: string[]; folder: string | null }): Promise<VaultNote>;
+  /** Nowy przepis, osoba albo protokół z pliku utworzonego w Obsidianie; zwraca zapisany wiersz. */
+  insertItem(type: ImportableType, values: ImportValues): Promise<Recipe | Person | Report>;
 }
 
 export interface SyncSummary {
@@ -139,6 +142,23 @@ async function readAll(storage: VaultStorage, maxFiles: number): Promise<RemoteF
   return out;
 }
 
+/** Nowy plik z Obsidiana → wiersz w aplikacji (notatka z folderem ze ścieżki albo przepis, osoba, protokół). */
+async function importFile(
+  repo: VaultRepo,
+  action: { type: VaultItemType; file: RemoteFile },
+  today: string
+): Promise<Row> {
+  const name = fileName(action.file.path);
+  if (action.type === "note") {
+    const parsed = noteFromMarkdown(action.file.content, name);
+    const note = await repo.insertNote({ ...parsed, folder: parsed.folder ?? folderFromNotePath(action.file.path) });
+    return { type: "note", row: note };
+  }
+  const values: ImportValues = importValues(action.type, action.file.content, name, today);
+  const row = await repo.insertItem(action.type, values);
+  return { type: action.type, row } as Row;
+}
+
 export async function runVaultSync(
   repo: VaultRepo,
   storage: VaultStorage,
@@ -191,18 +211,10 @@ export async function runVaultSync(
         break;
       }
       case "import": {
-        if (action.type !== "note") {
-          summary.skippedImports++;
-          break;
-        }
-        const parsed = noteFromMarkdown(action.file.content, fileName(action.file.path));
-        const note = await repo.insertNote({
-          ...parsed,
-          folder: parsed.folder ?? folderFromNotePath(action.file.path),
-        });
-        const markdown = noteToMarkdown(note);
+        const imported = await importFile(repo, action, options.today);
+        const markdown = toEntry(imported).markdown;
         const fileId = await storage.write(action.file.path, markdown, action.file.fileId);
-        record(note.id, fileId, markdown, markdown);
+        record(imported.row.id, fileId, markdown, markdown);
         summary.imported++;
         break;
       }

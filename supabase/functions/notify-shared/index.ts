@@ -1,8 +1,9 @@
 // supabase/functions/notify-shared/index.ts
 //
-// Powiadomienia o współdzieleniu: nowa pozycja na wspólnej liście, zadanie lub wydarzenie
-// przydzielone innej osobie. Klient wysyła tylko wskazanie rekordu; reguły (kto jest odbiorcą,
-// czy pozycja istnieje, czy odbiorca wyłączył ten rodzaj powiadomień) sprawdza serwer w bazie.
+// Powiadomienia o współdzieleniu: zmiany na wspólnej liście (dodane i usunięte pozycje, zbiorczo), zadanie lub
+// wydarzenie przydzielone innej osobie. Klient wysyła wskazanie rekordu (dla listy także etykiety zmienionych
+// pozycji); reguły (kto jest odbiorcą, czy zmiana jest zgodna ze stanem listy, czy odbiorca wyłączył ten rodzaj
+// powiadomień) sprawdza serwer w bazie.
 
 import { createClient } from "../_shared/supabase.ts";
 import { json, preflight, withCors } from "../_shared/auth.ts";
@@ -12,6 +13,8 @@ import {
   PUSH_URL_BY_KIND,
   notificationText,
   resolveRecipient,
+  summarizeListChange,
+  type ListChangeRequest,
   type EventRow,
   type ListRow,
   type SharedKind,
@@ -28,18 +31,38 @@ const SELECT_BY_KIND: Record<SharedKind, string> = {
   list_item: "id, user_id, shared_with_id, name, elements",
 };
 
-type Body = { kind: SharedKind; id: string; label?: string };
+/** Zmiany na liście: etykiety dodanych i usuniętych pozycji z jednego okna zbiorczego (limit chroni przed nadużyciem). */
+const MAX_LIST_CHANGE_LABELS = 100;
+const MAX_LABEL_LENGTH = 200;
+
+type Body = { kind: SharedKind; id: string; change?: ListChangeRequest };
+
+function parseLabels(value: unknown): string[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_LIST_CHANGE_LABELS) return null;
+  const labels: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string" || item.length > MAX_LABEL_LENGTH) return null;
+    const trimmed = item.trim();
+    if (trimmed) labels.push(trimmed);
+  }
+  return labels;
+}
 
 function parseBody(raw: unknown): Body | null {
   if (!raw || typeof raw !== "object") return null;
-  const { kind, id, label } = raw as Record<string, unknown>;
+  const { kind, id, label, added, removed } = raw as Record<string, unknown>;
   if (kind !== "task" && kind !== "event" && kind !== "list_item") return null;
   if (typeof id !== "string" || !UUID_RE.test(id)) return null;
-  if (kind === "list_item") {
-    if (typeof label !== "string" || label.trim().length === 0 || label.length > 200) return null;
-    return { kind, id, label: label.trim() };
-  }
-  return { kind, id };
+  if (kind !== "list_item") return { kind, id };
+
+  // Zgodność wsteczna: pojedyncza etykieta (`label`) = jedna dodana pozycja.
+  const addedLabels = parseLabels(added);
+  const removedLabels = parseLabels(removed);
+  if (!addedLabels || !removedLabels) return null;
+  if (typeof label === "string" && label.trim() && label.length <= MAX_LABEL_LENGTH) addedLabels.push(label.trim());
+  if (addedLabels.length + removedLabels.length === 0) return null;
+  return { kind, id, change: { added: addedLabels, removed: removedLabels } };
 }
 
 Deno.serve(
@@ -90,7 +113,7 @@ Deno.serve(
       if (!row) return denied;
 
       const rowData = row as unknown as TaskRow | EventRow | ListRow;
-      const decision = resolveRecipient(body.kind, rowData, senderId, body.label);
+      const decision = resolveRecipient(body.kind, rowData, senderId);
       if (!decision.ok) return denied;
       const recipientId = decision.recipientId;
 
@@ -106,7 +129,13 @@ Deno.serve(
         return json({ success: true, sent: false });
       }
 
-      const { title, message } = notificationText(body.kind, rowData, body.label);
+      // Lista: liczby zmian potwierdzamy stanem listy w bazie; bez potwierdzonej zmiany nie ma czego zgłaszać.
+      const summary =
+        body.kind === "list_item"
+          ? summarizeListChange(rowData as ListRow, body.change as ListChangeRequest)
+          : undefined;
+      if (summary && summary.added + summary.removed === 0) return json({ success: true, sent: false });
+      const { title, message } = notificationText(body.kind, rowData, summary);
       const type = NOTIFICATION_TYPE_BY_KIND[body.kind];
       const { error: insertError } = await admin.from("notifications").insert({
         user_id: recipientId,

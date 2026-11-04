@@ -17,6 +17,7 @@ import {
 } from "@/types/letters";
 import { MAX_LETTER_ATTACHMENTS, MAX_LETTER_PDF_SIZE_MB } from "@/config/limits";
 import { archiveEntryPaths, archiveFileName, buildLetterArchive, downloadBlob } from "@/lib/letterArchive";
+import { cols } from "@/lib/db/columns";
 
 const MESSAGES = {
   fetchError: "Błąd pobierania pism.",
@@ -112,7 +113,7 @@ export function useLetters() {
     void (async () => {
       const { data, error } = await supabase
         .from("letter_attachments")
-        .select("*")
+        .select(cols("letter_attachments"))
         .eq("user_id", userId)
         .order("created_at", { ascending: true });
       if (cancelled) return;
@@ -206,7 +207,7 @@ export function useLetters() {
             file_name: file.name.slice(0, 200),
             size_bytes: file.size,
           })
-          .select()
+          .select(cols("letter_attachments"))
           .single();
         if (error || !data) {
           console.error("[useLetters] zapis załącznika w bazie nie powiódł się:", error?.message);

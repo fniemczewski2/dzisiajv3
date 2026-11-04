@@ -10,6 +10,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
+import { cols } from "@/lib/db/columns";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
   date: date,
@@ -42,7 +43,7 @@ export function useDailyHabits(date?: string) {
           () =>
             supabase
               .from("daily_habits")
-              .select("*")
+              .select(cols("daily_habits"))
               .eq("date", targetDate)
               .eq("user_id", userId)
               .abortSignal(signal)

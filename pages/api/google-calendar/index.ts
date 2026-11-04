@@ -15,6 +15,7 @@ import { ExternalCalendar } from "@/types/events";
 import { mapPool, chunk, forEachPage } from "@/shared/asyncPool";
 import { resolveExportTarget, canAttachToTarget } from "@/lib/server/exportTarget";
 import { publicEnv, serverEnv } from "@/config/env";
+import { cols } from "@/lib/db/columns";
 
 function getRedirectUri(): string {
   return `${publicEnv.appUrl}/api/google-calendar/callback`;
@@ -362,7 +363,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const accessToken = await getValidGoogleToken(auth, target ? target.rowId : accountId);
   if (!accessToken) return res.status(400).json({ error: "Brak połączenia z Kalendarzem Google." });
 
-  let query = sb.from("events").select("*").eq("user_id", auth.user.id);
+  let query = sb.from("events").select(cols("events")).eq("user_id", auth.user.id);
   if (eventIds?.length) query = query.in("id", eventIds);
   else {
     const past30 = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);

@@ -11,6 +11,7 @@ import { subscriptionMatchesVapidKey } from "@/lib/pushKeys";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { getErrorMessage } from "@/lib/errorUtils";
+import { cols } from "@/lib/db/columns";
 
 interface PushSubscriptionRow {
   id: string;
@@ -57,7 +58,7 @@ export function usePushNotifications(userId: string | undefined) {
       const endpoint = subscriptionJSON.endpoint;
 
       const { data: allSubs, error: fetchError } = await withRetry(() =>
-        supabase.from("push_subscriptions").select("*").eq("user_id", userId)
+        supabase.from("push_subscriptions").select(cols("push_subscriptions")).eq("user_id", userId)
       );
       if (fetchError) throw fetchError;
 
@@ -91,7 +92,7 @@ export function usePushNotifications(userId: string | undefined) {
     async (endpoint: string | undefined) => {
       if (!userId || !endpoint) return;
       const { data: allSubs } = await withRetry(() =>
-        supabase.from("push_subscriptions").select("*").eq("user_id", userId)
+        supabase.from("push_subscriptions").select(cols("push_subscriptions")).eq("user_id", userId)
       );
       const toDelete = (allSubs as PushSubscriptionRow[])?.find((sub) => {
         const subData = typeof sub.subscription === "string" ? JSON.parse(sub.subscription) : sub.subscription;

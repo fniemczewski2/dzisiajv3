@@ -19,6 +19,8 @@ export const RATE_LIMITS = {
   /** Dane zdrowotne ze Skrótów iOS (na adres IP). */
   healthShortcut: { limit: 30, window: "60 s" },
   pollRespond: { limit: 5, window: "10 m" },
+  /** Zapisy na terminy w ankietach zapisów (na ankietę i adres IP). */
+  pollBook: { limit: 6, window: "10 m" },
   pollPublicRead: { limit: 60, window: "60 s" },
   vcard: { limit: 30, window: "60 s" },
   news: { limit: 20, window: "60 s" },

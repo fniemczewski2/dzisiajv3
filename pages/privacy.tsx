@@ -442,6 +442,16 @@ export default function PrivacyPage() {
               Przysługują Ci prawa opisane w punkcie 7, w tym prawo sprzeciwu; skontaktuj się z organizatorem albo z
               administratorem pod adresem z punktu 1.
             </p>
+            <p>
+              <strong>Zapisy na terminy.</strong> Jeśli zapisujesz się na termin w ankiecie z ograniczoną liczbą miejsc,
+              organizator otrzymuje Twoje imię i nazwisko, opcjonalnie e-mail i wybrane terminy. Podstawą jest{" "}
+              <strong>Twoja zgoda</strong> (art. 6 ust. 1 lit. a RODO) wyrażona przy zapisie; zapisujemy datę zgody i
+              wersję jej treści. Dane są przechowywane do usunięcia ankiety, usunięcia konta organizatora albo do
+              wycofania zgody – wycofanie (usunięcie zapisu) możesz zgłosić organizatorowi lub administratorowi z punktu
+              1. Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania przed jej wycofaniem. Zapis jest
+              rozpoznawany po adresie e-mail, a bez niego po imieniu i nazwisku – służy to wyłącznie do pilnowania
+              limitu terminów na osobę.
+            </p>
           </div>
         </section>
 

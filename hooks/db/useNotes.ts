@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { Note } from "@/types/notes";
 import { getAppDateTime } from "@/lib/dateUtils";
+import { normalizeFolder } from "@/lib/notes/folders";
 import { useCrudResource } from "./useCrudResource";
 
 const MESSAGES = {
@@ -45,6 +46,7 @@ export function useNotes() {
           user_id: clean.user_id,
           pinned: clean.pinned,
           archived: clean.archived,
+          folder: normalizeFolder(clean.folder),
           updated_at: getAppDateTime().toISOString(),
         },
         {

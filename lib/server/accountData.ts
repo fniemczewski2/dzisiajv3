@@ -125,6 +125,13 @@ export async function exportUserData(
     table: MEETING_POLL_EXPORT_LABELS.availabilities,
     rows: await selectAll(admin, "meeting_poll_availabilities", "*", { column: "response_id", values: ids(responses) }),
   };
+  data.meeting_poll_bookings = {
+    table: MEETING_POLL_EXPORT_LABELS.bookings,
+    rows: await selectAll(admin, "meeting_poll_bookings", MEETING_POLL_EXPORT_COLUMNS.bookings, {
+      column: "poll_id",
+      values: pollIds,
+    }),
+  };
   data.meeting_poll_own_responses = { table: MEETING_POLL_EXPORT_LABELS.ownResponses, rows: ownResponses };
 
   const files: Record<string, string[]> = {};
@@ -201,6 +208,7 @@ export async function deleteUserData(admin: SupabaseClient, userId: string): Pro
     responseIds
   );
   report.tables.meeting_poll_responses = await deleteWhere(admin, "meeting_poll_responses", "id", responseIds);
+  report.tables.meeting_poll_bookings = await deleteWhere(admin, "meeting_poll_bookings", "poll_id", ids(polls));
   report.tables.meeting_poll_dates = await deleteWhere(admin, "meeting_poll_dates", "poll_id", ids(polls));
   report.tables.meeting_polls = await deleteWhere(admin, "meeting_polls", "id", ids(polls));
 

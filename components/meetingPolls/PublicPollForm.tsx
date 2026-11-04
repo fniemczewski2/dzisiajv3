@@ -10,6 +10,7 @@ import { SaveButton } from "../ui/CommonButtons";
 import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 import RespondentResultsGrid from "./RespondentResultsGrid";
+import PublicSignupForm from "./PublicSignupForm";
 
 interface PublicPollFormProps {
   token: string;
@@ -89,6 +90,8 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   if (poll.status === "closed") {
     return <p className="py-16 text-center text-text-muted">Ta ankieta nie przyjmuje już odpowiedzi.</p>;
   }
+
+  if (poll.mode === "signup") return <PublicSignupForm token={token} poll={poll} />;
 
   if (submitted) {
     return (

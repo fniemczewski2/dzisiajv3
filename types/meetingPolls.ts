@@ -1,6 +1,8 @@
 // types/meetingPolls.ts
 
 export type MeetingPollStatus = "open" | "closed";
+/** availability – uczestnicy zaznaczają, kiedy mogą; signup – zapisują się na terminy z ograniczoną liczbą miejsc. */
+export type MeetingPollMode = "availability" | "signup";
 export const MEETING_POLL_SLOT_DURATIONS = [15, 30, 60] as const;
 export type MeetingPollSlotDuration = (typeof MEETING_POLL_SLOT_DURATIONS)[number];
 
@@ -19,6 +21,11 @@ export interface MeetingPoll {
   closes_at: string | null;
   /** Czy osoby, które odpowiedziały, widzą wyniki (ustawia organizator przy tworzeniu). */
   show_results_to_respondents: boolean;
+  mode: MeetingPollMode;
+  /** Liczba miejsc w jednym slocie (tryb zapisów). */
+  slot_capacity: number;
+  /** Na ile slotów może zapisać się jedna osoba (tryb zapisów). */
+  max_slots_per_person: number;
 }
 
 export interface MeetingPollDate {
@@ -35,6 +42,9 @@ export type MeetingPollInsert = {
   time_end: string;
   dates: string[];
   show_results_to_respondents?: boolean;
+  mode?: MeetingPollMode;
+  slot_capacity?: number;
+  max_slots_per_person?: number;
 };
 
 export interface PublicMeetingPoll {
@@ -46,6 +56,9 @@ export interface PublicMeetingPoll {
   dates: string[];
   status: MeetingPollStatus;
   show_results_to_respondents: boolean;
+  mode: MeetingPollMode;
+  slot_capacity: number;
+  max_slots_per_person: number;
 }
 
 export interface MeetingPollSlot {
@@ -119,4 +132,38 @@ export interface RespondentPollSlotCount {
 export interface RespondentPollResults {
   respondents: number;
   slots: RespondentPollSlotCount[];
+}
+
+/** Zajętość jednego slotu w ankiecie zapisów (tylko liczba – bez danych osób). */
+export interface SignupSlotCount {
+  date: string;
+  start_time: string;
+  booked: number;
+}
+
+export interface PublicSignupSlots {
+  capacity: number;
+  max_per_person: number;
+  slots: SignupSlotCount[];
+}
+
+export interface MeetingPollBookingPayload {
+  name: string;
+  email?: string | null;
+  slots: MeetingPollSlot[];
+  /** Zgoda na przetwarzanie imienia i e-maila w celu obsługi zapisu (wymagana). */
+  consent: boolean;
+  /** Pułapka na boty: prawdziwy formularz zostawia puste. */
+  website?: string;
+}
+
+export interface MeetingPollBooking {
+  id: string;
+  poll_id: string;
+  date: string;
+  start_time: string;
+  name: string;
+  email: string | null;
+  consent_at: string;
+  created_at: string;
 }

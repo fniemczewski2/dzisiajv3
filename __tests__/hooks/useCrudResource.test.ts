@@ -45,7 +45,7 @@ const messages = {
 };
 
 function useThings(describeError?: (e: unknown) => string | undefined) {
-  return useCrudResource<Row, { name: string }>({ table: "things", messages, describeError });
+  return useCrudResource<Row, { name: string }>({ table: "products", messages, describeError });
 }
 
 beforeEach(() => {

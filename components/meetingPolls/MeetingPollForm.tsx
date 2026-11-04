@@ -7,7 +7,7 @@ import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { FormButtons } from "../ui/CommonButtons";
 import { getAppDate } from "@/lib/dateUtils";
 import { formatPollDay, generateTimeSlots, nextWorkingDays, pluralPl } from "@/lib/meetingPollGrid";
-import { MEETING_POLL_SLOT_DURATIONS, type MeetingPollSlotDuration } from "@/types/meetingPolls";
+import { MEETING_POLL_SLOT_DURATIONS, type MeetingPollMode, type MeetingPollSlotDuration } from "@/types/meetingPolls";
 
 interface MeetingPollFormProps {
   onChange: () => void;
@@ -36,6 +36,9 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
   const [dates, setDates] = useState<string[]>([]);
   const [dateToAdd, setDateToAdd] = useState(today);
   const [showResults, setShowResults] = useState(false);
+  const [mode, setMode] = useState<MeetingPollMode>("availability");
+  const [capacity, setCapacity] = useState(1);
+  const [maxPerPerson, setMaxPerPerson] = useState(1);
 
   const addDate = () => {
     if (!dateToAdd || dateToAdd < today) return;
@@ -48,7 +51,15 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
   const removeDate = (date: string) => setDates((prev) => prev.filter((d) => d !== date));
 
   const timesValid = timeEnd > timeStart;
-  const canSave = title.trim().length > 0 && dates.length > 0 && timesValid;
+  const limitsValid =
+    mode === "availability" ||
+    (Number.isInteger(capacity) &&
+      capacity >= 1 &&
+      capacity <= 500 &&
+      Number.isInteger(maxPerPerson) &&
+      maxPerPerson >= 1 &&
+      maxPerPerson <= 50);
+  const canSave = title.trim().length > 0 && dates.length > 0 && timesValid && limitsValid;
 
   const slotsPerDay = useMemo(
     () => (timesValid ? generateTimeSlots(timeStart, timeEnd, slotDuration).length : 0),
@@ -64,7 +75,10 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
       time_start: timeStart,
       time_end: timeEnd,
       dates,
-      show_results_to_respondents: showResults,
+      show_results_to_respondents: mode === "availability" && showResults,
+      mode,
+      slot_capacity: mode === "signup" ? capacity : 1,
+      max_slots_per_person: mode === "signup" ? maxPerPerson : 1,
     });
     if (created) onChange();
   };
@@ -72,11 +86,75 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
   return (
     <div className="form-card max-w-2xl space-y-5">
       <div>
-        <h2 className="section-title">Nowa ankieta terminu</h2>
+        <h2 className="section-title">{mode === "signup" ? "Nowe zapisy na terminy" : "Nowa ankieta terminu"}</h2>
         <p className="text-sm text-text-secondary">
-          Wybierz dni i godziny, wyślij link uczestnikom, a odpowiedzi zobaczysz na jednej siatce.
+          {mode === "signup"
+            ? "Wybierz dni i godziny, wyślij link uczestnikom – każdy zapisze się na wolne miejsce w wybranym terminie."
+            : "Wybierz dni i godziny, wyślij link uczestnikom, a odpowiedzi zobaczysz na jednej siatce."}
         </p>
       </div>
+
+      <fieldset className="space-y-2 rounded-xl border border-line p-4">
+        <legend className="px-1 text-sm font-semibold text-text">Rodzaj</legend>
+        <div role="radiogroup" aria-label="Rodzaj ankiety" className="grid gap-2 sm:grid-cols-2">
+          {(
+            [
+              ["availability", "Wybór terminów", "Uczestnicy zaznaczają, kiedy mogą."],
+              ["signup", "Zapisy na terminy", "Ograniczona liczba miejsc w każdym terminie."],
+            ] as const
+          ).map(([value, label, hint]) => (
+            <label
+              key={value}
+              className={`flex min-h-12 cursor-pointer flex-col justify-center rounded-lg border px-3 py-2 text-sm transition-colors ${
+                mode === value ? "border-primary bg-primary/10" : "border-line-strong bg-card"
+              }`}
+            >
+              <input
+                type="radio"
+                name="mp-mode"
+                value={value}
+                checked={mode === value}
+                onChange={() => setMode(value)}
+                className="sr-only"
+              />
+              <span className="font-semibold">{label}</span>
+              <span className="text-xs text-text-secondary">{hint}</span>
+            </label>
+          ))}
+        </div>
+        {mode === "signup" && (
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div>
+              <label htmlFor="mp-capacity" className="form-label">
+                Miejsc w jednym terminie:
+              </label>
+              <input
+                id="mp-capacity"
+                type="number"
+                min={1}
+                max={500}
+                value={capacity}
+                onChange={(e) => setCapacity(Number(e.target.value))}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label htmlFor="mp-max-per-person" className="form-label">
+                Terminów na osobę:
+              </label>
+              <input
+                id="mp-max-per-person"
+                type="number"
+                min={1}
+                max={50}
+                value={maxPerPerson}
+                onChange={(e) => setMaxPerPerson(Number(e.target.value))}
+                className="input-field"
+              />
+            </div>
+          </div>
+        )}
+      </fieldset>
 
       <div className="space-y-3">
         <div>
@@ -233,7 +311,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
         </output>
       )}
 
-      <label className="flex items-start gap-3 text-sm text-text">
+      <label className={`flex items-start gap-3 text-sm text-text ${mode === "signup" ? "hidden" : ""}`}>
         <input
           type="checkbox"
           className="mt-0.5 h-4 w-4 accent-primary"

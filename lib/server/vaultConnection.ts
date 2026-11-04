@@ -28,6 +28,7 @@ import { resolveAccessToken } from "@/lib/mail/accessToken";
 import { createGoogleDriveVault, createOneDriveVault, type VaultStorage } from "@/lib/obsidian/storage";
 import type { VaultData, VaultNote, VaultRepo } from "@/lib/obsidian/runSync";
 import type { VaultItemType } from "@/lib/obsidian/paths";
+import { cols, type KnownTable } from "@/lib/db/columns";
 import type { SyncStateRow } from "@/lib/obsidian/syncPlan";
 
 export type VaultProvider = "onedrive" | "gdrive";
@@ -275,6 +276,16 @@ export function supabaseVaultRepo(supabase: SupabaseClient, userId: string): Vau
         .single();
       if (error || !data) throw error ?? new Error("Brak notatki po zapisie.");
       return data as VaultNote;
+    },
+    async insertItem(type, values) {
+      const table = TABLES[type] as KnownTable;
+      const { data, error } = await supabase
+        .from(table)
+        .insert({ ...values, user_id: userId })
+        .select(cols(table))
+        .single();
+      if (error || !data) throw error ?? new Error("Brak wiersza po zapisie.");
+      return data as never;
     },
   };
 }

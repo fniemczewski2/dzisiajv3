@@ -12,6 +12,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { Event } from "@/types/events";
 import { dateToTimestamp } from "@/lib/dateUtils";
 import { ConflictReport, findConflicts } from "@/lib/eventConflicts";
+import { cols } from "@/lib/db/columns";
 
 const EMPTY: ConflictReport = { overlaps: [], allDay: [] };
 
@@ -56,7 +57,7 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
       const endTs = dateToTimestamp(new Date(endMs));
       const { data, error } = await supabase
         .from("events")
-        .select("*")
+        .select(cols("events"))
         .lte("start_time", endTs)
         .or(`repeat.neq.none,end_time.gte.${quotedIsoTimestamp(startTs)}`)
         .limit(500);
