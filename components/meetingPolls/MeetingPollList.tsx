@@ -10,8 +10,9 @@ import {
   ExternalLink,
   Hourglass,
   Link2,
-  Timer,
   Lock,
+  LockOpen,
+  Timer,
   Users,
 } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
@@ -139,11 +140,11 @@ function PollCard({
         </Link>
         <button type="button" onClick={onToggle} className={actionButton({ color: "info", size: "default" })}>
           {open ? (
-            <Clock aria-hidden="true" className={actionIcon(false)} />
+            <Lock aria-hidden="true" className={actionIcon(false)} />
           ) : (
-            <Hourglass aria-hidden="true" className={actionIcon(false)} />
+            <LockOpen aria-hidden="true" className={actionIcon(false)} />
           )}
-          <span className={ACTION_LABEL_CLASS}>{open ? "Zamknij" : "Otwórz ponownie"}</span>
+          <span className={ACTION_LABEL_CLASS}>{open ? "Zamknij" : "Otwórz"}</span>
         </button>
         <DeleteButton onClick={onDelete} />
       </div>

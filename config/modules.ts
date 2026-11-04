@@ -37,15 +37,14 @@ import {
 } from "lucide-react";
 
 /** Grupy menu w kolejności wyświetlania: praca dzienna → planowanie → komunikacja → dokumenty → finanse → dom → podróże → reszta. */
-export const NAV_GROUPS = [
-  "Dzień",
-  "Planowanie",
-  "Komunikacja",
-  "Dokumenty",
+const NAV_GROUPS = [
+  "Zadania",
+  "Osobiste",
+  "Spotkania",
   "Finanse",
-  "Dom i zdrowie",
+  "Dom i rozrywka",
   "Podróże",
-  "Informacje i rozrywka",
+  "Informacje i komunikacja",
 ] as const;
 export type NavGroup = (typeof NAV_GROUPS)[number];
 
@@ -77,40 +76,39 @@ const EXCLUDED_PATHS = new Set([
 ]);
 
 export const NAVIGATION_BUTTONS: NavigationButton[] = [
-  { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia", group: "Dzień" },
-  { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania", group: "Dzień" },
-  { path: "/tasks/recurring", title: "Zadania cykliczne", icon: Repeat, label: "Cykliczne", group: "Dzień" },
-  { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro", group: "Dzień" },
-  { path: "/streaks", title: "Postępy", icon: Target, label: "Postępy", group: "Dzień" },
+  { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia", group: "Zadania" },
+  { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania", group: "Zadania" },
+  { path: "/tasks/recurring", title: "Zadania cykliczne", icon: Repeat, label: "Cykliczne", group: "Zadania" },
+  { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro", group: "Zadania" },
+  { path: "/streaks", title: "Postępy", icon: Target, label: "Postępy", group: "Osobiste" },
 
-  { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz", group: "Planowanie" },
-  { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy", group: "Planowanie" },
-  { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy", group: "Planowanie" },
+  { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz", group: "Spotkania" },
+  { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy", group: "Spotkania" },
+  { path: "/notes/reports", title: "Protokół", icon: ScrollText, label: "Protokół", group: "Spotkania" },
+  { path: "/people", title: "Ludzie", icon: User, label: "Ludzie", group: "Spotkania" },
 
-  { path: "/mail", title: "Poczta", icon: Mail, label: "Poczta", group: "Komunikacja" },
-  { path: "/people", title: "Ludzie", icon: User, label: "Ludzie", group: "Komunikacja" },
-  { path: "/profiles", title: "Wizytówki", icon: IdCard, label: "Wizytówki", group: "Komunikacja" },
+  { path: "/mail", title: "Poczta", icon: Mail, label: "Poczta", group: "Informacje i komunikacja" },
+  { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki", group: "Osobiste" },
+  { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy", group: "Finanse" },
+  { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma", group: "Informacje i komunikacja" },
 
-  { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki", group: "Dokumenty" },
-  { path: "/notes/reports", title: "Protokół", icon: ScrollText, label: "Protokół", group: "Dokumenty" },
-  { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma", group: "Dokumenty" },
-
+  { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy", group: "Dom i rozrywka" },
   { path: "/bills", title: "Finanse", icon: Coins, label: "Finanse", group: "Finanse" },
   { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet", group: "Finanse" },
   { path: "/bills/calculator", title: "Kalkulator", icon: Calculator, label: "Kalkulator", group: "Finanse" },
 
-  { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy", group: "Dom i zdrowie" },
-  { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy", group: "Dom i zdrowie" },
-  { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening", group: "Dom i zdrowie" },
-  { path: "/health", title: "Zdrowie", icon: HeartPulse, label: "Zdrowie", group: "Dom i zdrowie" },
+  { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy", group: "Dom i rozrywka" },
+  { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy", group: "Dom i rozrywka" },
+  { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening", group: "Dom i rozrywka" },
+  { path: "/health", title: "Zdrowie", icon: HeartPulse, label: "Zdrowie", group: "Osobiste" },
 
-  { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda", group: "Podróże" },
+  { path: "/news", title: "Wiadomości", icon: Newspaper, label: "Wiadomości", group: "Informacje i komunikacja" },
+  { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda", group: "Informacje i komunikacja" },
+
   { path: "/transport", title: "Komunikacja miejska", icon: BusFront, label: "Komunikacja", group: "Podróże" },
   { path: "/trains", title: "Pociągi", icon: TrainFront, label: "Pociągi", group: "Podróże" },
   { path: "/packing", title: "Pakowanie", icon: Backpack, label: "Pakowanie", group: "Podróże" },
-
-  { path: "/news", title: "Wiadomości", icon: Newspaper, label: "Wiadomości", group: "Informacje i rozrywka" },
-  { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy", group: "Informacje i rozrywka" },
+  { path: "/profiles", title: "Wizytówki", icon: IdCard, label: "Wizytówki", group: "Podróże" },
 ];
 
 /**

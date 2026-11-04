@@ -47,7 +47,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Notatki**, **Protokoły** (agenda, uczestnicy, zadania → eksport PDF), **przypomnienia o zadaniach** (push) i **zadania cykliczne**
 - **Foldery i eksport notatek** - hierarchiczne foldery (`Fundacje/Zapłon`) z filtrem, pobieranie notatki lub wszystkich notatek jako Markdown
 - **Listy pakowania** - plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
-- **Osoby i relacje** - kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
+- **Osoby** - kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
 - **Pisma** - rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i pilnowaniem ustawowych terminów odpowiedzi
 
 ### 💰 Finanse

@@ -160,7 +160,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         guideId: "reports",
       },
       {
-        title: "Osoby i relacje",
+        title: "Osoby",
         description: "Kontakty z priorytetem przypominania o kontakcie, kodem QR, vCard oraz importem i eksportem CSV.",
         icon: User,
         path: "/people",

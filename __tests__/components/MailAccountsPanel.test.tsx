@@ -20,8 +20,8 @@ describe("MailAccountsPanel", () => {
         busy={false}
       />
     );
-    fireEvent.click(screen.getByRole("button", { name: "Podłącz konto Gmail" }));
-    fireEvent.click(screen.getByRole("button", { name: "Podłącz konto Outlook" }));
+    fireEvent.click(screen.getByRole("button", { name: "Gmail" }));
+    fireEvent.click(screen.getByRole("button", { name: "Outlook" }));
     expect(onConnectGmail).toHaveBeenCalledTimes(1);
     expect(onConnectOutlook).toHaveBeenCalledTimes(1);
   });

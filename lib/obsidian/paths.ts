@@ -13,7 +13,7 @@ const FORBIDDEN = /[\\/:*?"<>|#^[\]]/g;
 /** Nazwa pliku lub folderu bezpieczna w Windows, macOS, Androidzie, iOS i w linkach Obsidiana. */
 export function safeSegment(value: string, max = 80): string {
   const cleaned = Array.from(value)
-    .filter((ch) => ch.charCodeAt(0) >= 32)
+    .filter((ch) => (ch.codePointAt(0) ?? 0) >= 32)
     .join("")
     .replace(FORBIDDEN, "-")
     .replaceAll(/\s+/g, " ")

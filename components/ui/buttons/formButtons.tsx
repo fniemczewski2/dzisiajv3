@@ -56,7 +56,7 @@ export const SaveButton = ({ onClick, loading, disabled, small = false, ariaLabe
     type="submit"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`dzisiaj-save-btn ${small ? "my-auto min-h-11 min-w-11 p-2" : "min-h-11 px-4 py-2"} flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-secondary font-medium text-white transition-colors hover:bg-secondary-hover disabled:cursor-not-allowed disabled:opacity-50 md:flex-1`}
+    className={`dzisiaj-save-btn ${small ? "my-auto min-h-11 min-w-11 p-2" : "min-h-11 w-full px-4 py-2"} flex items-center justify-center gap-2 rounded-lg border border-transparent bg-secondary font-medium text-white transition-colors hover:bg-secondary-hover disabled:cursor-not-allowed disabled:opacity-50 md:flex-1`}
     aria-label={ariaLabel ?? "Zapisz"}
   >
     {!small && "Zapisz"}

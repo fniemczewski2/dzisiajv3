@@ -269,7 +269,7 @@ describe("POST /api/health/shortcut – rejestr tętna", () => {
   it("zapisuje pomiary porcjami po 1000, łącząc z wcześniejszymi (klucz: użytkownik i czas pomiaru)", async () => {
     const { req, res } = call({
       date: "2026-11-02",
-      heartRateSamples: Array.from({ length: 2500 }, (_, i) => sample(i)),
+      heartRateSamples: Array.from({ length: 2500 }, (_, i) => sample(i * 900)), // co 15 min: bez przycinania
     });
     await handler(req, res);
     expect(res.statusCode).toBe(201);
@@ -285,6 +285,19 @@ describe("POST /api/health/shortcut – rejestr tętna", () => {
     expect(res.payload.message).toBe("Zapisano dane z 2026-11-02, pomiary tętna: 2500.");
   });
 
+  it("gęste pomiary są przycinane do jednego na 15 minut przed zapisem", async () => {
+    const { req, res } = call({
+      date: "2026-11-02",
+      heartRateSamples: Array.from({ length: 60 }, (_, m) => sample(m * 60)),
+    });
+    await handler(req, res);
+    expect(res.statusCode).toBe(201);
+    const rows = h.upserts.filter((u) => u.table === "health_heart_rate").flatMap((u) => u.row as unknown[]);
+    expect(rows).toHaveLength(4);
+    expect(res.payload.message).toContain("pomiary");
+    expect(res.payload.message).toMatch(/: 4\.$/);
+  });
+
   it("sam rejestr tętna nie dotyka tabeli danych dziennych", async () => {
     const { req, res } = call({ date: "2026-11-02", heartRateSamples: [sample(0)] });
     await handler(req, res);
@@ -296,7 +309,7 @@ describe("POST /api/health/shortcut – rejestr tętna", () => {
     h.failTable = "health_heart_rate";
     const { req, res } = call({
       date: "2026-11-02",
-      heartRateSamples: Array.from({ length: 2500 }, (_, i) => sample(i)),
+      heartRateSamples: Array.from({ length: 2500 }, (_, i) => sample(i * 900)), // co 15 min: bez przycinania
     });
     await handler(req, res);
     expect(res.statusCode).toBe(500);

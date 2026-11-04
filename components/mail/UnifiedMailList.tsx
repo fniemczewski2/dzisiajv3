@@ -7,7 +7,6 @@ import React, { useState } from "react";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { DeleteButton } from "@/components/ui/CommonButtons";
-import { useResponsive } from "@/hooks/useResponsive";
 import { formatMailDate, senderName } from "@/lib/mail/format";
 import type { MailMessageSummary } from "@/lib/mail/client";
 import type { UnifiedMailItem } from "@/lib/mail/unified";
@@ -38,7 +37,6 @@ export default function UnifiedMailList({
   onDeleteInbox,
   busy,
 }: Readonly<Props>) {
-  const small = useResponsive();
   const [openInboxId, setOpenInboxId] = useState<string | null>(null);
 
   if (loading) return <SkeletonList count={6} variant="row" />;
@@ -64,7 +62,6 @@ export default function UnifiedMailList({
               onEvent={onEvent}
               onDelete={onDeleteInbox}
               busy={busy}
-              small={small}
               sourceLabel="Przekierowanie"
             />
           );

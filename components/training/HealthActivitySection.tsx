@@ -1,7 +1,6 @@
 // components/training/HealthActivitySection.tsx
 //
 // Aktywność: kroki z ostatnich 7 dni (Skróty iOS) i treningi z 30 dni – ze Skrótów oraz dodane ręcznie.
-// Sen i tętno są w zakładce Zdrowie.
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
@@ -141,13 +140,6 @@ export default function HealthActivitySection() {
           <StepsTable rows={days.data ?? []} />
           <h3 className="text-sm font-semibold text-text">Treningi (ostatnie {WORKOUT_DAYS} dni)</h3>
           <WorkoutList rows={workouts.data ?? []} onDelete={(w) => void remove(w)} />
-          <p className="text-sm text-text-secondary">
-            Sen i tętno są w zakładce{" "}
-            <Link href="/health" className="text-primary underline">
-              Zdrowie
-            </Link>
-            .
-          </p>
         </>
       ) : (
         <p className="text-sm text-text-secondary">

@@ -301,7 +301,7 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                 min="0"
                 step="1000"
                 value={d.daily_steps_goal || 10000}
-                onChange={(e) => set("daily_steps_goal", parseInt(e.target.value) || 0)}
+                onChange={(e) => set("daily_steps_goal", Number.parseInt(e.target.value) || 0)}
                 className="input-field flex-1"
               />
             </div>

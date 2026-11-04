@@ -14,7 +14,7 @@ export interface DemoStep {
   icon: Feature["icon"];
   /** Ścieżka do wypróbowania; brak = funkcja nie ma własnej strony. */
   path?: string;
-  status?: Feature["status"];
+  status?: NonNullable<Feature["status"]>;
   note?: string;
 }
 

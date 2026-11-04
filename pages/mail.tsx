@@ -52,7 +52,7 @@ export default function MailPage() {
   const cache = useMailCache();
   const isSmallScreen = useResponsive();
 
-  const [chosenView, setView] = useState<View>("all");
+  const [chosenView, setChosenView] = useState<View>("all");
   const [chosenAccountId, setChosenAccountId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [searchedQuery, setSearchedQuery] = useState("");
@@ -273,9 +273,13 @@ export default function MailPage() {
           <h1 className="page-title">Poczta</h1>
           <fieldset className="flex gap-2 border-0 p-0">
             <legend className="sr-only">Widok poczty</legend>
-            <ToggleChip label="Wszystkie" active={view === "all"} onClick={() => setView("all")} />
-            <ToggleChip label="Konta" active={view === "accounts"} onClick={() => setView("accounts")} />
-            <ToggleChip label="Przekierowania" active={view === "forwarded"} onClick={() => setView("forwarded")} />
+            <ToggleChip label="Wszystkie" active={view === "all"} onClick={() => setChosenView("all")} />
+            <ToggleChip label="Konta" active={view === "accounts"} onClick={() => setChosenView("accounts")} />
+            <ToggleChip
+              label="Przekierowania"
+              active={view === "forwarded"}
+              onClick={() => setChosenView("forwarded")}
+            />
           </fieldset>
         </div>
 

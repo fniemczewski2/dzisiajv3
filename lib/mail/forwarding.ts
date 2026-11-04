@@ -17,7 +17,7 @@ export function forwardingAddress(token: string, domain: string): string {
 }
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 /** Z adresu odbiorcy wyciąga token, jeśli adres należy do tej domeny i ma poprawny format. */

@@ -136,10 +136,8 @@ export async function handleMailOAuthCallback(
     return;
   }
   if (typeof code !== "string" || typeof state !== "string" || !cookieNonce || !safeEqual(cookieNonce, state)) {
-    {
-      back("error=invalid_state");
-      return;
-    }
+    back("error=invalid_state");
+    return;
   }
 
   const supabase = createServerSupabase(req, res);

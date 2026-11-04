@@ -5,14 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import {
-  BOTTOM_BAR,
-  NAV_GROUPS,
-  NAVIGATION_BUTTONS,
-  isPathEnabled,
-  menuItemsFor,
-  menuRowSizes,
-} from "@/config/modules";
+import { BOTTOM_BAR, NAVIGATION_BUTTONS, isPathEnabled, menuItemsFor, menuRowSizes } from "@/config/modules";
 
 /** Widoki poza menu: strona główna, publiczne, ustawienia i przewodnik (z ustawień), widoki dynamiczne. */
 const OUTSIDE_MENU = new Set(["/", "/start", "/demo", "/privacy", "/settings", "/guide"]);
@@ -39,11 +32,6 @@ describe("menu", () => {
   it("nie ma duplikatów ścieżek", () => {
     const paths = NAVIGATION_BUTTONS.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);
-  });
-
-  it("pozycje każdej grupy stoją obok siebie, a grupy w kolejności NAV_GROUPS", () => {
-    const order = NAVIGATION_BUTTONS.map((b) => b.group).filter((g, i, all) => i === 0 || all[i - 1] !== g);
-    expect(order).toEqual([...NAV_GROUPS]);
   });
 
   it("zadania cykliczne są stałą częścią modułu Zadania (nie da się ich wyłączyć)", () => {

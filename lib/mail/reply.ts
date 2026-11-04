@@ -29,13 +29,13 @@ export function encodeHeaderValue(value: string): string {
 export function utf8ToBase64(value: string): string {
   const bytes = new TextEncoder().encode(value);
   let binary = "";
-  for (const b of bytes) binary += String.fromCharCode(b);
+  for (const b of bytes) binary += String.fromCodePoint(b);
   return btoa(binary);
 }
 
 /** base64url (bez paddingu) – format wymagany przez Gmail API w polu `raw`. */
 export function toBase64Url(value: string): string {
-  return trimChars(utf8ToBase64(value).replace(/\+/g, "-").replace(/\//g, "_"), "=", "end");
+  return trimChars(utf8ToBase64(value).replaceAll("+", "-").replaceAll("/", "_"), "=", "end");
 }
 
 export function buildReplyMime(input: ReplyInput): string {

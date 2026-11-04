@@ -53,6 +53,32 @@ revoke all on table public.meeting_poll_bookings from anon, authenticated;
 grant select, delete on table public.meeting_poll_bookings to authenticated;
 grant all on table public.meeting_poll_bookings to service_role;
 
+-- Odpowiedź błędu w jednym miejscu: { "ok": false, "error": <kod>, ...dodatkowe pola }.
+create or replace function public._meeting_poll_fail(p_code text, p_extra jsonb default '{}'::jsonb)
+returns jsonb
+language sql
+immutable
+as $$ select jsonb_build_object('ok', false, 'error', p_code) || p_extra $$;
+
+revoke all on function public._meeting_poll_fail(text, jsonb) from public;
+
+-- Sloty z wejścia jako unikalne pary (data, godzina); klucze JSON występują tylko tutaj.
+create or replace function public._meeting_poll_slot_rows(p_slots jsonb)
+returns table (d date, t time)
+language sql
+immutable
+as $$ select distinct (x ->> 'date')::date, (x ->> 'start_time')::time from jsonb_array_elements(p_slots) x $$;
+
+-- Slot w odpowiedzi błędu (ten sam kształt co wcześniej: { "date": ..., "start_time": "HH24:MI" }).
+create or replace function public._meeting_poll_slot_json(p_date date, p_time time)
+returns jsonb
+language sql
+immutable
+as $$ select jsonb_build_object('date', p_date, 'start_time', to_char(p_time, 'HH24:MI')) $$;
+
+revoke all on function public._meeting_poll_slot_rows(jsonb) from public;
+revoke all on function public._meeting_poll_slot_json(date, time) from public;
+
 create or replace function public.book_meeting_poll_slots(
   p_poll_id uuid,
   p_name text,
@@ -75,13 +101,13 @@ declare
   v_taken integer;
 begin
   if v_name = '' or length(v_name) > 100 then
-    return jsonb_build_object('ok', false, 'error', 'invalid_name');
+    return public._meeting_poll_fail('invalid_name');
   end if;
   if p_slots is null or jsonb_typeof(p_slots) <> 'array' or jsonb_array_length(p_slots) = 0 then
-    return jsonb_build_object('ok', false, 'error', 'no_slots');
+    return public._meeting_poll_fail('no_slots');
   end if;
   if jsonb_array_length(p_slots) > 50 then
-    return jsonb_build_object('ok', false, 'error', 'too_many_slots');
+    return public._meeting_poll_fail('too_many_slots');
   end if;
 
   -- Blokada ankiety: zapisy do tej samej ankiety są wykonywane jeden po drugim.
@@ -92,50 +118,43 @@ begin
    for update;
 
   if not found then
-    return jsonb_build_object('ok', false, 'error', 'not_found');
+    return public._meeting_poll_fail('not_found');
   end if;
   if v_poll.mode <> 'signup' then
-    return jsonb_build_object('ok', false, 'error', 'not_signup');
+    return public._meeting_poll_fail('not_signup');
   end if;
   if v_poll.status <> 'open' or (v_poll.closes_at is not null and v_poll.closes_at <= now()) then
-    return jsonb_build_object('ok', false, 'error', 'closed');
+    return public._meeting_poll_fail('closed');
   end if;
 
   v_key := coalesce(v_email, lower(v_name));
 
-  select count(*) into v_requested
-    from (select distinct (x ->> 'date')::date, (x ->> 'start_time')::time from jsonb_array_elements(p_slots) x) q;
+  select count(*) into v_requested from public._meeting_poll_slot_rows(p_slots);
 
   select count(*) into v_existing from public.meeting_poll_bookings where poll_id = p_poll_id and person_key = v_key;
   if v_existing + v_requested > v_poll.max_slots_per_person then
-    return jsonb_build_object('ok', false, 'error', 'limit', 'max', v_poll.max_slots_per_person, 'existing', v_existing);
+    return public._meeting_poll_fail('limit', jsonb_build_object('max', v_poll.max_slots_per_person, 'existing', v_existing));
   end if;
 
   for v_slot in
-    select distinct (x ->> 'date')::date as d, (x ->> 'start_time')::time as t from jsonb_array_elements(p_slots) x order by 1, 2
+    select r.d, r.t from public._meeting_poll_slot_rows(p_slots) r order by 1, 2
   loop
     if exists (
       select 1 from public.meeting_poll_bookings b
        where b.poll_id = p_poll_id and b.date = v_slot.d and b.start_time = v_slot.t and b.person_key = v_key
     ) then
-      return jsonb_build_object(
-        'ok', false, 'error', 'already_booked',
-        'slot', jsonb_build_object('date', v_slot.d, 'start_time', to_char(v_slot.t, 'HH24:MI'))
-      );
+      return public._meeting_poll_fail('already_booked', jsonb_build_object('slot', public._meeting_poll_slot_json(v_slot.d, v_slot.t)));
     end if;
     select count(*) into v_taken from public.meeting_poll_bookings b
      where b.poll_id = p_poll_id and b.date = v_slot.d and b.start_time = v_slot.t;
     if v_taken >= v_poll.slot_capacity then
-      return jsonb_build_object(
-        'ok', false, 'error', 'full',
-        'slot', jsonb_build_object('date', v_slot.d, 'start_time', to_char(v_slot.t, 'HH24:MI'))
-      );
+      return public._meeting_poll_fail('full', jsonb_build_object('slot', public._meeting_poll_slot_json(v_slot.d, v_slot.t)));
     end if;
   end loop;
 
   insert into public.meeting_poll_bookings (poll_id, date, start_time, person_key, name, email, consent_version)
-    select distinct p_poll_id, (x ->> 'date')::date, (x ->> 'start_time')::time, v_key, v_name, v_email, p_consent_version
-      from jsonb_array_elements(p_slots) x;
+    select p_poll_id, r.d, r.t, v_key, v_name, v_email, p_consent_version
+      from public._meeting_poll_slot_rows(p_slots) r;
 
   return jsonb_build_object('ok', true, 'booked', v_requested);
 end;

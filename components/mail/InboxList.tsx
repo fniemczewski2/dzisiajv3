@@ -8,8 +8,6 @@ import React, { useState } from "react";
 import { Calendar, ChevronDown, ListTodo } from "lucide-react";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { AddSpecificButton, DeleteButton } from "@/components/ui/CommonButtons";
-import { useResponsive } from "@/hooks/useResponsive";
-
 import { formatMailDate, senderName } from "@/lib/mail/format";
 import type { InboxItem } from "@/lib/mail/client";
 import MailBody from "./MailBody";
@@ -31,23 +29,12 @@ interface RowProps {
   onEvent: (id: string) => void;
   onDelete: (id: string) => void;
   busy: boolean;
-  small: boolean;
   /** Etykieta źródła (np. „Przekierowanie”) pod tematem – w widoku wspólnym. */
   sourceLabel?: string;
 }
 
 /** Jeden przekierowany list: nagłówek (rozwija treść), zadanie, wydarzenie z zaproszenia, usunięcie. */
-export function InboxRow({
-  item,
-  open,
-  onToggle,
-  onTask,
-  onEvent,
-  onDelete,
-  busy,
-  small,
-  sourceLabel,
-}: Readonly<RowProps>) {
+export function InboxRow({ item, open, onToggle, onTask, onEvent, onDelete, busy, sourceLabel }: Readonly<RowProps>) {
   const bodyId = `inbox-body-${item.id}`;
   return (
     <li className="card min-w-0 overflow-hidden p-0">
@@ -74,7 +61,7 @@ export function InboxRow({
             {sourceLabel && <span className="truncate text-xs text-text-muted">{sourceLabel}</span>}
             {item.invitation && (
               <span className="truncate text-xs font-semibold text-primary">
-                {item.invitation.source === "date" ? "Termin w treści" : "Zaproszenie"}: {item.invitation.title}
+                {item.invitation.source && "Zaproszenie"}
               </span>
             )}
           </span>
@@ -85,7 +72,7 @@ export function InboxRow({
             title="Dodaj zadanie „Odpowiedz: temat”"
             label="Zadanie"
             action={() => onTask(item.id)}
-            small={small}
+            small
             disabled={busy}
           />
           {item.invitation?.start && (
@@ -94,13 +81,13 @@ export function InboxRow({
               title="Dodaj wydarzenie z zaproszenia"
               label="Wydarzenie"
               action={() => onEvent(item.id)}
-              small={small}
+              small
               disabled={busy}
             />
           )}
           <DeleteButton
             onClick={() => onDelete(item.id)}
-            small={small}
+            small
             disabled={busy}
             ariaLabel={`Usuń wiadomość ${item.subject || "bez tematu"}`}
           />
@@ -116,7 +103,6 @@ export function InboxRow({
 }
 
 export default function InboxList({ items, searching, onTask, onEvent, onDelete, busy }: Readonly<Props>) {
-  const isSmallScreen = useResponsive();
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (items.length === 0) {
@@ -142,7 +128,6 @@ export default function InboxList({ items, searching, onTask, onEvent, onDelete,
           onEvent={onEvent}
           onDelete={onDelete}
           busy={busy}
-          small={isSmallScreen}
         />
       ))}
     </ul>

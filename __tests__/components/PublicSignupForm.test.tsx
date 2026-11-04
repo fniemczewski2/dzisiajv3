@@ -80,7 +80,7 @@ describe("PublicSignupForm", () => {
   it("wysłanie wymaga terminu, imienia i zgody; żądanie zawiera dane, zgodę i puste pole pułapki", async () => {
     slotsResponse = { capacity: 2, max_per_person: 1, slots: [] };
     renderForm();
-    const submit = await screen.findByRole("button", { name: /Zapisz się/ });
+    const submit = await screen.findByRole("button", { name: /Zapisz/ });
     expect(submit).toBeDisabled();
     fireEvent.click(slotButton(/10:30–11:00/));
     fireEvent.change(screen.getByLabelText("Imię i nazwisko:"), { target: { value: "Anna Nowak" } });
@@ -105,11 +105,11 @@ describe("PublicSignupForm", () => {
   it("e-mail pusty → null w żądaniu; link do informacji o danych jest obecny", async () => {
     slotsResponse = { capacity: 2, max_per_person: 1, slots: [] };
     renderForm();
-    await screen.findByRole("button", { name: /Zapisz się/ });
+    await screen.findByRole("button", { name: /Zapisz/ });
     fireEvent.click(slotButton(/10:00–10:30/));
     fireEvent.change(screen.getByLabelText("Imię i nazwisko:"), { target: { value: "Bartek" } });
     fireEvent.click(screen.getByRole("checkbox"));
-    fireEvent.click(screen.getByRole("button", { name: /Zapisz się/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Zapisz/ }));
     await screen.findByText("Zapisano!");
     expect(JSON.parse(calls.find((c) => c.url.endsWith("/book"))?.init?.body as string).email).toBeNull();
   });
@@ -121,12 +121,12 @@ describe("PublicSignupForm", () => {
       body: { error: "Termin 2026-12-01 10:30 został już zajęty. Wybierz inny.", code: "full" },
     };
     renderForm();
-    await screen.findByRole("button", { name: /Zapisz się/ });
+    await screen.findByRole("button", { name: /Zapisz/ });
     fireEvent.click(slotButton(/10:30–11:00/));
     fireEvent.change(screen.getByLabelText("Imię i nazwisko:"), { target: { value: "Anna" } });
     fireEvent.click(screen.getByRole("checkbox"));
     const before = calls.filter((c) => c.url.endsWith("/slots")).length;
-    fireEvent.click(screen.getByRole("button", { name: /Zapisz się/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Zapisz/ }));
     expect(await screen.findByRole("alert")).toHaveTextContent("został już zajęty");
     await waitFor(() => expect(calls.filter((c) => c.url.endsWith("/slots")).length).toBeGreaterThan(before));
     expect(screen.getByText("Wybrano: 0 z 1")).toBeInTheDocument();
@@ -136,7 +136,7 @@ describe("PublicSignupForm", () => {
   it("limit większy niż 1: można wybrać kilka terminów aż do limitu", async () => {
     slotsResponse = { capacity: 2, max_per_person: 2, slots: [] };
     renderForm(poll({ max_slots_per_person: 2 }));
-    await screen.findByRole("button", { name: /Zapisz się/ });
+    await screen.findByRole("button", { name: /Zapisz/ });
     fireEvent.click(slotButton(/10:00–10:30/));
     fireEvent.click(slotButton(/10:30–11:00/));
     expect(screen.getByText("Wybrano: 2 z 2")).toBeInTheDocument();

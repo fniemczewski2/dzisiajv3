@@ -199,6 +199,6 @@ describe("treść i ustawienia", () => {
     const { message } = notificationText("task", task({ for_user_id: OTHER }) as never, undefined);
     expect(message.length).toBeLessThanOrEqual(120);
     expect(notificationText("event", event({ shared_with_id: OTHER }) as never).message).toBe("Spotkanie");
-    expect(notificationText("event", { ...event(), title: long } as never).message.length).toBe(120);
+    expect(notificationText("event", { ...event(), title: long } as never).message).toHaveLength(120);
   });
 });

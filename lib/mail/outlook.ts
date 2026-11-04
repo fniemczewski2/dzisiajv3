@@ -56,7 +56,7 @@ export function formatGraphAddress(value: GraphAddress | undefined): string {
 
 export function decodeBase64Utf8(data: string): string {
   const binary = atob(data);
-  return new TextDecoder("utf-8").decode(Uint8Array.from(binary, (c) => c.charCodeAt(0)));
+  return new TextDecoder("utf-8").decode(Uint8Array.from(binary, (c) => c.codePointAt(0) ?? 0));
 }
 
 const SUMMARY_SELECT = "id,conversationId,subject,from,toRecipients,receivedDateTime,internetMessageId,hasAttachments";

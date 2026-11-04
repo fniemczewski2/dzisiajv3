@@ -1,7 +1,10 @@
 // pages/bills/calculator.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, Minus, Wallet, ArrowRightLeft } from "lucide-react";
+import { Plus, Minus, Wallet, ArrowRightLeft, Share2, Copy, Mail } from "lucide-react";
+import { SecondaryFullButton } from "@/components/ui/CommonButtons";
+import { useToast } from "@/providers/ToastProvider";
+import { BILL_SPLIT_SUBJECT, buildMailtoHref, formatBillSplit } from "@/lib/billSplit";
 import { useEuroRate } from "@/hooks/useEuroRate";
 import { SkeletonLine } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
@@ -32,7 +35,7 @@ const InputField = ({
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label className="pl-1 text-xs font-bold text-text-secondary">{label}</label>
       <div className="relative flex items-stretch">
-        <div className="flex w-11 shrink-0 items-center justify-center rounded-l-xl border border-r-0 border-line bg-surface text-text-muted">
+        <div className="flex w-11 shrink-0 items-center justify-center rounded-l-xl text-text-muted">
           {icon || <Plus size={16} />}
         </div>
         <input
@@ -58,6 +61,7 @@ const InputField = ({
 };
 
 export default function BillCalculator() {
+  const { toast } = useToast();
   const baseRentRef = useRef<HTMLInputElement>(null);
   const communityRef = useRef<HTMLInputElement>(null);
   const waterRef = useRef<HTMLInputElement>(null);
@@ -162,6 +166,31 @@ export default function BillCalculator() {
   };
 
   const showExchangeRate = currency1 === "EUR" || currency2 === "EUR";
+
+  const splitText = formatBillSplit({ total: results.total, share1: results.share1, share2: results.share2 });
+  const splitMailto = buildMailtoHref(BILL_SPLIT_SUBJECT, splitText);
+
+  const copySplit = async () => {
+    try {
+      await navigator.clipboard.writeText(splitText);
+      toast.success("Skopiowano podział.");
+    } catch {
+      toast.error("Nie udało się skopiować podziału.");
+    }
+  };
+
+  const shareSplit = async () => {
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: BILL_SPLIT_SUBJECT, text: splitText });
+        return;
+      } catch (err) {
+        // Anulowanie okna udostępniania nie jest błędem.
+        if (err instanceof DOMException && err.name === "AbortError") return;
+      }
+    }
+    await copySplit();
+  };
 
   return (
     <>
@@ -385,6 +414,18 @@ export default function BillCalculator() {
                   <div className="text-2xl font-bold text-text">
                     {results.share2.toFixed(2)} <span className="text-base font-bold text-text-muted">zł</span>
                   </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <SecondaryFullButton Icon={Share2} onClick={() => void shareSplit()}>
+                    Udostępnij podział
+                  </SecondaryFullButton>
+                  <SecondaryFullButton Icon={Copy} onClick={() => void copySplit()}>
+                    Kopiuj podział
+                  </SecondaryFullButton>
+                  <SecondaryFullButton Icon={Mail} onClick={() => (window.location.href = splitMailto)}>
+                    Wyślij e-mailem
+                  </SecondaryFullButton>
                 </div>
               </div>
             </section>

@@ -64,15 +64,9 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
                   })}
                 </span>
               )}
-              <div className="flex gap-1">
-                <ConfirmButton onClick={onLogContact} small label="Kontakt" />
-                <ShareButton onClick={() => setShowQR(true)} small />
-                <EditButton onClick={onEdit} small />
-                <DeleteButton onClick={onDelete} small />
-              </div>
             </div>
 
-            <div className="mt-2 flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               {person.phones?.map((phone, _i) => (
                 <a
                   key={phone}
@@ -86,9 +80,10 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
                 <a
                   key={email}
                   href={`mailto:${email}`}
-                  className="flex items-center gap-2 text-sm text-info hover:underline"
+                  className="flex max-w-full items-center gap-2 text-sm text-info hover:underline"
                 >
-                  <Mail className="h-4 w-4" /> {email}
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{email}</span>
                 </a>
               ))}
             </div>
@@ -108,8 +103,14 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
             )}
 
             {person.notes && (
-              <p className="mt-2 border-t border-line pt-2 text-sm text-text-secondary italic">{person.notes}</p>
+              <p className="rounded bg-surface p-1.5 text-sm text-text-secondary italic sm:p-2">{person.notes}</p>
             )}
+            <div className="mt-2 flex gap-1 border-t border-line pt-2">
+              <ConfirmButton onClick={onLogContact} label="Kontakt" />
+              <ShareButton onClick={() => setShowQR(true)} />
+              <EditButton onClick={onEdit} />
+              <DeleteButton onClick={onDelete} />
+            </div>
           </div>
         )}
       </div>

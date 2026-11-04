@@ -55,9 +55,9 @@ describe("notify-shared – kolejność: preferencja, potem zapis i push", () =>
 
   it("sprawdzenie preferencji odbiorcy jest przed zapisem do notifications i przed wysyłką push", () => {
     const check = src.indexOf("isRecipientEnabled(recipientPref)");
-    const decision = src.indexOf("planListDelivery({ recipientPref, summary })");
+    const decision = src.indexOf("decideDelivery(body, rowData, recipientPref)");
     const insert = src.indexOf('.from("notifications").insert');
-    const push = src.indexOf("fetch(`${supabaseUrl}/functions/v1/send-push`");
+    const push = src.indexOf("await pushToRecipient(");
     expect(check).toBeGreaterThan(0);
     expect(decision).toBeGreaterThan(check);
     expect(insert).toBeGreaterThan(decision);

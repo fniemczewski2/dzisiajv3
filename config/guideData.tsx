@@ -967,7 +967,7 @@ export const guideSections: GuideSection[] = [
 
   {
     id: "people",
-    title: "Osoby i relacje",
+    title: "Osoby",
     mainIcon: <User className="h-6 w-6" />,
     iconColorClass: "text-danger",
     listItems: [

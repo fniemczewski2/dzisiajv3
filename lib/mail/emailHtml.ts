@@ -90,7 +90,7 @@ function processImages(
         img.setAttribute("src", remoteImageUrl(src));
       } else {
         img.removeAttribute("src");
-        img.setAttribute("data-blocked", "1");
+        img.dataset.blocked = "1";
         blocked++;
       }
     } else if (!SAFE_DATA_IMAGE.test(src)) {
@@ -109,7 +109,7 @@ function emailStyles(html: string): string {
   return Array.from(source.querySelectorAll("style"))
     .map((s) => s.textContent ?? "")
     .join("\n")
-    .replaceAll(/<\/style/gi, "<\\/style");
+    .replaceAll(/<\/style/gi, String.raw`<\/style`);
 }
 
 export function prepareEmailHtml(

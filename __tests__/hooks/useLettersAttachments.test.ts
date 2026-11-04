@@ -86,7 +86,7 @@ const existing = (n: number, kind = "letter") =>
 async function setup(rows: unknown[]) {
   h.fixture = rows;
   const hook = renderHook(() => useLetters());
-  await waitFor(() => expect(hook.result.current.getAttachments("L1", "letter").length).toBe(rows.length));
+  await waitFor(() => expect(hook.result.current.getAttachments("L1", "letter")).toHaveLength(rows.length));
   return hook.result;
 }
 

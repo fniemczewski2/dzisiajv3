@@ -90,5 +90,5 @@ async function waitForAttachments(result: { current: ReturnType<typeof useLetter
   await act(async () => {
     await new Promise((r) => setTimeout(r, 0));
   });
-  expect(result.current.getAttachments("L1", "letter").length).toBe(1);
+  expect(result.current.getAttachments("L1", "letter")).toHaveLength(1);
 }

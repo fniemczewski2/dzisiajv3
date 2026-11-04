@@ -5,12 +5,13 @@
 
 import Link from "next/link";
 import React, { useMemo, useState } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { usePublicSignup } from "@/hooks/usePublicSignup";
 import { buildSignupDays } from "@/lib/meetingPollSignup";
 import { formatPollDay, pluralPl, slotKey } from "@/lib/meetingPollGrid";
 import type { MeetingPollSlot, PublicMeetingPoll } from "@/types/meetingPolls";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
+import { SaveButton } from "../ui/CommonButtons";
 
 interface Props {
   token: string;
@@ -210,14 +211,7 @@ export default function PublicSignupForm({ token, poll }: Readonly<Props>) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={!canSubmit}
-        className="dzisiaj-save-btn inline-flex min-h-11 items-center justify-center gap-2 px-6 disabled:opacity-50"
-      >
-        Zapisz się
-        {submitting && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
-      </button>
+      <SaveButton disabled={!canSubmit} loading={submitting} />
     </form>
   );
 }

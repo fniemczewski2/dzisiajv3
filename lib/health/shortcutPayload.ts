@@ -10,6 +10,7 @@ import {
   MAX_HEALTH_WORKOUTS_PER_SUBMIT,
 } from "@/config/limits";
 import { normalizeSleepStage, type SleepStage } from "@/lib/health/sleepStages";
+import { thinHeartRateSamples } from "@/lib/health/heartRateThinning";
 
 export interface HealthDailyInput {
   date: string;
@@ -264,5 +265,6 @@ export function parseHealthPayload(body: unknown): ParsedHealthPayload {
   const nothing =
     Object.keys(daily).length === 1 && [workouts, heartRateSamples, sleepSegments].every((list) => list.length === 0);
   if (nothing) return { ok: false, error: "Brak danych do zapisania." };
-  return { ok: true, daily, workouts, heartRateSamples, sleepSegments };
+  // Tętno: najwyżej jeden pomiar na 15 minut (ogranicza ilość zapisywanych danych).
+  return { ok: true, daily, workouts, heartRateSamples: thinHeartRateSamples(heartRateSamples), sleepSegments };
 }

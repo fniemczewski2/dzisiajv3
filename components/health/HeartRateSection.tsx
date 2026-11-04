@@ -26,7 +26,7 @@ export default function HeartRateSection({ records, loading }: Readonly<Props>) 
     () => [...records].sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at)),
     [records]
   );
-  
+
   let body: React.ReactNode;
   if (loading) {
     body = <SkeletonList count={3} variant="row" />;

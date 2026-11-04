@@ -32,7 +32,7 @@ export function verifyCronSecret(req: Request, headerName = "x-cron-secret"): bo
  */
 
 function normalizeOrigin(value: string): string {
-  return value.trim().replace(/\/+$/, "");
+  return trimTrailingSlashes(value.trim());
 }
 
 export const ALLOWED_ORIGINS: string[] = [
@@ -82,4 +82,11 @@ export function withCors(handler: (req: Request) => Response | Promise<Response>
     if (origin && ALLOWED_ORIGINS.includes(origin)) headers.set("Access-Control-Allow-Origin", origin);
     return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
   };
+}
+
+/** Obcina końcowe ukośniki bez wyrażenia regularnego (liniowo, bez cofania się). */
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === "/") end--;
+  return value.slice(0, end);
 }

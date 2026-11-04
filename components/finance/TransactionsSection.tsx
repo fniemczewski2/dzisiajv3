@@ -290,10 +290,18 @@ export default function TransactionsSection(props: Readonly<Props>) {
     <section aria-labelledby={`${id}-h`}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 id={`${id}-h`} className="section-title flex items-center gap-2">
-          Wydatki i wpływy
+          Transakcje
         </h2>
-        <CsvImport {...csv} categories={categories} categoryNames={categoryNames} bills={bills} profileId={profileId} />
-        <AddButton onClick={() => setAdding(true)} />
+        <div className="flex items-center gap-2">
+          <CsvImport
+            {...csv}
+            categories={categories}
+            categoryNames={categoryNames}
+            bills={bills}
+            profileId={profileId}
+          />
+          <AddButton onClick={() => setAdding(true)} />
+        </div>
       </div>
 
       {adding && (

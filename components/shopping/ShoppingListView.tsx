@@ -187,7 +187,7 @@ export default function ShoppingListView({
                   </div>
                 )}
               </div>
-              <div className="flex shrink-0 gap-1.5">
+              <div className="flex flex-1 gap-1.5">
                 <EditButton onClick={() => handleEdit(list)} />
                 <DeleteButton
                   onClick={() => handleDelete(list)}
@@ -251,7 +251,7 @@ function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) 
         placeholder="Nowy produkt…"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="input-field min-w-0 py-2"
+        className="input-field min-w-0 grow py-2"
       />
       <SaveButton small ariaLabel="Dodaj produkt" />
     </form>

@@ -8,7 +8,7 @@
   const requested = document.documentElement.dataset.next || "/";
   // Tylko ścieżka w tej domenie: „/…”, ale nie „//…” ani „/\…” (adres innej domeny).
   const BACKSLASH = 92;
-  const safe = requested.startsWith("/") && !requested.startsWith("//") && requested.charCodeAt(1) !== BACKSLASH;
+  const safe = requested.startsWith("/") && !requested.startsWith("//") && requested.codePointAt(1) !== BACKSLASH;
   const target = safe ? requested : "/";
 
   try {

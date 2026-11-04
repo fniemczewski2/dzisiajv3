@@ -105,7 +105,7 @@ export default function FinanceSettings({
             min="0"
             step="10"
             value={dailyLimit || 0}
-            onChange={(e) => onDailyLimitChange(parseFloat(e.target.value) || 0)}
+            onChange={(e) => onDailyLimitChange(Number.parseFloat(e.target.value) || 0)}
             className="input-field flex-1"
           />
         </div>

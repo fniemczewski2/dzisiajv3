@@ -1,7 +1,7 @@
 // components/mail/MailAccountsPanel.tsx
 
 import React from "react";
-import { Plus, Unplug } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import { IconActionButton, SecondaryFullButton, ToggleChip } from "@/components/ui/CommonButtons";
 import type { MailAccount } from "@/lib/mail/client";
 
@@ -45,7 +45,7 @@ export default function MailAccountsPanel({
                 />
               </div>
               <IconActionButton
-                Icon={Unplug}
+                Icon={Trash2}
                 title={`Odłącz konto ${account.email}`}
                 variant="danger"
                 onClick={() => onDisconnect(account.id)}
@@ -55,12 +55,12 @@ export default function MailAccountsPanel({
           ))}
         </ul>
       )}
-      <div className="grid gap-2 sm:grid-cols-2">
-        <SecondaryFullButton Icon={Plus} onClick={onConnectGmail} disabled={busy}>
-          Podłącz konto Gmail
+      <div className="mt-2 grid gap-2 border-t border-line pt-2 sm:grid-cols-2">
+        <SecondaryFullButton Icon={PlusCircle} onClick={onConnectGmail} disabled={busy}>
+          Gmail
         </SecondaryFullButton>
-        <SecondaryFullButton Icon={Plus} onClick={onConnectOutlook} disabled={busy}>
-          Podłącz konto Outlook
+        <SecondaryFullButton Icon={PlusCircle} onClick={onConnectOutlook} disabled={busy}>
+          Outlook
         </SecondaryFullButton>
       </div>
     </section>

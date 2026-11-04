@@ -82,7 +82,7 @@ describe("MeetingPollList", () => {
   it("zamknięta ankieta oferuje ponowne otwarcie", async () => {
     render(<MeetingPollList />);
     const closed = await screen.findByRole("region", { name: "Zamknięte (1)" });
-    expect(within(closed).getByRole("button", { name: "Otwórz ponownie" })).toBeInTheDocument();
+    expect(within(closed).getByRole("button", { name: "Otwórz" })).toBeInTheDocument();
     expect(within(closed).getByText("Zamknięta")).toBeInTheDocument();
   });
 });

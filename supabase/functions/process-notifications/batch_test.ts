@@ -77,9 +77,18 @@ Deno.test("sentDataKeys: jedno zapytanie na porcję, klucze użytkownik|wartoś�
       let ids: string[] = [];
       const q = {
         select: () => q,
-        eq: (c: string, v: unknown) => (filters.push(`eq:${c}=${v}`), q),
-        gte: (c: string, v: unknown) => (filters.push(`gte:${c}=${v}`), q),
-        in: (_c: string, v: string[]) => ((ids = v), q),
+        eq: (c: string, v: unknown) => {
+          filters.push(`eq:${c}=${v}`);
+          return q;
+        },
+        gte: (c: string, v: unknown) => {
+          filters.push(`gte:${c}=${v}`);
+          return q;
+        },
+        in: (_c: string, v: string[]) => {
+          ids = v;
+          return q;
+        },
         then: (resolve: (r: unknown) => unknown) => {
           calls.push(filters);
           return Promise.resolve({ data: rows.filter((r) => ids.includes(r.user_id)), error: null }).then(resolve);
@@ -96,7 +105,10 @@ Deno.test("sentDataKeys: jedno zapytanie na porcję, klucze użytkownik|wartoś�
     "letter_id",
     "2026-10-29T00:00:00Z"
   );
-  assertEquals([...withDate].sort(), ["u1|L1", "u2|L2"]);
+  assertEquals(
+    [...withDate].sort((a, b) => a.localeCompare(b)),
+    ["u1|L1", "u2|L2"]
+  );
   assertEquals(calls.length, 1);
   assertEquals(calls[0].includes("gte:created_at=2026-10-29T00:00:00Z"), true);
 

@@ -104,7 +104,7 @@ export default function TransportPage() {
   } else {
     favoritesContent = visibleFavorites.map((group) => (
       <div key={`group_${group.key}`} className="card min-w-0 overflow-hidden p-4">
-        <div className="mb-2 flex items-center justify-between border-b pb-2">
+        <div className="mb-2 flex items-center justify-between border-b border-line pb-2">
           {renderStopTitle(group)}
           <DeleteButton onClick={() => removeFavoriteStop(group.key)} small />
         </div>
@@ -136,7 +136,7 @@ export default function TransportPage() {
   } else {
     nearbyContent = nearbyGroups.map((group) => (
       <div key={`nearby_group_${group.key}`} className="card min-w-0 overflow-hidden p-4">
-        <div className="mb-2 flex flex-wrap items-center justify-between border-b pb-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between border-b border-line pb-2">
           {renderStopTitle(group)}
           <div className="flex shrink-0 items-center gap-3">
             {group.distance && (

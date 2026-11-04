@@ -7,10 +7,20 @@
 \set ON_ERROR_STOP on
 begin;
 
+-- Stałe testowe jako funkcje (każda wartość zapisana raz).
+create or replace function pg_temp.role_auth() returns text language sql immutable as $$ select 'authenticated'::text $$;
+create or replace function pg_temp.sig() returns text language sql immutable
+  as $$ select 'public.book_meeting_poll_slots(uuid,text,text,jsonb,text)'::text $$;
+create or replace function pg_temp.slot_a() returns jsonb language sql immutable
+  as $$ select '[{"date":"2026-12-01","start_time":"10:00"}]'::jsonb $$;
+create or replace function pg_temp.slot_b() returns jsonb language sql immutable
+  as $$ select '[{"date":"2026-12-05","start_time":"09:00"}]'::jsonb $$;
+create or replace function pg_temp.email_anna() returns text language sql immutable as $$ select 'anna@example.com'::text $$;
+
 create schema if not exists auth;
 create or replace function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
 do $$ begin
-  if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
+  if not exists (select 1 from pg_roles where rolname = pg_temp.role_auth()) then create role authenticated; end if;
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon; end if;
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role; end if;
 end $$;
@@ -39,7 +49,7 @@ begin
   insert into public.meeting_polls (title) values ('zapisy') returning id into poll;
 
   -- tryb domyślny: nie jest to ankieta zapisów
-  r := public.book_meeting_poll_slots(poll, 'Anna', null, '[{"date":"2026-12-01","start_time":"10:00"}]', 'v1');
+  r := public.book_meeting_poll_slots(poll, 'Anna', null, pg_temp.slot_a(), 'v1');
   perform pg_temp.expect('tryb dostępności', r, '{"ok":false,"error":"not_signup"}');
 
   update public.meeting_polls set mode = 'signup', slot_capacity = 2, max_slots_per_person = 2 where id = poll;
@@ -47,7 +57,7 @@ begin
   -- poprawny zapis dwóch terminów
   r := public.book_meeting_poll_slots(poll, 'Anna', 'Anna@Example.com ', '[{"date":"2026-12-01","start_time":"10:00"},{"date":"2026-12-01","start_time":"10:30"}]', 'v1');
   perform pg_temp.expect('zapis', r, '{"ok":true,"booked":2}');
-  if (select count(*) from public.meeting_poll_bookings where poll_id = poll and person_key = 'anna@example.com') <> 2 then
+  if (select count(*) from public.meeting_poll_bookings where poll_id = poll and person_key = pg_temp.email_anna()) <> 2 then
     raise exception 'TEST klucz osoby: e-mail powinien być zapisany małymi literami';
   end if;
 
@@ -57,13 +67,13 @@ begin
 
   -- duplikat własnego terminu
   update public.meeting_polls set max_slots_per_person = 5 where id = poll;
-  r := public.book_meeting_poll_slots(poll, 'Anna', 'anna@example.com', '[{"date":"2026-12-01","start_time":"10:00"}]', 'v1');
+  r := public.book_meeting_poll_slots(poll, 'Anna', pg_temp.email_anna(), pg_temp.slot_a(), 'v1');
   perform pg_temp.expect('duplikat', r, '{"ok":false,"error":"already_booked","slot":{"date":"2026-12-01","start_time":"10:00"}}');
 
   -- pojemność slotu = 2: druga osoba wchodzi, trzecia nie
-  r := public.book_meeting_poll_slots(poll, 'Bartek', null, '[{"date":"2026-12-01","start_time":"10:00"}]', 'v1');
+  r := public.book_meeting_poll_slots(poll, 'Bartek', null, pg_temp.slot_a(), 'v1');
   perform pg_temp.expect('drugie miejsce', r, '{"ok":true,"booked":1}');
-  r := public.book_meeting_poll_slots(poll, 'Celina', null, '[{"date":"2026-12-01","start_time":"10:00"}]', 'v1');
+  r := public.book_meeting_poll_slots(poll, 'Celina', null, pg_temp.slot_a(), 'v1');
   perform pg_temp.expect('slot pełny', r, '{"ok":false,"error":"full","slot":{"date":"2026-12-01","start_time":"10:00"}}');
 
   -- operacja jest atomowa: pełny slot na końcu listy nie zostawia wcześniejszych zapisów
@@ -79,20 +89,20 @@ begin
 
   -- walidacje wejścia
   perform pg_temp.expect('pusta lista', public.book_meeting_poll_slots(poll, 'X', null, '[]', 'v1'), '{"ok":false,"error":"no_slots"}');
-  perform pg_temp.expect('puste imię', public.book_meeting_poll_slots(poll, '  ', null, '[{"date":"2026-12-05","start_time":"09:00"}]', 'v1'), '{"ok":false,"error":"invalid_name"}');
+  perform pg_temp.expect('puste imię', public.book_meeting_poll_slots(poll, '  ', null, pg_temp.slot_b(), 'v1'), '{"ok":false,"error":"invalid_name"}');
   perform pg_temp.expect('nie tablica', public.book_meeting_poll_slots(poll, 'X', null, '{"a":1}', 'v1'), '{"ok":false,"error":"no_slots"}');
-  perform pg_temp.expect('brak ankiety', public.book_meeting_poll_slots(gen_random_uuid(), 'X', null, '[{"date":"2026-12-05","start_time":"09:00"}]', 'v1'), '{"ok":false,"error":"not_found"}');
+  perform pg_temp.expect('brak ankiety', public.book_meeting_poll_slots(gen_random_uuid(), 'X', null, pg_temp.slot_b(), 'v1'), '{"ok":false,"error":"not_found"}');
 
   -- zamknięta ankieta i minięty termin zamknięcia
   update public.meeting_polls set status = 'closed' where id = poll;
-  perform pg_temp.expect('zamknięta', public.book_meeting_poll_slots(poll, 'Ewa', null, '[{"date":"2026-12-05","start_time":"09:00"}]', 'v1'), '{"ok":false,"error":"closed"}');
+  perform pg_temp.expect('zamknięta', public.book_meeting_poll_slots(poll, 'Ewa', null, pg_temp.slot_b(), 'v1'), '{"ok":false,"error":"closed"}');
   update public.meeting_polls set status = 'open', closes_at = now() - interval '1 minute' where id = poll;
-  perform pg_temp.expect('po terminie', public.book_meeting_poll_slots(poll, 'Ewa', null, '[{"date":"2026-12-05","start_time":"09:00"}]', 'v1'), '{"ok":false,"error":"closed"}');
+  perform pg_temp.expect('po terminie', public.book_meeting_poll_slots(poll, 'Ewa', null, pg_temp.slot_b(), 'v1'), '{"ok":false,"error":"closed"}');
 
   -- ograniczenia tabeli: ten sam klucz osoby na ten sam slot nie wejdzie bezpośrednim INSERT-em
   begin
     insert into public.meeting_poll_bookings (poll_id, date, start_time, person_key, name, consent_version)
-      values (poll, '2026-12-01', '10:00', 'anna@example.com', 'Anna', 'v1');
+      values (poll, '2026-12-01', '10:00', pg_temp.email_anna(), 'Anna', 'v1');
     raise exception 'TEST unikalność: powinien być błąd';
   exception when unique_violation then null; end;
 
@@ -105,14 +115,14 @@ end $$;
 
 -- uprawnienia: anon i authenticated nie wywołają funkcji, service_role tak
 do $$ begin
-  if has_function_privilege('anon', 'public.book_meeting_poll_slots(uuid,text,text,jsonb,text)', 'execute')
-     or has_function_privilege('authenticated', 'public.book_meeting_poll_slots(uuid,text,text,jsonb,text)', 'execute') then
+  if has_function_privilege('anon', pg_temp.sig(), 'execute')
+     or has_function_privilege(pg_temp.role_auth(), pg_temp.sig(), 'execute') then
     raise exception 'TEST uprawnienia: funkcja nie może być wywoływalna przez anon/authenticated';
   end if;
-  if not has_function_privilege('service_role', 'public.book_meeting_poll_slots(uuid,text,text,jsonb,text)', 'execute') then
+  if not has_function_privilege('service_role', pg_temp.sig(), 'execute') then
     raise exception 'TEST uprawnienia: service_role musi móc wywołać funkcję';
   end if;
-  if has_table_privilege('authenticated', 'public.meeting_poll_bookings', 'insert')
+  if has_table_privilege(pg_temp.role_auth(), 'public.meeting_poll_bookings', 'insert')
      or has_table_privilege('anon', 'public.meeting_poll_bookings', 'select') then
     raise exception 'TEST uprawnienia tabeli';
   end if;

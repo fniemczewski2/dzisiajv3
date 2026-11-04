@@ -59,8 +59,10 @@ export function personValues(content: string, fileName: string): ImportValues {
 
 /** „2026-11-02 Zebranie zarządu” → data i temat; używane, gdy plik nie ma ich w nagłówku. */
 function reportFromFileName(fileName: string): { date: string | null; topic: string } {
-  const match = /^(\d{4}-\d{2}-\d{2})\s+(.+)$/.exec(fileName.trim());
-  return match ? { date: validDate(match[1]), topic: match[2] } : { date: null, topic: fileName.trim() };
+  const trimmed = fileName.trim();
+  const dateMatch = /^\d{4}-\d{2}-\d{2}(?=\s)/.exec(trimmed);
+  const topic = dateMatch ? trimmed.slice(dateMatch[0].length).trim() : "";
+  return dateMatch && topic !== "" ? { date: validDate(dateMatch[0]), topic } : { date: null, topic: trimmed };
 }
 
 export function reportValues(content: string, fileName: string, today: string): ImportValues {

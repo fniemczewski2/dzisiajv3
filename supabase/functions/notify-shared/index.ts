@@ -67,6 +67,40 @@ function parseBody(raw: unknown): Body | null {
   return { kind, id, change: { added: addedLabels, removed: removedLabels } };
 }
 
+/** Czy nadawca przekroczył limit powiadomień w oknie czasowym (liczone po wysłanych wierszach). */
+async function isRateLimited(admin: ReturnType<typeof createClient>, senderId: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - RATE_WINDOW_MINUTES * 60_000).toISOString();
+  const { count, error } = await admin
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("data->>sender_id", senderId)
+    .like("type", "shared_%")
+    .gte("created_at", windowStart);
+  if (error) throw error;
+  return (count ?? 0) >= RATE_LIMIT;
+}
+
+/** Decyzja o wysyłce; dla listy liczby zmian są potwierdzane stanem listy w bazie. */
+function decideDelivery(
+  body: Body,
+  rowData: TaskRow | EventRow | ListRow,
+  recipientPref: unknown
+): { send: boolean; summary?: ReturnType<typeof summarizeListChange> } {
+  if (body.kind !== "list_item") return { send: true };
+  const summary = summarizeListChange(rowData as ListRow, body.change as ListChangeRequest);
+  return { send: planListDelivery({ recipientPref, summary }).send, summary };
+}
+
+/** Wysyłka push do odbiorcy przez funkcję send-push (wywołanie serwerowe kluczem service role). */
+async function pushToRecipient(supabaseUrl: string, serviceRoleKey: string, payload: unknown): Promise<void> {
+  const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!pushRes.ok) console.error("[notify-shared] send-push failed:", await pushRes.text());
+}
+
 Deno.serve(
   withCors(async (req) => {
     if (req.method === "OPTIONS") return preflight();
@@ -92,15 +126,7 @@ Deno.serve(
       if (userError || !user) return json({ error: "Brak autoryzacji." }, 401);
       const senderId = user.id;
 
-      const windowStart = new Date(Date.now() - RATE_WINDOW_MINUTES * 60_000).toISOString();
-      const { count, error: countError } = await admin
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("data->>sender_id", senderId)
-        .like("type", "shared_%")
-        .gte("created_at", windowStart);
-      if (countError) throw countError;
-      if ((count ?? 0) >= RATE_LIMIT) {
+      if (await isRateLimited(admin, senderId)) {
         return json({ success: false, message: "Za dużo powiadomień naraz – spróbuj za kilka minut." }, 429);
       }
 
@@ -130,13 +156,9 @@ Deno.serve(
       const recipientPref = (prefs as Record<string, unknown> | null)?.[prefColumn];
       if (!isRecipientEnabled(recipientPref)) return json({ success: true, sent: false });
 
-      // Lista: liczby zmian potwierdzamy stanem listy w bazie; bez potwierdzonej zmiany nie ma czego zgłaszać.
-      const summary =
-        body.kind === "list_item"
-          ? summarizeListChange(rowData as ListRow, body.change as ListChangeRequest)
-          : undefined;
-      // Decyzja o wysyłce (preferencja odbiorcy + zmiana potwierdzona stanem listy) – jedno miejsce.
-      if (summary && !planListDelivery({ recipientPref, summary }).send) return json({ success: true, sent: false });
+      const delivery = decideDelivery(body, rowData, recipientPref);
+      if (!delivery.send) return json({ success: true, sent: false });
+      const summary = delivery.summary;
       const { title, message } = notificationText(body.kind, rowData, summary);
       const type = NOTIFICATION_TYPE_BY_KIND[body.kind];
       const { error: insertError } = await admin.from("notifications").insert({
@@ -148,18 +170,13 @@ Deno.serve(
       });
       if (insertError) throw insertError;
 
-      const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: recipientId,
-          title,
-          message,
-          url: PUSH_URL_BY_KIND[body.kind],
-          data: { type, from: senderId },
-        }),
+      await pushToRecipient(supabaseUrl, serviceRoleKey, {
+        userId: recipientId,
+        title,
+        message,
+        url: PUSH_URL_BY_KIND[body.kind],
+        data: { type, from: senderId },
       });
-      if (!pushRes.ok) console.error("[notify-shared] send-push failed:", await pushRes.text());
 
       return json({ success: true, sent: true });
     } catch (err) {

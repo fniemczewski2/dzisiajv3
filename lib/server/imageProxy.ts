@@ -122,7 +122,7 @@ function pinnedGet(url: URL, target: ResolvedHost, signal: AbortSignal): Promise
       (res) => {
         const headers = new Headers();
         for (const [name, value] of Object.entries(res.headers)) {
-          if (value !== undefined) headers.set(name, Array.isArray(value) ? value.join(", ") : String(value));
+          if (value !== undefined) headers.set(name, Array.isArray(value) ? value.join(", ") : value);
         }
         const status = res.statusCode ?? 502;
         const body = NO_BODY_STATUS.has(status) ? null : (Readable.toWeb(res) as ReadableStream<Uint8Array>);

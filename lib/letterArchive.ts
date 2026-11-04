@@ -11,12 +11,12 @@ export interface ArchiveSource {
   file_name: string;
 }
 
-const FORBIDDEN_IN_NAMES = '<>:"/\\|?*';
+const FORBIDDEN_IN_NAMES = String.raw`<>:"/\|?*`;
 
 /** Nazwa pliku lub folderu bezpieczna na Windows, macOS i Linux. */
 export function safeName(value: string, maxLength = 120): string {
   const joined = Array.from(value)
-    .map((ch) => (ch.charCodeAt(0) < 32 || FORBIDDEN_IN_NAMES.includes(ch) ? "_" : ch))
+    .map((ch) => ((ch.codePointAt(0) ?? 0) < 32 || FORBIDDEN_IN_NAMES.includes(ch) ? "_" : ch))
     .join("")
     .replaceAll(/\s+/g, " ");
   const cleaned = trimChars(joined, ". ");

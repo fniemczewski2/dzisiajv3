@@ -32,5 +32,5 @@ OK=$(cat "$OUT"/*.json | grep -c '"ok": true' || true)
 FULL=$(cat "$OUT"/*.json | grep -c '"error": "full"' || true)
 ROWS=$(psql -qAt -c "select count(*) from public.meeting_poll_bookings where poll_id='$POLL'")
 echo "sesje=$SESSIONS pojemnosc=$CAPACITY udane=$OK pelne=$FULL wierszy=$ROWS"
-[ "$OK" -eq "$CAPACITY" ] && [ "$FULL" -eq $((SESSIONS - CAPACITY)) ] && [ "$ROWS" -eq "$CAPACITY" ] || { echo "BŁĄD: naruszony limit miejsc"; exit 1; }
+[[ "$OK" -eq "$CAPACITY" ]] && [[ "$FULL" -eq $((SESSIONS - CAPACITY)) ]] && [[ "$ROWS" -eq "$CAPACITY" ]] || { echo "BŁĄD: naruszony limit miejsc"; exit 1; }
 echo "OK: limit miejsc zachowany przy współbieżnych zapisach"

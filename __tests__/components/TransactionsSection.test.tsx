@@ -68,7 +68,7 @@ describe("TransactionsSection", () => {
     expect(onLink).toHaveBeenLastCalledWith("t1", null);
     // podsumowanie i karta transakcji
     expect(screen.getAllByText(/19,90/).length).toBeGreaterThan(0);
-    expect(screen.getByRole("heading", { name: "Wydatki i wpływy" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Transakcje" })).toBeTruthy();
   });
 
   it("Edytuj: zmiana nazwy, kwoty i ręczne połączenie z płatnością", () => {

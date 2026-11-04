@@ -127,7 +127,7 @@ async function writeSleep(
     .delete()
     .eq("user_id", userId)
     .gte("started_at", starts[0])
-    .lte("started_at", starts[starts.length - 1])
+    .lte("started_at", starts.at(-1))
     .lt("synced_at", syncedAt);
   if (cleaned.error) console.error("[health/shortcut] sen (czyszczenie):", cleaned.error.message);
   return null;

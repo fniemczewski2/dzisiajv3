@@ -72,7 +72,15 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
       const own = ((data ?? []) as Event[]).filter((e) => e.user_id === userId || e.shared_with_id === userId);
       setReport(findConflicts(new Date(startMs), new Date(endMs), own, { ignoreId, candidateAllDay: allDay }));
     };
-    const timer = setTimeout(() => void check(), CONFLICT_CHECK_DEBOUNCE_MS);
+    const timer = setTimeout(() => {
+      // Sprawdzenie jest tylko podpowiedzią: błąd nie może trafić jako nieobsłużony rejekt ani blokować zapisu.
+      check().catch(() => {
+        if (!cancelled) {
+          setChecking(false);
+          setReport(EMPTY);
+        }
+      });
+    }, CONFLICT_CHECK_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       clearTimeout(timer);

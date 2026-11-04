@@ -21,7 +21,7 @@ export function normalizeFolder(raw: string | null | undefined): string | null {
     .split("/")
     .map((segment) => segment.trim())
     .filter(Boolean);
-  const joined = segments.join("/").slice(0, MAX_FOLDER_LENGTH).replace(/\/+$/, "");
+  const joined = trimTrailingSlashes(segments.join("/").slice(0, MAX_FOLDER_LENGTH));
   return joined === "" ? null : joined;
 }
 
@@ -57,4 +57,11 @@ export function folderCounts(items: readonly HasFolder[]): { none: number; byFol
   }
   for (const item of items) if (normalizeFolder(item.folder) === null) none++;
   return { none, byFolder };
+}
+
+/** Obcina końcowe ukośniki bez wyrażenia regularnego (liniowo, bez cofania się). */
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === "/") end--;
+  return value.slice(0, end);
 }

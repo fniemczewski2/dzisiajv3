@@ -29,7 +29,7 @@ export function parseBatchResponse(body: string, boundary: string): Map<number, 
   for (const part of body.split(`--${boundary}`)) {
     const id = /Content-ID:\s*<?response-item(\d+)>?/i.exec(part);
     const http = parseHttpPart(part);
-    if (!id || !http || http.status !== "200") continue;
+    if (!id || http?.status !== "200") continue;
     try {
       out.set(Number(id[1]), JSON.parse(http.body.trim()));
     } catch {
@@ -67,19 +67,19 @@ export interface GmailRawMessage {
 
 export function decodeBase64Url(data: string): string {
   const base64 = data
-    .replace(/-/g, "+")
-    .replace(/_/g, "/")
+    .replaceAll("-", "+")
+    .replaceAll("_", "/")
     .padEnd(Math.ceil(data.length / 4) * 4, "=");
   const binary = atob(base64);
-  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  const bytes = Uint8Array.from(binary, (c) => c.codePointAt(0) ?? 0);
   return new TextDecoder("utf-8").decode(bytes);
 }
 
 /** base64url → standardowe base64 (do adresów data:). */
 function base64UrlToBase64(data: string): string {
   return data
-    .replace(/-/g, "+")
-    .replace(/_/g, "/")
+    .replaceAll("-", "+")
+    .replaceAll("_", "/")
     .padEnd(Math.ceil(data.length / 4) * 4, "=");
 }
 

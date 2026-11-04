@@ -113,9 +113,10 @@ export const ImportPeople = ({ onImport }: ImportProps) => {
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover"
+        aria-label="Importuj kontakty z pliku CSV"
+        className="my-auto flex h-min min-h-11 w-min min-w-11 flex-col items-center justify-center rounded-lg border border-transparent bg-surface p-1.5 text-text-secondary transition-colors hover:border-success-line hover:bg-success-soft hover:text-success disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
       >
-        .csv <Upload className="h-5 w-5" />
+        <Upload className="h-5 w-5" />
       </button>
     </div>
   );

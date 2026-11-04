@@ -229,7 +229,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
   const organizations: string[] = profile.organization?.split(",") || [""];
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 p-4">
+    <div className="mx-auto flex max-w-md flex-col gap-6">
       {onBack && (
         <button
           onClick={onBack}
@@ -280,7 +280,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                     key={`tel-${p.number}`}
                     className="flex flex-col justify-between py-1 text-sm sm:flex-row sm:items-center"
                   >
-                    <span className="w-20 text-xs opacity-70">{p.type}</span>
+                    <span className="w-40 text-xs opacity-70">{p.type}</span>
                     <div className="flex flex-1 items-center justify-end gap-2">
                       <a
                         href={`tel:${p.number.replaceAll(/\s+/g, "")}`}
@@ -297,7 +297,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                     key={`email-${e.email}`}
                     className="flex flex-col justify-between py-1 text-sm sm:flex-row sm:items-center"
                   >
-                    <span className="w-20 text-xs opacity-70">{e.type}</span>
+                    <span className="w-40 text-xs opacity-70">{e.type}</span>
                     <div className="flex flex-1 items-center justify-end gap-2">
                       <a href={`mailto:${e.email}`} className="truncate font-medium text-info hover:underline">
                         {e.email}
@@ -313,9 +313,9 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               <div className="space-y-2 border-t border-line pt-3">
                 <h3 className="mb-2 text-xs font-semibold text-text-muted">Adresy</h3>
                 {profile.addresses.map((a) => (
-                  <div key={`addr-${a.address}`} className="flex flex-row items-start justify-between py-1 text-sm">
-                    <span className="mt-1 w-20 text-xs opacity-70">{a.type}</span>
-                    <div className="flex flex-1 items-start justify-end gap-2 text-right">
+                  <div key={`addr-${a.address}`} className="flex flex-col items-start justify-between py-1 text-sm">
+                    <span className="w-40 text-xs opacity-70">{a.type}</span>
+                    <div className="flex w-full flex-1 items-start justify-between gap-2">
                       <span className="font-medium">{a.address}</span>
                       <CopyButtonSmall text={a.address} label="adres" />
                     </div>
@@ -354,27 +354,27 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               <div className="space-y-2 border-t border-line pt-3">
                 <h3 className="mb-2 text-xs font-semibold text-text-muted">Pozostałe Dane</h3>
                 {bizData.nip && (
-                  <div className="flex items-center justify-between py-1 text-sm">
-                    <span className="w-20 text-xs opacity-70">NIP</span>
-                    <div className="flex flex-1 items-center justify-end gap-2">
+                  <div className="flex flex-col items-start justify-between py-1 text-sm">
+                    <span className="w-40 text-xs opacity-70">NIP</span>
+                    <div className="flex w-full flex-1 items-center justify-between gap-2">
                       <span className="font-mono">{bizData.nip}</span>
                       <CopyButtonSmall text={bizData.nip} label="NIP" />
                     </div>
                   </div>
                 )}
                 {bizData.krs && (
-                  <div className="flex items-center justify-between py-1 text-sm">
-                    <span className="w-20 text-xs opacity-70">KRS</span>
-                    <div className="flex flex-1 items-center justify-end gap-2">
+                  <div className="flex flex-col items-start justify-between py-1 text-sm">
+                    <span className="w-40 text-xs opacity-70">KRS</span>
+                    <div className="flex w-full flex-1 items-center justify-between gap-2">
                       <span className="font-mono">{bizData.krs}</span>
                       <CopyButtonSmall text={bizData.krs} label="KRS" />
                     </div>
                   </div>
                 )}
                 {bizData.bank_account && (
-                  <div className="flex items-center justify-between py-1 text-sm">
-                    <span className="text-xs opacity-70">Nr Konta</span>
-                    <div className="flex w-full flex-1 items-center justify-end gap-2">
+                  <div className="flex flex-col items-start justify-between py-1 text-sm">
+                    <span className="w-40 text-xs opacity-70">Nr Konta</span>
+                    <div className="flex w-full flex-1 items-center justify-between gap-2">
                       <span className="w-fit text-right font-mono text-wrap" title={bizData.bank_account}>
                         {bizData.bank_account}
                       </span>

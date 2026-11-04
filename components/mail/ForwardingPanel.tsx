@@ -4,8 +4,8 @@
 
 import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import React, { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { IconActionButton, SecondaryFullButton } from "@/components/ui/CommonButtons";
+import { Trash2 } from "lucide-react";
+import { AddButton, IconActionButton } from "@/components/ui/CommonButtons";
 import type { ForwardingAddress } from "@/lib/mail/client";
 
 interface Props {
@@ -29,7 +29,7 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
   };
 
   return (
-    <section aria-labelledby="forwarding-heading" className="space-y-3">
+    <section aria-labelledby="forwarding-heading" className="card space-y-3 p-4">
       <h2 id="forwarding-heading" className="section-title">
         Przekierowania poczty
       </h2>
@@ -44,8 +44,12 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
       )}
       <ul className="space-y-2">
         {active.map((a) => (
-          <li key={a.id} className="flex items-center gap-2">
-            <span className="flex-1 text-sm text-text">{a.label || "Bez nazwy"}</span>
+          <li key={a.id} className="flex min-w-0 items-center gap-2">
+            <div className="min-w-0 flex-1 wrap-anywhere">
+              <span className="inline-block rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-bold text-text-secondary">
+                {a.label || "Bez nazwy"}
+              </span>
+            </div>
             <IconActionButton
               Icon={Trash2}
               title={`Odwołaj adres ${a.label || "bez nazwy"}`}
@@ -56,9 +60,9 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
           </li>
         ))}
       </ul>
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="mt-2 flex flex-wrap items-end gap-2 border-t border-line pt-2">
         <label className="flex-1 text-sm text-text-secondary">
-          Nazwa (opcjonalnie)
+          Nazwa (opcjonalnie):
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
@@ -66,9 +70,7 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
             className="input-field mt-1 w-full"
           />
         </label>
-        <SecondaryFullButton Icon={Plus} onClick={() => void create()} disabled={busy} className="sm:w-auto">
-          Utwórz adres
-        </SecondaryFullButton>
+        <AddButton onClick={() => void create()} disabled={busy} />
       </div>
     </section>
   );

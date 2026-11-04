@@ -114,12 +114,12 @@ export default function PeoplePage() {
         description="Kontakty bliskich z datami urodzin i imienin, które pojawiają się w kalendarzu."
       />
 
-      <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4 pb-24">
-        <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <h1 className="page-title">Osoby i relacje</h1>
+      <div className="mx-auto flex max-w-4xl flex-col gap-6">
+        <div className="flex w-full items-center justify-between">
+          <h1 className="page-title">Osoby</h1>
 
           {!isFormOpen && !editingPerson && (
-            <div className="flex w-full flex-wrap gap-2 md:w-auto">
+            <div className="flex flex-wrap gap-2 md:w-auto">
               <ExportPeople people={people} />
               <ImportPeople onImport={handleImport} />
               <AddButton onClick={openAddForm} />

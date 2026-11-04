@@ -29,7 +29,7 @@ export class VaultStorageError extends Error {
   }
 }
 
-async function ok(res: Response, what: string): Promise<Response> {
+function ok(res: Response, what: string): Response {
   if (!res.ok) throw new VaultStorageError(res.status, `${what}: błąd ${res.status}.`);
   return res;
 }
@@ -51,14 +51,15 @@ export function createOneDriveVault(accessToken: string, fetchImpl: FetchLike = 
   const auth = { Authorization: `Bearer ${accessToken}` };
   return {
     async list() {
-      const root = (await (
-        await ok(await fetchImpl(`${GRAPH}/special/approot`, { headers: auth }), "OneDrive")
+      const root = (await ok(
+        await fetchImpl(`${GRAPH}/special/approot`, { headers: auth }),
+        "OneDrive"
       ).json()) as GraphItem;
       const rootPath = `${root.parentReference?.path ?? ""}/${root.name}`;
       const files: VaultFile[] = [];
       let url: string | undefined = `${GRAPH}/special/approot/delta`;
       while (url) {
-        const page = (await (await ok(await fetchImpl(url, { headers: auth }), "OneDrive")).json()) as {
+        const page = (await ok(await fetchImpl(url, { headers: auth }), "OneDrive").json()) as {
           value: GraphItem[];
           "@odata.nextLink"?: string;
         };
@@ -74,15 +75,16 @@ export function createOneDriveVault(accessToken: string, fetchImpl: FetchLike = 
       return files;
     },
     async read(fileId) {
-      return (
-        await ok(await fetchImpl(`${GRAPH}/items/${encodeURIComponent(fileId)}/content`, { headers: auth }), "OneDrive")
+      return ok(
+        await fetchImpl(`${GRAPH}/items/${encodeURIComponent(fileId)}/content`, { headers: auth }),
+        "OneDrive"
       ).text();
     },
     async write(path, content, fileId) {
       const url = fileId
         ? `${GRAPH}/items/${encodeURIComponent(fileId)}/content`
         : `${GRAPH}/special/approot:/${encodePath(path)}:/content`;
-      const res = await ok(
+      const res = ok(
         await fetchImpl(url, {
           method: "PUT",
           headers: { ...auth, "Content-Type": "text/markdown; charset=utf-8" },
@@ -107,7 +109,7 @@ interface DriveFile {
   mimeType: string;
 }
 
-const q = (s: string) => s.replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+const q = (s: string) => s.replaceAll("\\", String.raw`\\`).replaceAll("'", String.raw`\'`);
 
 export function createGoogleDriveVault(accessToken: string, fetchImpl: FetchLike = fetch): VaultStorage {
   const auth = { Authorization: `Bearer ${accessToken}` };
@@ -123,9 +125,7 @@ export function createGoogleDriveVault(accessToken: string, fetchImpl: FetchLike
         pageSize: "1000",
       });
       if (pageToken) params.set("pageToken", pageToken);
-      const page = (await (
-        await ok(await fetchImpl(`${DRIVE}?${params}`, { headers: auth }), "Google Drive")
-      ).json()) as {
+      const page = (await ok(await fetchImpl(`${DRIVE}?${params}`, { headers: auth }), "Google Drive").json()) as {
         files: DriveFile[];
         nextPageToken?: string;
       };
@@ -144,14 +144,12 @@ export function createGoogleDriveVault(accessToken: string, fetchImpl: FetchLike
       q: `name = '${q(name)}' and mimeType = '${FOLDER_MIME}' and ${parentClause} and trashed = false`,
       fields: "files(id)",
     });
-    const found = (await (
-      await ok(await fetchImpl(`${DRIVE}?${params}`, { headers: auth }), "Google Drive")
-    ).json()) as {
+    const found = (await ok(await fetchImpl(`${DRIVE}?${params}`, { headers: auth }), "Google Drive").json()) as {
       files: { id: string }[];
     };
     let id = found.files[0]?.id;
     if (!id) {
-      const created = await ok(
+      const created = ok(
         await fetchImpl(DRIVE, {
           method: "POST",
           headers: { ...auth, "Content-Type": "application/json" },
@@ -181,13 +179,14 @@ export function createGoogleDriveVault(accessToken: string, fetchImpl: FetchLike
       return files;
     },
     async read(fileId) {
-      return (
-        await ok(await fetchImpl(`${DRIVE}/${encodeURIComponent(fileId)}?alt=media`, { headers: auth }), "Google Drive")
+      return ok(
+        await fetchImpl(`${DRIVE}/${encodeURIComponent(fileId)}?alt=media`, { headers: auth }),
+        "Google Drive"
       ).text();
     },
     async write(path, content, fileId) {
       if (fileId) {
-        await ok(
+        ok(
           await fetchImpl(`${UPLOAD}/${encodeURIComponent(fileId)}?uploadType=media`, {
             method: "PATCH",
             headers: { ...auth, "Content-Type": "text/markdown; charset=utf-8" },
@@ -205,7 +204,7 @@ export function createGoogleDriveVault(accessToken: string, fetchImpl: FetchLike
       const body =
         `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name, parents: [parentId], mimeType: "text/markdown" })}\r\n` +
         `--${boundary}\r\nContent-Type: text/markdown; charset=UTF-8\r\n\r\n${content}\r\n--${boundary}--`;
-      const res = await ok(
+      const res = ok(
         await fetchImpl(`${UPLOAD}?uploadType=multipart&fields=id`, {
           method: "POST",
           headers: { ...auth, "Content-Type": `multipart/related; boundary=${boundary}` },

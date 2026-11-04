@@ -1,9 +1,9 @@
 // components/letters/LetterList.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { ChevronDown, Download, Upload, Eye, Trash2 } from "lucide-react";
+import { ChevronDown, Upload, Eye, Trash2 } from "lucide-react";
 import { useLetters } from "@/hooks/db/useLetters";
-import { EditButton, DeleteButton, FormButtons, CopyButtonSmall } from "../ui/CommonButtons";
+import { EditButton, DeleteButton, FormButtons, CopyButtonSmall, DownloadButton } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import SearchBar from "../ui/SearchBar";
 import { generateLetterBody } from "@/lib/letterTemplates";
@@ -200,6 +200,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           const isEditing = editingId === l.id;
           const editPrefix = `edit-letter-${l.id}`;
           const letterBody = open ? generateLetterBody(l) : "";
+          const hasAttachments = getAttachments(l.id, "letter").length + getAttachments(l.id, "response").length > 0;
 
           if (isEditing && edited) {
             const isTrafficViolation = edited.category === "Wykroczenie drogowe";
@@ -312,23 +313,16 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
             >
               <div className="flex items-center justify-between gap-2 p-4">
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-text">{l.signature}</span>
                     <CopyButtonSmall text={l.signature} label="sygnaturę" />
-                    <button
-                      type="button"
-                      onClick={() => void downloadLetterArchive(l)}
-                      disabled={getAttachments(l.id, "letter").length + getAttachments(l.id, "response").length === 0}
-                      aria-label={`Pobierz wszystkie pliki sygnatury ${l.signature} (ZIP)`}
-                      className="flex items-center gap-1 rounded-lg bg-surface px-2 py-0.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text disabled:opacity-50"
-                    >
-                      <Download className="h-3.5 w-3.5" aria-hidden="true" /> ZIP
-                    </button>
-                    <span className="rounded-lg border border-primary bg-info-soft px-2 py-0.5 text-xs font-semibold text-primary">
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="truncate rounded-lg border border-primary bg-info-soft px-2 py-0.5 text-xs font-semibold text-primary">
                       {l.category === "Inne" ? l.category_other : l.category}
                     </span>
+                    <p className="truncate text-sm text-text-secondary">{l.recipient}</p>
                   </div>
-                  <p className="mt-1 truncate text-sm text-text-secondary">{l.recipient}</p>
                 </div>
                 <button
                   type="button"
@@ -401,6 +395,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   </div>
 
                   <div className="flex w-full justify-end gap-1.5 pt-2">
+                    {hasAttachments && (
+                      <DownloadButton onClick={() => void downloadLetterArchive(l)} fileFormat=".zip" />
+                    )}
                     <EditButton onClick={() => handleEdit(l)} />
                     <DeleteButton onClick={() => void deleteLetter(l.id)} />
                   </div>

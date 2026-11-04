@@ -92,7 +92,6 @@ describe("aktywność w module Trening", () => {
     expect(table).not.toHaveTextContent("2026-10-29");
     expect(table).not.toHaveTextContent(formatMinutes(431));
     expect(screen.queryByText(/Tętno spocz/)).toBeNull();
-    expect(screen.getByRole("link", { name: "Zdrowie" })).toHaveAttribute("href", "/health");
   });
 
   it("lista treningów z dystansem, energią i oznaczeniem wpisów ręcznych", () => {

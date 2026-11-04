@@ -115,6 +115,6 @@ export function summarizeSleep(segments: readonly SleepSegment[]): SleepSummary 
     awakeMinutes: stageMinutes.awake,
     inBedMinutes: minutes(SLEEP_STAGES.reduce((sum, stage) => sum + ms[stage], 0)),
     startedAt: timeline[0].started_at,
-    endedAt: timeline[timeline.length - 1].ended_at,
+    endedAt: (timeline.at(-1) ?? timeline[0]).ended_at,
   };
 }

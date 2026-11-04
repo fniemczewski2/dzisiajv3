@@ -225,74 +225,78 @@ export default function BudgetCategoriesEditor({
 
       {categories.length > 0 && (
         <div className="mb-4 space-y-2">
-          {categories.map((cat, idx) => (
-            <div
-              key={cat.id}
-              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors ${
-                editingId === cat.id ? "border-primary bg-card" : "border-line bg-surface hover:border-line-strong"
-              }`}
-            >
-              {editingId === cat.id ? (
-                <AmountEditor
-                  cat={cat}
-                  onSave={(u) => handleSaveEdit(cat.id, u)}
-                  onCancel={() => setEditingId(null)}
-                  saving={loading}
-                  selectedMonth={selectedMonth}
-                />
-              ) : (
-                <>
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="truncate text-sm font-medium text-text">{cat.name}</span>
-                    {(!cat.monthly_amounts ||
-                      (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) === 0) && (
-                      <span className="shrink-0 rounded-lg border border-warning-line bg-warning-soft px-1.5 py-0.5 text-xs font-bold text-warning">
-                        brak limitu
-                      </span>
-                    )}
-                  </div>
+          {categories.map((cat, idx) => {
+            const hasLimit =
+              cat.monthly_amounts && (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) > 0;
 
-                  <span className="shrink-0 text-sm font-bold text-text tabular-nums">
-                    {formatAmount(cat, selectedMonth)}{" "}
-                    {cat.monthly_amounts &&
-                      (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) > 0 && (
-                        <span className="text-xs font-normal text-text-muted">{formatSuffix(cat)}</span>
-                      )}
-                  </span>
-
-                  <div className="flex shrink-0 flex-col gap-0.5">
-                    <button
-                      onClick={() => move(idx, -1)}
-                      disabled={idx === 0 || loading}
-                      type="button"
-                      aria-label={`Przesuń w górę: ${cat.name}`}
-                      className="p-0.5 text-text-muted transition-colors hover:text-text disabled:opacity-20"
-                    >
-                      <ChevronUp className="h-3 w-3" />
-                    </button>
-                    <button
-                      onClick={() => move(idx, 1)}
-                      disabled={idx === categories.length - 1 || loading}
-                      type="button"
-                      aria-label={`Przesuń w dół: ${cat.name}`}
-                      className="p-0.5 text-text-muted transition-colors hover:text-text disabled:opacity-20"
-                    >
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-                  </div>
-
-                  <EditButton
-                    onClick={() => {
-                      setEditingId(cat.id);
-                      setShowAddForm(false);
-                    }}
-                    small
+            return (
+              <div
+                key={cat.id}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors ${
+                  editingId === cat.id ? "border-primary bg-card" : "border-line bg-surface hover:border-line-strong"
+                }`}
+              >
+                {editingId === cat.id ? (
+                  <AmountEditor
+                    cat={cat}
+                    onSave={(u) => handleSaveEdit(cat.id, u)}
+                    onCancel={() => setEditingId(null)}
+                    saving={loading}
+                    selectedMonth={selectedMonth}
                   />
-                  <DeleteButton onClick={() => handleDelete(cat.id)} small />
-                </>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <>
+                    <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
+                      <span className="truncate text-sm font-medium text-text">{cat.name}</span>
+                      {hasLimit ? (
+                        <span className="shrink-0 text-sm font-bold text-text tabular-nums">
+                          {formatAmount(cat, selectedMonth)}{" "}
+                          {cat.monthly_amounts &&
+                            (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) > 0 && (
+                              <span className="text-xs font-normal text-text-muted">{formatSuffix(cat)}</span>
+                            )}
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-lg border border-warning-line bg-warning-soft px-1.5 py-0.5 text-xs font-bold text-warning">
+                          brak limitu
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex shrink-0 flex-col gap-0.5">
+                      <button
+                        onClick={() => move(idx, -1)}
+                        disabled={idx === 0 || loading}
+                        type="button"
+                        aria-label={`Przesuń w górę: ${cat.name}`}
+                        className="p-0.5 text-text-muted transition-colors hover:text-text disabled:opacity-20"
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => move(idx, 1)}
+                        disabled={idx === categories.length - 1 || loading}
+                        type="button"
+                        aria-label={`Przesuń w dół: ${cat.name}`}
+                        className="p-0.5 text-text-muted transition-colors hover:text-text disabled:opacity-20"
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <EditButton
+                      onClick={() => {
+                        setEditingId(cat.id);
+                        setShowAddForm(false);
+                      }}
+                      small
+                    />
+                    <DeleteButton onClick={() => handleDelete(cat.id)} small />
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

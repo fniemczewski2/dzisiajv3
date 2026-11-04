@@ -8,7 +8,7 @@ import { MAX_MAIL_SEARCH_LENGTH } from "@/config/limits";
 export function normalizeSearchQuery(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const clean = Array.from(value)
-    .filter((ch) => ch.charCodeAt(0) >= 32)
+    .filter((ch) => (ch.codePointAt(0) ?? 0) >= 32)
     .join("")
     .replaceAll(/\s+/g, " ")
     .trim()

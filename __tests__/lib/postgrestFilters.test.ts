@@ -28,6 +28,19 @@ describe("filtry PostgREST", () => {
     expect(() => quotedIsoTimestamp("nie-data")).toThrow(InvalidFilterValueError);
   });
 
+  it("przyjmuje format zapisywany przez aplikację (skrócona strefa +00) i inne poprawne postacie", () => {
+    expect(quotedIsoTimestamp("2026-11-04T10:00:00+00")).toBe('"2026-11-04T10:00:00+00"');
+    expect(quotedIsoTimestamp("2026-11-04T10:00:00+02:00")).toBe('"2026-11-04T10:00:00+02:00"');
+    expect(quotedIsoTimestamp("2026-11-04T10:00:00Z")).toBe('"2026-11-04T10:00:00Z"');
+    expect(quotedIsoTimestamp("2026-11-03T00:00:00")).toBe('"2026-11-03T00:00:00"');
+  });
+
+  it("odrzuca niepoprawną datę nawet w formacie aplikacji i wstrzyknięcie w zwykłym formacie", () => {
+    expect(() => quotedIsoTimestamp("2026-13-45T10:00:00+00")).toThrow(InvalidFilterValueError);
+    expect(() => quotedIsoTimestamp('2026-11-04T10:00:00+00",id.gt.0')).toThrow(InvalidFilterValueError);
+    expect(() => quotedIsoTimestamp("2026-11-04T10:00:00+00)")).toThrow(InvalidFilterValueError);
+  });
+
   it("escapuje znaki LIKE, także ukośnik wsteczny", () => {
     expect(escapeLikePattern(String.raw`50%_a\b`)).toBe(String.raw`50\%\_a\\b`);
     expect(containsPattern("  kot ")).toBe("%kot%");

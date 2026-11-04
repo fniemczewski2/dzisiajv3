@@ -186,7 +186,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
       </div>
 
       <fieldset className="space-y-3 rounded-xl border border-line p-4">
-        <legend className="px-1 text-sm font-semibold text-text">Kandydackie dni</legend>
+        <legend className="px-1 text-sm font-semibold text-text">Dni</legend>
 
         {dates.length === 0 ? (
           <p className="text-sm text-text-muted">Nie dodano jeszcze żadnego dnia.</p>
@@ -319,7 +319,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
           onChange={(e) => setShowResults(e.target.checked)}
         />
         <span>
-          Pokaż wyniki osobom, które odpowiedziały
+          Pokaż wyniki osobom, które odpowiedziały{" "}
           <span className="block text-xs text-text-secondary">
             Po wysłaniu odpowiedzi zobaczą, ile osób zaznaczyło każdy termin. Imion ani adresów nie zobaczą.
           </span>

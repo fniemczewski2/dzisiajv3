@@ -5,7 +5,7 @@
 
 import React, { useMemo } from "react";
 import { useTransactions } from "@/hooks/db/useFinance";
-import { formatPln, round2 } from "@/lib/finance";
+import { round2 } from "@/lib/finance";
 
 const MONTHS = ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"];
 
@@ -44,7 +44,7 @@ export default function YearTable({ year }: Readonly<{ year: number }>) {
           <thead>
             <tr className="border-b border-line text-right text-text-secondary">
               <th scope="col" className="py-2 text-left font-medium">
-                Miesiąc
+                Mc
               </th>
               <th scope="col" className="py-2 font-medium">
                 Wpływy
@@ -63,10 +63,10 @@ export default function YearTable({ year }: Readonly<{ year: number }>) {
                 <th scope="row" className="py-1.5 text-left font-normal text-text capitalize">
                   {r.name}
                 </th>
-                <td className="py-1.5">{r.income ? formatPln(r.income) : "—"}</td>
-                <td className="py-1.5">{r.expenses ? formatPln(r.expenses) : "—"}</td>
+                <td className="py-1.5">{r.income || "—"}</td>
+                <td className="py-1.5">{r.expenses || "—"}</td>
                 <td className={`py-1.5 ${r.balance < 0 ? "text-danger" : ""}`}>
-                  {r.income || r.expenses ? formatPln(r.balance) : "—"}
+                  {r.income || r.expenses ? r.balance : "—"}
                 </td>
               </tr>
             ))}
@@ -76,9 +76,9 @@ export default function YearTable({ year }: Readonly<{ year: number }>) {
               <th scope="row" className="pt-2 text-left">
                 Razem
               </th>
-              <td className="pt-2">{formatPln(round2(total.income))}</td>
-              <td className="pt-2">{formatPln(round2(total.expenses))}</td>
-              <td className="pt-2">{formatPln(round2(total.income - total.expenses))}</td>
+              <td className="px-1 pt-2">{round2(total.income)}</td>
+              <td className="px-1 pt-2">{round2(total.expenses)}</td>
+              <td className="px-1 pt-2">{round2(total.income - total.expenses)}</td>
             </tr>
           </tfoot>
         </table>

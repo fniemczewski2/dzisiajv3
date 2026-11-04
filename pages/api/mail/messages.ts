@@ -3,9 +3,8 @@
 // Lista ostatnich wiadomości z folderu odbiorczego (tylko nagłówki; treść pobierana osobno, na żądanie).
 
 import { MAIL_LIST_SIZE } from "@/config/limits";
-import { MAIL_HIDDEN_LOOKUP, MAIL_LIST_MAX_FETCH } from "@/config/server";
+import { CACHE_CONTROL, MAIL_HIDDEN_LOOKUP, MAIL_LIST_MAX_FETCH } from "@/config/server";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { CACHE_CONTROL } from "@/config/server";
 import { allowMethods } from "@/lib/server/apiGuards";
 import { loadMailContext } from "@/lib/server/mailRoute";
 import { normalizeSearchQuery } from "@/lib/mail/search";
