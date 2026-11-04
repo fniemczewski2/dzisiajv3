@@ -12,7 +12,9 @@
 //   node scripts/release.mjs --only lint,test  # wybrane kontrole (do diagnozy; wydanie wymaga wszystkich)
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
@@ -21,11 +23,16 @@ const onlyArg = process.argv.find((a) => a.startsWith("--only="))?.slice("--only
 const ONLY = onlyArg ? new Set(onlyArg.split(",")) : null;
 const DRY_RUN = args.has("--dry-run");
 const ASSUME_YES = args.has("--yes");
-const BUMP = args.has("--major") ? "major" : args.has("--minor") ? "minor" : "patch";
+function bumpKind() {
+  if (args.has("--major")) return "major";
+  if (args.has("--minor")) return "minor";
+  return "patch";
+}
+const BUMP = bumpKind();
 
 // Kody kolorów terminala (ESC[…m) usuwane z wyjścia narzędzi.
-const ESC = String.fromCharCode(27);
-const ANSI_COLOR = new RegExp(`${ESC}\\[[0-9;]*m`, "g");
+const ESC = String.fromCodePoint(27);
+const ANSI_COLOR = new RegExp(String.raw`${ESC}\[[0-9;]*m`, "g");
 
 const SECRET_PATTERNS = [/(^|\/)\.env(\..*)?$/, /\.pem$/, /\.key$/, /(^|\/)credentials/i, /service[-_]account/i];
 
@@ -120,6 +127,48 @@ function restore(originals) {
   for (const [file, text] of originals) writeFileSync(file, text);
 }
 
+// ---------------------------------------------------------------- deno
+
+const DENO_INSTALL_HINT = [
+  "Zainstaluj Deno (wersja 2.x) i uruchom ponownie. Jedna z opcji:",
+  "  Windows (PowerShell):  irm https://deno.land/install.ps1 | iex",
+  "  macOS/Linux:           curl -fsSL https://deno.land/install.sh | sh",
+  "  npm:                   npm install -g deno",
+  "Jeśli Deno jest zainstalowane poza PATH, wskaż je zmienną DENO_BIN (pełna ścieżka do pliku).",
+].join("\n");
+
+/** Szuka Deno: w PATH, potem w DENO_BIN, potem w domyślnej lokalizacji instalatora. */
+function findDeno() {
+  const candidates = [
+    "deno",
+    process.env.DENO_BIN,
+    join(homedir(), ".deno", "bin", process.platform === "win32" ? "deno.exe" : "deno"),
+  ].filter(Boolean);
+  for (const candidate of candidates) {
+    const probe = spawnSync(candidate.includes(" ") ? `"${candidate}"` : candidate, ["--version"], {
+      shell: true,
+      encoding: "utf8",
+    });
+    if (probe.status === 0) return candidate.includes(" ") ? `"${candidate}"` : candidate;
+  }
+  return null;
+}
+
+// Punkty wejścia Edge Functions i moduły współdzielone – te same co w CI (index.ts każdej funkcji oraz _shared).
+function edgeFunctionEntryPoints() {
+  const root = "supabase/functions";
+  const entries = [];
+  for (const dir of readdirSync(root, { withFileTypes: true })) {
+    if (!dir.isDirectory()) continue;
+    if (dir.name === "_shared") {
+      for (const file of readdirSync(join(root, dir.name))) if (file.endsWith(".ts")) entries.push(`_shared/${file}`);
+    } else if (existsSync(join(root, dir.name, "index.ts"))) {
+      entries.push(`${dir.name}/index.ts`);
+    }
+  }
+  return entries.sort();
+}
+
 // ---------------------------------------------------------------- kontrole
 
 const checks = [
@@ -204,15 +253,23 @@ const checks = [
     name: "deno",
     label: "deno check (Edge Functions)",
     run: () => {
-      if (run("deno --version").code !== 0) {
-        return { ok: false, summary: "brak deno w PATH (wymagane, jak w CI)", ms: 0, detail: "" };
+      const deno = findDeno();
+      if (!deno) {
+        return {
+          ok: false,
+          summary: "brak deno (wymagane, jak w CI)",
+          ms: 0,
+          detail: DENO_INSTALL_HINT,
+        };
       }
-      const r = run("deno check --no-lock --node-modules-dir=none ./*/index.ts ./_shared/*.ts", {
+      // Lista plików liczona w Node (nie przez glob powłoki), żeby działało też w cmd na Windows.
+      const files = edgeFunctionEntryPoints();
+      const r = run(`deno check --no-lock --node-modules-dir=none ${files.join(" ")}`, {
         cwd: "supabase/functions",
       });
       return {
         ok: r.code === 0,
-        summary: r.code === 0 ? "bez błędów" : "błędy typów Edge Functions",
+        summary: r.code === 0 ? `bez błędów (${files.length} plików)` : "błędy typów Edge Functions",
         ms: r.ms,
         detail: r.code === 0 ? "" : r.output.slice(-1500),
       };
@@ -276,47 +333,79 @@ function groupByArea(files) {
   return [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
 }
 
-function buildCommitMessage({ version, files, checkResults, testSummary }) {
-  const added = gitOut("diff --cached --name-status")
+/** Odmiana rzeczownika przez liczbę: 1 plik, 2–4 pliki, 5+ plików. */
+function plural(count, one, few, many) {
+  if (count === 1) return one;
+  const lastTwo = count % 100;
+  const last = count % 10;
+  return last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? few : many;
+}
+
+function fileList(list) {
+  const shown = list.slice(0, 4).join(", ");
+  return list.length > 4 ? `${shown}, …` : shown;
+}
+
+function stagedFiles() {
+  return gitOut("diff --cached --name-only").split("\n").filter(Boolean);
+}
+
+function stagedAddedFiles() {
+  return gitOut("diff --cached --name-status")
     .split("\n")
-    .filter((l) => l.startsWith("A"))
-    .map((l) => l.split("\t")[1]);
-  const lines = [`Ver ${version}`, ""];
+    .filter((line) => line.startsWith("A"))
+    .map((line) => line.split("\t")[1]);
+}
 
-  lines.push("Zmiany:");
-  for (const [area, list] of groupByArea(files)) {
-    const names = list.slice(0, 4).join(", ");
-    lines.push(
-      `- ${area}: ${list.length} ${list.length === 1 ? "plik" : "plików"} (${names}${list.length > 4 ? ", …" : ""})`
-    );
-  }
-
-  const migrations = added.filter((f) => f.startsWith("supabase/sql/"));
-  const edgeTouched = [
-    ...new Set(files.filter((f) => f.startsWith("supabase/functions/")).map((f) => f.split("/")[2])),
-  ];
+function deploymentNotes(added, files) {
   const notes = [];
-  if (migrations.length)
-    notes.push(`migracje SQL do wykonania przed wdrożeniem: ${migrations.map((f) => f.split("/").pop()).join(", ")}`);
-  if (edgeTouched.length)
-    notes.push(
-      `wdrożenie funkcji Edge: ${edgeTouched
-        .filter((n) => !n.startsWith("_"))
-        .map((n) => `supabase functions deploy ${n}`)
-        .join("; ")}`
-    );
-  if (notes.length) {
-    lines.push("", "Wdrożenie:");
-    for (const note of notes) lines.push(`- ${note}`);
+  const migrations = added.filter((f) => f.startsWith("supabase/sql/")).map((f) => f.split("/").pop());
+  if (migrations.length) notes.push(`migracje SQL do wykonania przed wdrożeniem: ${migrations.join(", ")}`);
+  const functions = [...new Set(files.filter((f) => f.startsWith("supabase/functions/")).map((f) => f.split("/")[2]))];
+  const deployable = functions.filter((name) => !name.startsWith("_"));
+  if (deployable.length) {
+    notes.push(`wdrożenie funkcji Edge: ${deployable.map((name) => `supabase functions deploy ${name}`).join("; ")}`);
   }
+  return notes;
+}
 
-  lines.push("", "Kontrole:");
-  for (const result of checkResults) lines.push(`- ${result.label}: ${result.summary}`);
+function buildCommitMessage({ version, files, checkResults, testSummary }) {
+  const areas = groupByArea(files).map(
+    ([area, list]) => `- ${area}: ${list.length} ${plural(list.length, "plik", "pliki", "plików")} (${fileList(list)})`
+  );
+  const notes = deploymentNotes(stagedAddedFiles(), files);
+  const lines = [`Ver ${version}`, "", "Zmiany:", ...areas];
+  if (notes.length) lines.push("", "Wdrożenie:", ...notes.map((note) => `- ${note}`));
+  lines.push("", "Kontrole:", ...checkResults.map((r) => `- ${r.label}: ${r.summary}`));
   if (testSummary) lines.push(`- testy: ${testSummary.passed} przeszło, ${testSummary.failed} nieudanych`);
-  return lines.join("\n") + "\n";
+  return `${lines.join("\n")}\n`;
 }
 
 // ---------------------------------------------------------------- główna część
+
+const indent = (text) =>
+  text
+    .split("\n")
+    .map((line) => `    ${line}`)
+    .join("\n");
+
+function runChecks() {
+  const results = [];
+  let testSummary = null;
+  for (const check of checks) {
+    if (ONLY && !ONLY.has(check.name)) {
+      results.push({ ...check, skipped: true, ok: false, summary: "pominięto (--only)", ms: 0 });
+      continue;
+    }
+    say(`→ ${check.label} …`);
+    const r = check.run();
+    if (check.name === "test" && r.tests) testSummary = r.tests;
+    results.push({ ...check, ...r });
+    say(`  ${r.ok ? "OK" : "BŁĄD"}: ${r.summary}`);
+    if (!r.ok && r.detail) say(indent(r.detail));
+  }
+  return { results, testSummary };
+}
 
 function printSummary(results, version, files) {
   heading("Podsumowanie kontroli");
@@ -326,7 +415,53 @@ function printSummary(results, version, files) {
     say(`${mark.padEnd(9)} ${r.label.padEnd(width)}  ${(r.ms / 1000).toFixed(1).padStart(6)} s  ${r.summary}`);
   }
   heading("Wersja");
-  say(`${version}  (${files.length} zmienionych plików)`);
+  say(
+    `${version}  (${files.length} ${plural(files.length, "zmieniony plik", "zmienione pliki", "zmienionych plików")})`
+  );
+}
+
+/** Zatrzymuje wydanie: przywraca wersję (jeśli została podbita), wypisuje komunikat i ustawia kod wyjścia. */
+function stop(originals, message, exitCode = 1) {
+  if (originals) restore(originals);
+  say(message);
+  process.exitCode = exitCode;
+}
+
+async function confirm(question) {
+  const rl = createInterface({ input: stdin, output: stdout });
+  const answer = (await rl.question(question)).trim().toLowerCase();
+  rl.close();
+  return ["t", "tak", "y", "yes"].includes(answer);
+}
+
+async function commitAndPush({ branch, originals, results, testSummary, version }) {
+  git("add -A");
+  const message = buildCommitMessage({
+    version,
+    files: stagedFiles(),
+    checkResults: results.filter((r) => !r.skipped).map((r) => ({ label: r.label, summary: r.summary })),
+    testSummary,
+  });
+  heading("Opis commita");
+  say(message);
+
+  if (!ASSUME_YES && !(await confirm("Zatwierdzić commit i push? [t/N] "))) {
+    git("reset -q");
+    restore(originals);
+    say("Anulowano. Zmiany wróciły do stanu sprzed wydania.");
+    return;
+  }
+
+  const messageFile = ".git/RELEASE_COMMIT_MSG";
+  writeFileSync(messageFile, message);
+  const commit = git(`commit -F ${messageFile}`);
+  if (commit.code !== 0) throw new Error(`git commit nie powiódł się:\n${commit.output}`);
+  say(`\nZacommitowano: ${message.split("\n")[0]}`);
+
+  const hasUpstream = git("rev-parse --abbrev-ref --symbolic-full-name @{u}").code === 0;
+  const push = git(hasUpstream ? "push" : `push -u origin ${branch}`);
+  if (push.code !== 0) throw new Error(`git push nie powiódł się (commit zostaje lokalnie):\n${push.output}`);
+  say(`Wypchnięto na origin/${branch}.`);
 }
 
 async function main() {
@@ -345,84 +480,31 @@ async function main() {
 
   heading("Kontrole");
   const originals = DRY_RUN ? null : applyVersion(nextVersion);
-  const results = [];
-  let testSummary = null;
-  for (const check of checks) {
-    if (ONLY && !ONLY.has(check.name)) {
-      results.push({ ...check, skipped: true, ok: false, summary: "pominięto (--only)", ms: 0 });
-      continue;
-    }
-    say(`→ ${check.label} …`);
-    const r = check.run();
-    if (check.name === "test" && r.tests) testSummary = r.tests;
-    results.push({ ...check, ...r });
-    say(`  ${r.ok ? "OK" : "BŁĄD"}: ${r.summary}`);
-    if (!r.ok && r.detail)
-      say(
-        r.detail
-          .split("\n")
-          .map((l) => `    ${l}`)
-          .join("\n")
-      );
-  }
+  const { results, testSummary } = runChecks();
   printSummary(results, nextVersion, files);
 
   const failed = results.filter((r) => !r.skipped && !r.ok);
-  if (ONLY && results.some((r) => r.skipped)) {
-    if (originals) restore(originals);
-    say("\nUwaga: --only pomija kontrole. Wydanie wymaga pełnego zestawu – wersja została przywrócona.");
-    process.exitCode = 1;
-    return;
+  if (results.some((r) => r.skipped)) {
+    return stop(
+      originals,
+      "\nUwaga: --only pomija kontrole. Wydanie wymaga pełnego zestawu – wersja została przywrócona."
+    );
   }
   if (failed.length) {
-    if (originals) restore(originals);
-    say(`\nZatrzymano: ${failed.map((f) => f.label).join(", ")}. Wersja przywrócona, nic nie zostało zacommitowane.`);
-    process.exitCode = 1;
-    return;
+    return stop(
+      originals,
+      `\nZatrzymano: ${failed.map((f) => f.label).join(", ")}. Wersja przywrócona, nic nie zostało zacommitowane.`
+    );
   }
   if (DRY_RUN) {
-    if (originals) restore(originals);
-    say("\nDry-run: wszystkie kontrole przeszły. Pliki nie zostały zmienione.");
-    return;
+    return stop(originals, "\nDry-run: wszystkie kontrole przeszły. Pliki nie zostały zmienione.", 0);
   }
-
-  git("add -A");
-  const stagedFiles = gitOut("diff --cached --name-only").split("\n").filter(Boolean);
-  const message = buildCommitMessage({
-    version: nextVersion,
-    files: stagedFiles,
-    checkResults: results.filter((r) => !r.skipped).map((r) => ({ label: r.label, summary: r.summary })),
-    testSummary,
-  });
-  heading("Opis commita");
-  say(message);
-
-  const subject = message.split("\n")[0];
-  if (!ASSUME_YES) {
-    const rl = createInterface({ input: stdin, output: stdout });
-    const answer = (await rl.question("Zatwierdzić commit i push? [t/N] ")).trim().toLowerCase();
-    rl.close();
-    if (answer !== "t" && answer !== "tak" && answer !== "y") {
-      git("reset -q");
-      restore(originals);
-      say("Anulowano. Zmiany wróciły do stanu sprzed wydania.");
-      return;
-    }
-  }
-
-  const messageFile = ".git/RELEASE_COMMIT_MSG";
-  writeFileSync(messageFile, message);
-  const commit = git(`commit -F ${messageFile}`);
-  if (commit.code !== 0) throw new Error(`git commit nie powiódł się:\n${commit.output}`);
-  say(`\nZacommitowano: ${subject}`);
-
-  const hasUpstream = git("rev-parse --abbrev-ref --symbolic-full-name @{u}").code === 0;
-  const push = git(hasUpstream ? "push" : `push -u origin ${branch}`);
-  if (push.code !== 0) throw new Error(`git push nie powiódł się (commit zostaje lokalnie):\n${push.output}`);
-  say(`Wypchnięto na origin/${branch}.`);
+  await commitAndPush({ branch, originals, results, testSummary, version: nextVersion });
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   process.stderr.write(`\nBłąd: ${error.message}\n`);
   process.exitCode = 1;
-});
+}
