@@ -19,22 +19,14 @@ describe("nazwa pliku protokołu → data i temat", () => {
     expect(v.topic).toBe("Zebranie");
   });
 
-  it("sama data bez tematu: brak daty z nazwy, temat to cała nazwa", () => {
-    const v = reportValues("", "2026-11-02.md", "2026-01-01");
-    expect(v.topic).toBe("2026-11-02.md");
-    expect(v.date).toBe("2026-01-01");
-  });
-
-  it("data i same spacje po niej: brak tematu z nazwy, data z dnia importu", () => {
-    const v = reportValues("", "2026-11-02   ", "2026-01-01");
-    expect(v.topic).toBe("2026-11-02");
-    expect(v.date).toBe("2026-01-01");
-  });
-
-  it("nazwa bez daty: cały tekst jest tematem", () => {
-    const v = reportValues("", "  Spotkanie  ", "2026-01-01");
-    expect(v.topic).toBe("Spotkanie");
-    expect(v.date).toBe("2026-01-01");
+  it.each([
+    ["sama data bez tematu – brak daty z nazwy, temat to cała nazwa", "2026-11-02.md", "2026-11-02.md", "2026-01-01"],
+    ["data i same spacje po niej – brak tematu z nazwy", "2026-11-02   ", "2026-11-02", "2026-01-01"],
+    ["nazwa bez daty – cały tekst jest tematem", "  Spotkanie  ", "Spotkanie", "2026-01-01"],
+  ])("%s", (_opis, fileName, topic, date) => {
+    const v = reportValues("", fileName, "2026-01-01");
+    expect(v.topic).toBe(topic);
+    expect(v.date).toBe(date);
   });
 });
 

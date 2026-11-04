@@ -5,7 +5,7 @@
 // pozycji); reguły (kto jest odbiorcą, czy zmiana jest zgodna ze stanem listy, czy odbiorca wyłączył ten rodzaj
 // powiadomień) sprawdza serwer w bazie.
 
-import { createClient } from "../_shared/supabase.ts";
+import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import { json, preflight, withCors } from "../_shared/auth.ts";
 import {
   NOTIFICATION_TYPE_BY_KIND,
@@ -68,7 +68,7 @@ function parseBody(raw: unknown): Body | null {
 }
 
 /** Czy nadawca przekroczył limit powiadomień w oknie czasowym (liczone po wysłanych wierszach). */
-async function isRateLimited(admin: ReturnType<typeof createClient>, senderId: string): Promise<boolean> {
+async function isRateLimited(admin: SupabaseClient, senderId: string): Promise<boolean> {
   const windowStart = new Date(Date.now() - RATE_WINDOW_MINUTES * 60_000).toISOString();
   const { count, error } = await admin
     .from("notifications")

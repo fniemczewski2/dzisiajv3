@@ -1,10 +1,10 @@
 // pages/bills/calculator.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, Minus, Wallet, ArrowRightLeft, Share2, Copy, Mail } from "lucide-react";
+import { Plus, Minus, Wallet, ArrowRightLeft, Share2, Copy } from "lucide-react";
 import { SecondaryFullButton } from "@/components/ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider";
-import { BILL_SPLIT_SUBJECT, buildMailtoHref, formatBillSplit } from "@/lib/billSplit";
+import { BILL_SPLIT_SUBJECT, formatBillSplit } from "@/lib/billSplit";
 import { useEuroRate } from "@/hooks/useEuroRate";
 import { SkeletonLine } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
@@ -168,7 +168,6 @@ export default function BillCalculator() {
   const showExchangeRate = currency1 === "EUR" || currency2 === "EUR";
 
   const splitText = formatBillSplit({ total: results.total, share1: results.share1, share2: results.share2 });
-  const splitMailto = buildMailtoHref(BILL_SPLIT_SUBJECT, splitText);
 
   const copySplit = async () => {
     try {
@@ -418,13 +417,10 @@ export default function BillCalculator() {
 
                 <div className="grid gap-2">
                   <SecondaryFullButton Icon={Share2} onClick={() => void shareSplit()}>
-                    Udostępnij podział
+                    Udostępnij
                   </SecondaryFullButton>
                   <SecondaryFullButton Icon={Copy} onClick={() => void copySplit()}>
-                    Kopiuj podział
-                  </SecondaryFullButton>
-                  <SecondaryFullButton Icon={Mail} onClick={() => (window.location.href = splitMailto)}>
-                    Wyślij e-mailem
+                    Kopiuj
                   </SecondaryFullButton>
                 </div>
               </div>

@@ -15,6 +15,7 @@ create or replace function pg_temp.slot_a() returns jsonb language sql immutable
   as $$ select '[{"date":"2026-12-01","start_time":"10:00"}]'::jsonb $$;
 create or replace function pg_temp.slot_b() returns jsonb language sql immutable
   as $$ select '[{"date":"2026-12-05","start_time":"09:00"}]'::jsonb $$;
+create or replace function pg_temp.exec_priv() returns text language sql immutable as $$ select 'execute'::text $$;
 create or replace function pg_temp.email_anna() returns text language sql immutable as $$ select 'anna@example.com'::text $$;
 
 create schema if not exists auth;
@@ -115,11 +116,11 @@ end $$;
 
 -- uprawnienia: anon i authenticated nie wywołają funkcji, service_role tak
 do $$ begin
-  if has_function_privilege('anon', pg_temp.sig(), 'execute')
-     or has_function_privilege(pg_temp.role_auth(), pg_temp.sig(), 'execute') then
+  if has_function_privilege('anon', pg_temp.sig(), pg_temp.exec_priv())
+     or has_function_privilege(pg_temp.role_auth(), pg_temp.sig(), pg_temp.exec_priv()) then
     raise exception 'TEST uprawnienia: funkcja nie może być wywoływalna przez anon/authenticated';
   end if;
-  if not has_function_privilege('service_role', pg_temp.sig(), 'execute') then
+  if not has_function_privilege('service_role', pg_temp.sig(), pg_temp.exec_priv()) then
     raise exception 'TEST uprawnienia: service_role musi móc wywołać funkcję';
   end if;
   if has_table_privilege(pg_temp.role_auth(), 'public.meeting_poll_bookings', 'insert')

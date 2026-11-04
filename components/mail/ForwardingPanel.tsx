@@ -62,7 +62,7 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
       </ul>
       <div className="mt-2 flex flex-wrap items-end gap-2 border-t border-line pt-2">
         <label className="flex-1 text-sm text-text-secondary">
-          Nazwa (opcjonalnie):
+          <span>Nazwa (opcjonalnie):</span>
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
