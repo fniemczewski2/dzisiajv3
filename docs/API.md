@@ -23,6 +23,7 @@ frontend (`token_refresh_failed`, `LOCATION_REQUIRED`).
 | `quickNotes`     | IP                 | 30 / 60 s  |
 | `pollRespond`    | token ankiety + IP | 5 / 10 min |
 | `pollPublicRead` | IP                 | 60 / 60 s  |
+| `pollBook`       | token ankiety + IP | 6 / 10 min |
 | `vcard`          | IP                 | 30 / 60 s  |
 | `news`           | użytkownik         | 20 / 60 s  |
 | `locality`       | użytkownik         | 60 / 60 s  |
@@ -43,6 +44,8 @@ frontend (`token_refresh_failed`, `LOCATION_REQUIRED`).
 | GET             | `/api/meeting-polls/close-expired`          | cron                                | Zamyka ankiety po terminie `closes_at`.                                                                                                                                                                                                                                                  |
 | GET             | `/api/meeting-polls/public/[token]`         | publiczny, limit                    | Dane ankiety dla uczestnika. `Cache-Control: public, s-maxage=30`.                                                                                                                                                                                                                       |
 | GET/POST        | `/api/meeting-polls/public/[token]/respond` | publiczny (sesja opcjonalna), limit | Odpowiedź uczestnika. GET zwraca zapisaną odpowiedź – token edycji w nagłówku `x-edit-token` (nie w adresie URL), `Cache-Control: private, no-store`. POST zapisuje odpowiedź (limit 5 / 10 min).                                                                                        |
+| GET             | `/api/meeting-polls/public/[token]/slots`   | publiczny, limit                    | Zajętość slotów ankiety zapisów (tylko liczby: pojemność, limit na osobę, zapisy na slot). `Cache-Control: private, no-store`.                                                                                                                                                           |
+| POST            | `/api/meeting-polls/public/[token]/book`    | publiczny, limit                    | Zapis na terminy: `{ name, email?, slots[], consent, website }` (`website` – pułapka na boty). Rezerwacja przez funkcję bazy; 409 gdy termin zajęty, limit osoby, zamknięte; 429 po przekroczeniu limitu `pollBook`.                                                                     |
 | POST            | `/api/slack?action=…`                       | sesja                               | Połączenie, listy, kolumny, przypisanie zadania do listy.                                                                                                                                                                                                                                |
 | GET             | `/api/slack/callback`                       | sesja + state                       | Callback OAuth Slacka.                                                                                                                                                                                                                                                                   |
 | GET / POST      | `/api/slack/sync`                           | cron (GET) / sesja (POST)           | Synchronizacja z Slack Lists – wszyscy użytkownicy (cron) albo bieżący.                                                                                                                                                                                                                  |
@@ -82,19 +85,21 @@ await fetch("/api/google-calendar?action=export", {
 
 Wszystkie funkcje importują klienta z `_shared/supabase.ts` (jedna przypięta wersja) i nagłówki z `_shared/auth.ts`. CORS przepuszcza adresy `https://dzisiaj.fun`, `https://www.dzisiaj.fun` oraz adresy z sekretu `ALLOWED_ORIGIN` (po przecinku); nagłówek dobiera `withCors` do `Origin` żądania.
 
-| Funkcja                 | Dostęp                                  | Opis                                                                                                           |
-| ----------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `process-notifications` | cron (`x-cron-secret`)                  | Powiadomienia: poranne podsumowanie, wydarzenia, zadania, urodziny i imieniny.                                 |
-| `process-reminders`     | cron                                    | Zadania cykliczne – tworzenie kolejnych wystąpień.                                                             |
-| `send-push`             | cron albo JWT (tylko własne urządzenia) | Wysyłka Web Push (VAPID).                                                                                      |
-| `send-love`             | JWT                                     | „Serduszko” do osoby z listy zaufanych – tylko przy wzajemności; limit 5 na 10 minut.                          |
-| `log-error`             | JWT, limit 20 / 10 min                  | Zapis błędu klienta w tabeli `errors` (usuwane po 30 dniach – `supabase/sql/2026-10-17_errors_retention.sql`). |
-| `transport-departures`  | JWT                                     | Odjazdy z przystanków komunikacji miejskiej.                                                                   |
+| Funkcja                 | Dostęp                                  | Opis                                                                                                                                                           |
+| ----------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `process-notifications` | cron (`x-cron-secret`)                  | Powiadomienia: poranne podsumowanie, wydarzenia, zadania, urodziny i imieniny.                                                                                 |
+| `process-reminders`     | cron                                    | Zadania cykliczne – tworzenie kolejnych wystąpień.                                                                                                             |
+| `send-push`             | cron albo JWT (tylko własne urządzenia) | Wysyłka Web Push (VAPID).                                                                                                                                      |
+| `send-love`             | JWT                                     | „Serduszko” do osoby z listy zaufanych – tylko przy wzajemności; limit 5 na 10 minut.                                                                          |
+| `log-error`             | JWT, limit 20 / 10 min                  | Zapis błędu klienta w tabeli `errors` (usuwane po 30 dniach – `supabase/sql/2026-10-17_errors_retention.sql`).                                                 |
+| `transport-departures`  | JWT                                     | Odjazdy z przystanków komunikacji miejskiej.                                                                                                                   |
+| `notify-shared`         | JWT                                     | Powiadomienia o współdzieleniu: zadanie, wydarzenie, zmiany listy `{ kind: "list_item", id, added[], removed[] }` (liczby potwierdza baza; limit 30 / 10 min). |
 
 ## Funkcje bazy wywoływane przez klienta (RPC)
 
-| Funkcja                                                             | Dostęp          | Opis                                                                        |
-| ------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------- |
-| `get_user_id_by_email`, `get_email_by_user_id`, `get_emails_by_ids` | `authenticated` | Rozpoznawanie osób przy udostępnianiu.                                      |
-| `find_user_id_by_email`                                             | `authenticated` | Jak wyżej (używane przez `send-love`).                                      |
-| `leave_shared_shopping_list(p_list_id)`                             | `authenticated` | Wypisanie się odbiorcy z udostępnionej listy; zwraca `true`, gdy się udało. |
+| Funkcja                                                                           | Dostęp          | Opis                                                                                                                                                          |
+| --------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_user_id_by_email`, `get_email_by_user_id`, `get_emails_by_ids`               | `authenticated` | Rozpoznawanie osób przy udostępnianiu.                                                                                                                        |
+| `find_user_id_by_email`                                                           | `authenticated` | Jak wyżej (używane przez `send-love`).                                                                                                                        |
+| `leave_shared_shopping_list(p_list_id)`                                           | `authenticated` | Wypisanie się odbiorcy z udostępnionej listy; zwraca `true`, gdy się udało.                                                                                   |
+| `book_meeting_poll_slots(p_poll_id, p_name, p_email, p_slots, p_consent_version)` | `service_role`  | Atomowa rezerwacja slotów ankiety zapisów (blokada ankiety); zwraca `{ ok, booked }` albo `{ ok: false, error: full / limit / already_booked / closed / … }`. |

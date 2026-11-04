@@ -21,9 +21,17 @@ export interface DemoStep {
 export const DEMO_QUICK_START: readonly string[] = [
   "Zaloguj się kontem Google na stronie „Zaloguj się”.",
   "W Ustawieniach wybierz kategorie zadań i priorytety, które najczęściej używasz.",
-  "Połącz Kalendarz Google lub Outlook w sekcji kalendarza, aby zobaczyć wydarzenia w jednym miejscu.",
   "Dodaj pierwsze zadanie na Kokpicie dnia i oznacz je jako wykonane po zrobieniu.",
+  "Ustaw regularne harmonogramy dnia i zadania cykliczne.",
+  "Dodaj swoje postępy i sprawdź, ile dni z rzędu udało Ci się je utrzymać.",
+  "Skonfiguruj swoje wizytówki i wygląd protokołów w Ustawieniach",
+  "Połącz Kalendarz Google lub Outlook w sekcji kalendarza, aby zobaczyć wydarzenia w jednym miejscu.",
+  "Dodaj swoje wydatki, ustaw kategorie i sprawdź, ile zostało do końca miesiąca.",
   "Włącz powiadomienia w Ustawieniach, jeśli chcesz przypomnień na telefonie.",
+  "W module Poczta podłącz konto Gmail lub Outlook.",
+  "W Terminach zespołowych utwórz ankietę terminu albo zapisy na terminy.",
+  "Dodaj listę zakupów i udostępnij jej zawartość drugiej osobie.",
+  "Skonfuguruj integrację z Apple Zdrowie w Ustawieniach, aby zobaczyć sen, tętno i aktywność w aplikacji.",
 ];
 
 /** Wszystkie funkcje w kolejności z FEATURE_GROUPS; `id` jest unikalny w obrębie przewodnika. */

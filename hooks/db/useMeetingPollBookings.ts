@@ -10,7 +10,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { cols } from "@/lib/db/columns";
 import type { MeetingPollBooking } from "@/types/meetingPolls";
 
-export const POLL_BOOKINGS_KEY = "meeting-poll-bookings";
+const POLL_BOOKINGS_KEY = "meeting-poll-bookings";
 
 export function useMeetingPollBookings(pollId: string) {
   const { user, supabase } = useAuth();

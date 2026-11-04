@@ -142,6 +142,8 @@ describe("POST /api/health/shortcut – dzień i treningi", () => {
     const c = call({ date: "2026-10-30", steps: 1 });
     await handler(c.req, c.res);
     expect(c.res.statusCode).toBe(500);
+    // Do logów trafia tekst (typ i komunikat), nie obiekt błędu z ewentualnymi danymi.
+    expect(typeof spy.mock.calls[0]?.[1]).toBe("string");
     spy.mockRestore();
     expect(h.upserts).toHaveLength(0);
   });

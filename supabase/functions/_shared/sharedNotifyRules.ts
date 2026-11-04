@@ -55,6 +55,23 @@ function clip(value: string): string {
   return clean.length > MAX_SHARED_NOTIFY_TEXT ? `${clean.slice(0, MAX_SHARED_NOTIFY_TEXT - 1)}…` : clean;
 }
 
+/**
+ * Czy odbiorca chce tego rodzaju powiadomienia. Zgodne z przełącznikiem w Ustawieniach (`value !== false`) i z domyślną
+ * wartością kolumny w bazie (true): wyłączone wyłącznie jawnym `false`. Brak wartości (brak wiersza ustawień) = włączone.
+ */
+export function isRecipientEnabled(value: unknown): boolean {
+  return value !== false;
+}
+
+/**
+ * Decyzja o wysyłce powiadomienia o zmianie listy. Powiadomienie (wiersz w `notifications` i push) powstaje tylko, gdy
+ * odbiorca ma ten rodzaj włączony i zmiana potwierdzona stanem listy jest niepusta. W każdym innym wypadku nic nie wysyłamy.
+ */
+export function planListDelivery(input: { recipientPref: unknown; summary: ListChangeSummary }): { send: boolean } {
+  if (!isRecipientEnabled(input.recipientPref)) return { send: false };
+  return { send: input.summary.added + input.summary.removed > 0 };
+}
+
 /** Zmiana na liście zgłoszona przez klienta: etykiety dodanych i usuniętych pozycji (do weryfikacji po stronie serwera). */
 export interface ListChangeRequest {
   added: string[];

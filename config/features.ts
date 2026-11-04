@@ -32,6 +32,7 @@ import {
   TrainFront,
   User,
   type LucideIcon,
+  RefreshCw,
 } from "lucide-react";
 
 export type FeatureStatus = "nowe" | "zmienione";
@@ -143,12 +144,13 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       {
         title: "Terminy zespołowe",
         description:
-          "Ankieta terminu z siatką dostępności. Link działa bez konta, a wybrany termin trafia do kalendarzy uczestników.",
+          "Ankieta terminu z siatką dostępności albo zapisy na terminy z ograniczoną liczbą miejsc. Link działa bez konta, a wybrany termin trafia do kalendarzy uczestników.",
         icon: CalendarClock,
         path: "/meetings",
         guideId: "meetings",
         status: "zmienione",
-        note: "Podgląd dostępności jednej osoby, podpowiedzi najlepszych terminów i przebudowana lista ankiet.",
+        note: "Nowy rodzaj ankiety: zapisy na terminy z limitem miejsc i terminów na osobę, lista zapisów i eksport CSV.",
+        since: "1.43.0",
       },
       {
         title: "Protokoły",
@@ -179,20 +181,36 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Notatki",
-        description: "Szybkie zapiski z kolorami, przypinaniem i archiwum. Proste formatowanie i klikalne linki.",
+        description:
+          "Szybkie zapiski z kolorami, przypinaniem, archiwum i folderami. Proste formatowanie, klikalne linki, eksport do Markdown.",
         icon: Edit2,
         path: "/notes",
         guideId: "notes",
         status: "zmienione",
-        note: "Nowy pasek formatowania i automatyczne linki w treści.",
-        since: "1.37.16",
+        note: "Foldery z filtrem oraz pobieranie notatek jako pliki Markdown (jedna lub wszystkie naraz).",
+        since: "1.43.0",
+      },
+      {
+        title: "Obsidian",
+        description:
+          "Dwukierunkowa synchronizacja notatek, przepisów, osób i protokołów jako plików Markdown z vaultem w OneDrive lub Google Drive.",
+        icon: RefreshCw,
+        path: "/settings",
+        guideId: "obsidian",
+        status: "nowe",
+        note: "Nowe pliki z Obsidiana (notatki z folderami, przepisy, osoby, protokoły) są importowane do aplikacji.",
+        since: "1.42.15",
       },
       {
         title: "Listy zakupów",
-        description: "Do pięciu list jednocześnie. Zmiany na udostępnionej liście widać u drugiej osoby na żywo.",
+        description:
+          "Do pięciu list jednocześnie. Zmiany na udostępnionej liście widać u drugiej osoby na żywo, a o dodanych i usuniętych pozycjach dostaje ona jedno zbiorcze powiadomienie.",
         icon: ShoppingCart,
         path: "/notes/shopping",
         guideId: "shopping",
+        status: "zmienione",
+        note: "Powiadomienia o dodaniu i usunięciu pozycji na wspólnej liście, scalane w jedno (np. „Dodano 3 i usunięto 2 pozycje”).",
+        since: "1.43.0",
       },
       {
         title: "Przepisy",
@@ -254,10 +272,13 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       {
         title: "Poczta",
         description:
-          "Konta Gmail i Outlook albo przekierowanie poczty: odczyt, odpowiedź po potwierdzeniu, zadanie i wydarzenie z wiadomości.",
+          "Konta Gmail i Outlook albo przekierowanie poczty: wspólny widok wszystkich skrzynek, odczyt, odpowiedź po potwierdzeniu, zadanie i wydarzenie z wiadomości.",
         icon: Mail,
         path: "/mail",
         guideId: "mail",
+        status: "zmienione",
+        note: "Widok „Wszystkie” łączy wiadomości ze wszystkich kont i przekierowane w jednej liście od najnowszych.",
+        since: "1.43.0",
       },
     ],
   },

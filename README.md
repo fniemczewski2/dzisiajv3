@@ -36,15 +36,16 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Pomodoro** - konfigurowalny timer pracy/przerwy z Wake Lock i dźwiękiem
 - **Harmonogram dnia** - powtarzalne schematy dnia, które same pojawiają się w planie
 - **Czas pracy** - ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
-- **Obsidian** - synchronizacja dwukierunkowa notatek (z folderami), przepisów, osób i protokołów jako Markdown z vaultem w OneDrive (folder aplikacji) lub Google Drive
+- **Obsidian** - synchronizacja dwukierunkowa notatek (z folderami), przepisów, osób i protokołów jako Markdown z vaultem w OneDrive (folder aplikacji) lub Google Drive Nowe pliki utworzone w Obsidianie (notatki z folderami, przepisy, osoby, protokoły) są importowane do aplikacji przy kolejnej synchronizacji.
 - **Zdrowie** - sen z fazami i rejestr tętna z Apple Zdrowie (Skróty iOS): wartości dnia wyliczane w aplikacji, lista pomiarów; kroki i własne treningi w module Trening
-- **Poczta** - konta Gmail i Outlook (odczyt, wyszukiwanie, odpowiedź po potwierdzeniu, usuwanie z aplikacji lub do kosza) albo przekierowanie poczty bez dostępu do skrzynki; zadanie „Odpowiedz: temat” i wydarzenie z zaproszenia jednym przyciskiem
+- **Poczta** - konta Gmail i Outlook (odczyt, wyszukiwanie, odpowiedź po potwierdzeniu, usuwanie z aplikacji lub do kosza) albo przekierowanie poczty bez dostępu do skrzynki; zadanie „Odpowiedz: temat” i wydarzenie z zaproszenia jednym przyciskiem Domyślny widok „Wszystkie” łączy wiadomości ze wszystkich kont i przekierowane w jednej liście.
 
 ### 🗓️ Organizacja
 
 - **Kalendarz** - wydarzenia z Google Calendar i Outlooka (import co 15 min); nowe wydarzenia można dodać do kalendarza zewnętrznego, a edycja i usunięcie powiązanych zmieniają je także tam (bez wydarzeń powtarzalnych)
-- **Terminy zespołowe** - ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników
+- **Terminy zespołowe** - ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników; **zapisy na terminy** z ograniczoną liczbą miejsc w slocie i limitem terminów na osobę (rezerwacja atomowa w bazie, lista zapisów, usuwanie, eksport CSV)
 - **Notatki**, **Protokoły** (agenda, uczestnicy, zadania → eksport PDF), **przypomnienia o zadaniach** (push) i **zadania cykliczne**
+- **Foldery i eksport notatek** - hierarchiczne foldery (`Fundacje/Zapłon`) z filtrem, pobieranie notatki lub wszystkich notatek jako Markdown
 - **Listy pakowania** - plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
 - **Osoby i relacje** - kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
 - **Pisma** - rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i pilnowaniem ustawowych terminów odpowiedzi
@@ -53,7 +54,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 - **Rachunki** i **Budżet roczny** - kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
 - **Kalkulator rachunków** - sprawiedliwy podział kosztów wg dochodów (algorytm hybrydowy)
-- **Listy zakupów** (współdzielone, zmiany na żywo przez Supabase Realtime) i **Przepisy** (filtrowanie po składnikach)
+- **Listy zakupów** (współdzielone, zmiany na żywo przez Supabase Realtime; dodanie i usunięcie pozycji powiadamia drugą osobę zbiorczo - kolejne akcje scalane w jedno powiadomienie) i **Przepisy** (filtrowanie po składnikach)
 
 ### 🏃 Styl życia
 
@@ -183,6 +184,10 @@ Priorytetem jest logika, w której błąd jest kosztowny lub łatwo go niezauwa�
 npm run test
 ```
 
+Testy bazy (PostgreSQL, bez Supabase): `psql -d baza_testowa -v ON_ERROR_STOP=1 -f supabase/tests/poll_signups.sql` (reguły rezerwacji i uprawnień) oraz `PGDATABASE=baza_testowa ./supabase/tests/poll_signups_concurrency.sh` (równoległe zapisy na ostatnie miejsca). Nie są częścią CI.
+
+Strażniki spójności w `__tests__/config/`: `columns.test.ts` (listy kolumn zgodne ze schematem, brak `select("*")`, kopia dla Edge zgodna) i `accountCoverage.test.ts` (każda tabela schematu i każdy kubełek Storage objęte eksportem i usuwaniem konta, brak sekretów w eksporcie). Migawka schematu: `__tests__/fixtures/dbSchema.ts` - po zmianie bazy uruchom `supabase/introspect_schema.sql` i zaktualizuj plik.
+
 Testy Edge Functions (Deno): `cd supabase/functions && deno test --no-lock --node-modules-dir=none` (flaga jest potrzebna, bo w katalogu nadrzędnym jest `package.json` aplikacji). Test uprawnień bazy (pgTAP): `supabase test db` – działa, gdy schemat jest w `supabase/migrations`.
 
 ### Ciągła integracja
@@ -210,7 +215,7 @@ Testy Edge Functions (Deno): `cd supabase/functions && deno test --no-lock --nod
 
 ## 🗄️ Baza danych
 
-PostgreSQL przez Supabase. Wszystkie tabele z danymi użytkownika są wymienione w [`config/userData.ts`](./config/userData.ts) (rejestr używany przy eksporcie i usuwaniu konta). Najważniejsze: `tasks`, `task_reminders`, `events`, `connected_calendars`, `notes`, `quick_notes`, `letters`, `reports`, `meeting_polls` (z `meeting_poll_dates`, `meeting_poll_responses`, `meeting_poll_availabilities`), `day_schemas`, `transactions`, `recurring_bills`, `budget_categories`, `finance_profiles`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `work_logs`, `user_trains`, `slack_*`, `push_subscriptions`, `notifications`, `errors`, `settings`; publiczna `stops` (przystanki). Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych osób, którym jawnie udostępniono dane). Skrypty zmian w bazie: [`supabase/sql/`](./supabase/sql) – uruchamiane ręcznie w SQL Editorze, idempotentne (kolejność i opis w [RUNBOOK](docs/RUNBOOK.md)).
+PostgreSQL przez Supabase. Migracje SQL są w `supabase/sql/` (kolejność i wdrożenie: [Runbook](docs/RUNBOOK.md)); ostatnie: `2026-11-05_poll_signups.sql` (tryb zapisów w ankietach) i `2026-11-05_fk_indexes.sql`. Wszystkie tabele z danymi użytkownika są wymienione w [`config/userData.ts`](./config/userData.ts) (rejestr używany przy eksporcie i usuwaniu konta). Najważniejsze: `tasks`, `task_reminders`, `events`, `connected_calendars`, `notes`, `quick_notes`, `letters`, `reports`, `meeting_polls` (z `meeting_poll_dates`, `meeting_poll_responses`, `meeting_poll_availabilities`), `day_schemas`, `transactions`, `recurring_bills`, `budget_categories`, `finance_profiles`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `work_logs`, `user_trains`, `slack_*`, `push_subscriptions`, `notifications`, `errors`, `settings`; publiczna `stops` (przystanki). Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych osób, którym jawnie udostępniono dane). Skrypty zmian w bazie: [`supabase/sql/`](./supabase/sql) – uruchamiane ręcznie w SQL Editorze, idempotentne (kolejność i opis w [RUNBOOK](docs/RUNBOOK.md)).
 
 ## 📱 PWA
 
@@ -218,6 +223,8 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 
 ## 🔐 Bezpieczeństwo
 
+- Zapytania wybierają jawne listy kolumn (`lib/db/columns.ts`), nie `select("*")`: nowa kolumna (np. sekret) nie trafia do przeglądarki bez decyzji; `connected_calendars` z tokenami czyta wyłącznie serwer.
+- Zapisy w ankietach zapisów wykonuje tylko serwer (rola `service_role`) przez funkcję bazy `book_meeting_poll_slots` z blokadą ankiety; endpoint ma limit żądań (`pollBook`), pułapkę na boty i wymaga zgody; eksport CSV neutralizuje formuły (`=`, `+`, `-`, `@`).
 - Tokeny OAuth (Google, Outlook, Slack) są szyfrowane (AES-256-GCM) przed zapisem do bazy – `lib/server/tokenCrypto.ts`.
 - Endpointy cron (`/api/calendar/sync-calendars`, `/api/meeting-polls/close-expired`, `/api/slack/sync`, `/api/mail/inbox/purge`) porównują `CRON_SECRET` w czasie stałym (`lib/server/safeEqual.ts`).
 - `/api/worklogs/auto` (Skróty Siri) uwierzytelnia **tokenem per użytkownik** generowanym w Ustawieniach (w bazie tylko SHA-256, tabela `shortcut_tokens`).
@@ -233,6 +240,7 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 - [Architektura](docs/ARCHITECTURE.md) – jak aplikacja jest zbudowana, granica bezpieczeństwa, przepływy danych, decyzje.
 - [API](docs/API.md) – endpointy Next.js, Edge Functions i funkcje RPC.
 - [Runbook](docs/RUNBOOK.md) – wdrożenie, zmiany w bazie, cron, awarie, rotacja sekretów.
+- [DPIA – poczta](docs/DPIA-poczta.md) i [DPIA – zdrowie](docs/DPIA-zdrowie.md) – oceny skutków dla ochrony danych.
 
 ## 🤝 Contributing
 

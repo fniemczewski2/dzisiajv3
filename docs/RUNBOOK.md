@@ -354,3 +354,62 @@ także przy ukryciu karty i zamknięciu widoku.
 - Liczby ustala serwer ze stanu listy w bazie (dodana pozycja musi na niej być, usunięta nie może); klient nie wpłynie
   na liczby. Odbiorca zawsze wynika z bazy (druga osoba listy).
 - Po zmianie kodu funkcji wykonaj `supabase functions deploy notify-shared`.
+
+## Wydanie 1.43.0 – wdrożenie i zmiany
+
+Kolejność wdrożenia:
+
+1. Migracje SQL (SQL Editor Supabase): `supabase/sql/2026-11-05_poll_signups.sql` – **przed** wdrożeniem aplikacji
+   (zapytania wybierają nowe kolumny ankiet); opcjonalnie `supabase/sql/2026-11-05_fk_indexes.sql`. Migracja snu
+   `2026-11-04_sleep_sessions.sql` musi być wykonana wcześniej (jest warunkiem poprawnego zapisu faz snu).
+2. Funkcje Edge: `supabase functions deploy notify-shared` (nowy format zmian listy) oraz funkcje korzystające z
+   `_shared/columns.ts`: `process-notifications`, `process-reminders`.
+3. Aplikacja (Vercel). Brak nowych zmiennych środowiskowych.
+
+Zmiany:
+
+| Obszar        | Zmiana                                                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Dane          | Jawne listy kolumn zamiast `select("*")` (`lib/db/columns.ts`); strażniki: kolumny, pokrycie eksportu i usuwania konta     |
+| Notatki       | Foldery (pole, podpowiedzi, filtr), eksport Markdown (jedna notatka i wszystkie)                                           |
+| Obsidian      | Import nowych plików: przepisy, osoby, protokoły (wcześniej tylko notatki); braki uzupełniane z nazwy pliku                |
+| Poczta        | Widok „Wszystkie”: konta i przekierowania w jednej liście (domyślny, gdy jest połączone konto)                             |
+| Ankiety       | Tryb zapisów: pojemność slotu, limit na osobę, atomowa rezerwacja, lista zapisów, CSV; zapisy w eksporcie i usuwaniu konta |
+| Listy zakupów | Powiadomienia o dodaniu i usunięciu pozycji, scalane w jedno (5 s od ostatniej zmiany); liczby weryfikuje serwer           |
+| Kalendarze    | Synchronizacja (cron): kalendarze jednego konta współdzielą jedno odświeżenie tokenu (wcześniej odświeżane osobno)         |
+| Zdrowie       | Widżet tętna nie zmienia danych z cache zapytania w miejscu                                                                |
+| Testy         | Testy OAuth (kalendarze, vault), cron synchronizacji, tras kalendarzy, repozytorium vaultu; testy SQL rezerwacji           |
+
+Wartości ustalone na podstawie schematu bazy z 2026-11-03: po zmianie schematu zaktualizuj
+`__tests__/fixtures/dbSchema.ts` (zob. README, sekcja Testy).
+
+Otwarte zalecenie bezpieczeństwa: kolumny tokenów w `connected_calendars` są czytelne dla roli `authenticated` przez RLS
+(aplikacja ich już nie pobiera, ale baza nie blokuje zapytania). Rozważ `REVOKE SELECT (access_token, refresh_token,
+sync_token) ON public.connected_calendars FROM authenticated` po sprawdzeniu, że klient nie czyta tych kolumn.
+
+## Naruszenie ochrony danych
+
+Naruszenie to każde przypadkowe lub bezprawne zniszczenie, utrata, zmiana, ujawnienie lub nieuprawniony dostęp do danych
+osobowych (np. wyciek klucza szyfrującego lub bazy, dostęp obcej osoby do konta Supabase albo Vercel).
+
+1. **Zatrzymaj i zabezpiecz** (od razu): odetnij dostęp (zmiana haseł i unieważnienie sesji na Supabase, Vercel, Google,
+   Microsoft), a przy wycieku tokenów unieważnij je u dostawców; zachowaj logi.
+2. **Oceń ryzyko** dla osób: jakie dane (zdrowie, poczta, tokeny), ilu użytkowników, czy dane były zaszyfrowane.
+3. **Zgłoś do Prezesa UODO w ciągu 72 godzin** od stwierdzenia (art. 33 RODO), chyba że naruszenie raczej nie powoduje
+   ryzyka dla osób. Zgłoszenie zawiera opis, kategorie i liczbę osób, skutki i podjęte środki.
+4. **Powiadom osoby**, jeśli ryzyko jest wysokie (art. 34), np. wyciek danych zdrowotnych lub tokenów dostępu do poczty.
+5. **Wpisz do rejestru naruszeń** (art. 33 ust. 5): fakty, skutki, działania – także dla naruszeń niezgłaszanych.
+6. **Usuń przyczynę**: rotacja kluczy (`CALENDAR_TOKEN_ENCRYPTION_KEY` wymaga ponownego zaszyfrowania zapisanych tokenów albo
+   ponownego połączenia kont przez użytkowników), poprawka błędu, przegląd polityk RLS.
+
+## Lista kontrolna zgodności (do okresowego przeglądu)
+
+| Pozycja                           | Stan w repozytorium                                                        | Do sprawdzenia poza kodem                                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Umowy powierzenia (art. 28)       | Brak informacji                                                            | Warunki DPA: Supabase, Vercel, Upstash, Cloudflare                                                              |
+| Region funkcji Vercel             | W repozytorium niewskazany; w panelu: `arn1` (Sztokholm) wg administratora | Nagłówek `x-vercel-id` po wdrożeniu; rozważ `vercel.json` z `{ "regions": ["arn1"] }` (ustawienie wersjonowane) |
+| Kopie zapasowe bazy               | Brak dokumentacji                                                          | Plan Supabase i ustawienia kopii (Database → Backups)                                                           |
+| Rotacja klucza szyfrującego       | Brak mechanizmu (jest tylko `scripts/encrypt-legacy-tokens.mjs`)           | Plan rotacji; ewentualny skrypt ponownego szyfrowania                                                           |
+| Retencja pomiarów tętna           | Brak automatycznego usuwania (tabela rośnie)                               | Decyzja o okresie przechowywania lub agregacji                                                                  |
+| Weryfikacja wieku (moduł zdrowia) | Brak; polityka wymaga 16 lat                                               | Potwierdzenie wieku przy włączaniu modułu zdrowia                                                               |
+| DPIA                              | `docs/DPIA-poczta.md`, `docs/DPIA-zdrowie.md` (projekty)                   | Weryfikacja prawna, decyzja administratora                                                                      |

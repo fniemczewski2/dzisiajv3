@@ -6,7 +6,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MeetingPollBookingPayload, PublicSignupSlots } from "@/types/meetingPolls";
 
-export class SignupError extends Error {
+class SignupError extends Error {
   constructor(
     message: string,
     readonly code?: string

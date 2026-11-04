@@ -13,6 +13,8 @@ import {
   PUSH_URL_BY_KIND,
   notificationText,
   resolveRecipient,
+  isRecipientEnabled,
+  planListDelivery,
   summarizeListChange,
   type ListChangeRequest,
   type EventRow,
@@ -125,16 +127,16 @@ Deno.serve(
         .maybeSingle();
       if (prefsError) throw prefsError;
       // Odbiorca wyłączył ten rodzaj: nic nie zapisujemy ani nie wysyłamy; nadawca dostaje zwykłą odpowiedź.
-      if ((prefs as Record<string, unknown> | null)?.[prefColumn] === false) {
-        return json({ success: true, sent: false });
-      }
+      const recipientPref = (prefs as Record<string, unknown> | null)?.[prefColumn];
+      if (!isRecipientEnabled(recipientPref)) return json({ success: true, sent: false });
 
       // Lista: liczby zmian potwierdzamy stanem listy w bazie; bez potwierdzonej zmiany nie ma czego zgłaszać.
       const summary =
         body.kind === "list_item"
           ? summarizeListChange(rowData as ListRow, body.change as ListChangeRequest)
           : undefined;
-      if (summary && summary.added + summary.removed === 0) return json({ success: true, sent: false });
+      // Decyzja o wysyłce (preferencja odbiorcy + zmiana potwierdzona stanem listy) – jedno miejsce.
+      if (summary && !planListDelivery({ recipientPref, summary }).send) return json({ success: true, sent: false });
       const { title, message } = notificationText(body.kind, rowData, summary);
       const type = NOTIFICATION_TYPE_BY_KIND[body.kind];
       const { error: insertError } = await admin.from("notifications").insert({

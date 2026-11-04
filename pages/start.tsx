@@ -70,8 +70,8 @@ export default function StartPage() {
             Organizuj swój&nbsp;dzień z&nbsp;<span className="text-primary">Dzisiaj.Fun</span>
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-text-secondary sm:text-xl">
-            Zadania, kalendarz, finanse, nawyki i&nbsp;transport w&nbsp;jednej aplikacji, która działa też na telefonie
-            jak zwykła aplikacja.
+            Zadania, kalendarz, poczta, notatki z&nbsp;Obsidianem, finanse, zdrowie i&nbsp;transport w&nbsp;jednej
+            aplikacji, która działa też na telefonie jak zwykła aplikacja.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <button

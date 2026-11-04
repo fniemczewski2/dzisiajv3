@@ -73,7 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     await saveHealthData(res, parsed, token);
   } catch (err) {
-    console.error("[health/shortcut]", err);
+    // Tylko typ i komunikat – obiekt błędu mógłby nieść fragmenty danych (np. szczegóły naruszonego ograniczenia).
+    console.error("[health/shortcut]", err instanceof Error ? `${err.name}: ${err.message}` : "nieznany błąd");
     res.status(500).json({ error: "Usługa chwilowo niedostępna. Spróbuj ponownie później." });
   }
 }

@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       <main className="mx-auto max-w-3xl px-6 py-12">
         <h1 className="page-title mb-2 sm:text-4xl">Polityka Prywatności</h1>
         <p className="mb-10 border-b border-line pb-4 text-sm text-text-muted">
-          Obowiązuje od: 18 października 2026 r. &nbsp;•&nbsp; Aplikacja: Dzisiaj.Fun
+          Obowiązuje od: 4 listopada 2026 r. &nbsp;•&nbsp; Aplikacja: Dzisiaj.Fun
         </p>
 
         <Section title="1. Administrator danych">
@@ -90,7 +90,10 @@ export default function PrivacyPage() {
                 Po włączeniu powiadomień przechowujemy subskrypcję Web Push Twojej przeglądarki: adres usługi
                 powiadomień i klucze szyfrujące. Treść powiadomień (np. przypomnienia) zapisujemy w bazie danych w
                 postaci jawnej, aby pokazać ją w historii powiadomień. Podczas wysyłki na urządzenie jest dodatkowo
-                szyfrowana zgodnie ze standardem Web Push.
+                szyfrowana zgodnie ze standardem Web Push. Powiadomienia o zmianach na wspólnej liście zakupów zawierają
+                nazwę listy oraz – przy pojedynczej zmianie – nazwę pozycji (przy kilku zmianach naraz tylko ich
+                liczbę); powstają po dodaniu lub usunięciu pozycji przez drugą osobę z listy i można je wyłączyć w
+                Ustawieniach.
               </span>
             </Li>
             <Li>
@@ -154,14 +157,19 @@ export default function PrivacyPage() {
             <strong>Synchronizacja z Obsidianem (opcjonalna):</strong> na Twoje polecenie aplikacja zapisuje notatki,
             przepisy, osoby i protokoły jako pliki w Twoim OneDrive (folder aplikacji) lub Google Drive (folder
             „dzisiaj.fun”) i odczytuje ich zmiany. Przechowujemy zaszyfrowane tokeny dostępu i skróty treści potrzebne
-            do wykrywania zmian; samych plików nie kopiujemy poza Twoją chmurę. Odłączenie usuwa tokeny i stan
-            synchronizacji.
+            do wykrywania zmian; samych plików nie kopiujemy poza Twoją chmurę. Pliki utworzone przez Ciebie w
+            Obsidianie (nowe notatki, przepisy, osoby i protokoły) są importowane do aplikacji przy kolejnej
+            synchronizacji. Odłączenie usuwa tokeny i stan synchronizacji.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">
             <strong>Dane o zdrowiu ze Skrótów iOS (opcjonalne):</strong> liczba kroków, pomiary tętna, fazy snu i
             treningi przesyłane przez Ciebie z Apple Zdrowie lub wpisywane ręcznie. Przetwarzamy je wyłącznie na
             podstawie Twojej wyraźnej zgody (art. 9 ust. 2 lit. a RODO), w celu wyświetlania w aplikacji. Bez zgody dane
-            nie są przyjmowane. Cofnięcie zgody w ustawieniach usuwa zapisane dane.
+            nie są przyjmowane. Cofnięcie zgody w ustawieniach usuwa zapisane dane. Dane te przechowujemy do cofnięcia
+            zgody albo usunięcia konta, nie używamy ich do innych celów (statystyk, profilowania, powiadomień ani
+            udostępniania innym użytkownikom) i nie szyfrujemy ich dodatkowo na poziomie aplikacji; dostęp do nich ma Ty
+            (reguła „tylko właściciel”) oraz administrator w zakresie niezbędnym do utrzymania usługi. Funkcja jest
+            dostępna dla osób, które ukończyły 16 lat.
           </p>
         </Section>
 
@@ -265,7 +273,8 @@ export default function PrivacyPage() {
               plików i funkcje serwerowe; siedziba spółki w USA.
             </Li>
             <Li>
-              <strong>Vercel Inc.</strong> (USA) – hosting aplikacji.
+              <strong>Vercel Inc.</strong> (USA) – hosting aplikacji; funkcje serwerowe działają w regionie UE
+              (Sztokholm), a pliki statyczne mogą być dostarczane z węzłów sieci dostawcy na świecie.
             </Li>
             <Li>
               <strong>Cloudflare, Inc.</strong> (USA) – przekierowania poczty na adres aplikacji (tylko jeśli z nich
@@ -390,6 +399,10 @@ export default function PrivacyPage() {
               Tokeny integracji kalendarzowych – wyłącznie do momentu odłączenia kalendarza lub usunięcia konta
               głównego.
             </Li>
+            <Li>
+              Dane o zdrowiu (kroki, tętno, sen, treningi) – do cofnięcia zgody albo usunięcia konta; cofnięcie zgody
+              usuwa je od razu.
+            </Li>
             <Li>Token i konfiguracja integracji ze Slackiem – do momentu odłączenia Slacka lub usunięcia konta.</Li>
             <Li>Tokeny kont poczty (Gmail, Outlook) – do momentu odłączenia konta lub usunięcia konta głównego.</Li>
             <Li>
@@ -489,6 +502,19 @@ export default function PrivacyPage() {
             <p>
               Odłączenie konta, odwołanie adresu przekierowania i usunięcie wiadomości z bufora są dostępne w
               ustawieniach poczty. Uprawnienia możesz też cofnąć w ustawieniach konta Google lub Microsoft.
+            </p>
+            <p>
+              Widok „Wszystkie” łączy w przeglądarce listy wiadomości ze wszystkich Twoich kont oraz przekierowane; nie
+              tworzy dodatkowych kopii ani nie zmienia okresów przechowywania opisanych w punkcie 9.
+            </p>
+            <p>
+              <strong>Informacja dla osób, których dane są w wiadomościach (art. 14 RODO).</strong> Wiadomości, które
+              użytkownik odczytuje w aplikacji, zawierają dane ich nadawców i odbiorców (imię i nazwisko, adres e-mail,
+              treść korespondencji). Źródłem danych jest skrzynka użytkownika, który połączył konto. Dane służą
+              wyłącznie do wyświetlenia wiadomości użytkownikowi, odpowiedzi lub utworzenia z niej zadania; treści z
+              kont nie zapisujemy w bazie, a wiadomości przekierowane usuwamy po {MAIL_INBOX_RETENTION_HOURS} godzinach.
+              Nie kontaktujemy się z tymi osobami, bo nie znamy ich tożsamości poza adresem w wiadomości. Prawa opisane
+              w punkcie 7 możesz zgłosić pod adresem z punktu 1.
             </p>
           </div>
         </section>

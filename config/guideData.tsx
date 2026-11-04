@@ -339,6 +339,13 @@ export const guideSections: GuideSection[] = [
     iconColorClass: "text-deco-cyan",
     listItems: [
       <>
+        <K>Widok „Wszystkie”.</K> Domyślny widok łączy wiadomości ze wszystkich połączonych kont oraz przekierowane w
+        jednej liście od najnowszych; przy każdej widać źródło (adres konta albo „Przekierowanie”). Wiadomość z konta
+        otwiera się obok listy, przekierowaną rozwiniesz w wierszu. Wyszukiwanie obejmuje wszystkie konta, a
+        przekierowane są filtrowane lokalnie. Przyciski <em>Konta</em> i <em>Przekierowania</em> pokazują dotychczasowe
+        widoki osobno.
+      </>,
+      <>
         <K>Konta Gmail i Outlook.</K> Podłącz do pięciu kont. Aplikacja pokazuje ostatnie wiadomości z folderu
         odbiorczego, a treść pobiera dopiero po otwarciu wiadomości – nie zapisuje jej w bazie.
       </>,
@@ -387,6 +394,50 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Wyszukiwarka.</K> Pole wyszukiwania filtruje notatki w czasie rzeczywistym, przeszukując zarówno tytuły, jak
         i zawartość każdego elementu listy.
+      </>,
+      <>
+        <K>Foldery.</K> W polu <em>Folder</em> wpisz np. <em>Fundacje/Zapłon</em> (ukośnik tworzy podfolder). Nad listą
+        pojawią się przyciski folderów z liczbą notatek; wybór folderu obejmuje też jego podfoldery, a{" "}
+        <em>Bez folderu</em> pokazuje notatki z katalogu głównego. Istniejące foldery podpowiadają się przy wpisywaniu.
+      </>,
+      <>
+        <K>Eksport do Markdown.</K> Przycisk <em>.md</em> na notatce pobiera ją jako plik z nagłówkiem YAML (taki sam
+        jak w synchronizacji z Obsidianem). Przycisk <em>.md</em> obok <em>Dodaj</em> pobiera wszystkie notatki w jednym
+        pliku, z folderami i oznaczeniem archiwum.
+      </>,
+    ],
+  },
+
+  {
+    id: "obsidian",
+    title: "Obsidian (synchronizacja Markdown)",
+    mainIcon: <RefreshCw className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
+    listItems: [
+      <>
+        <K>Połączenie.</K> W Ustawieniach, w sekcji <em>Obsidian</em>, połącz OneDrive (folder aplikacji) albo Google
+        Drive (folder <em>dzisiaj.fun</em>). W tym folderze otwórz vault w Obsidianie. Aplikacja zapisuje tylko tokeny
+        dostępu (szyfrowane) i skróty treści potrzebne do wykrywania zmian.
+      </>,
+      <>
+        <K>Co jest synchronizowane.</K> Notatki (z folderami jako podfolderami), przepisy, osoby i protokoły – każdy
+        wpis to plik Markdown z nagłówkiem YAML (m.in. <em>dzisiaj_id</em>). Synchronizacja działa w obie strony: zmiana
+        w aplikacji aktualizuje plik, zmiana pliku aktualizuje aplikację.
+      </>,
+      <>
+        <K>Nowe pliki z Obsidiana.</K> Plik utworzony w Obsidianie w folderze <em>Notatki</em>, <em>Przepisy</em>,{" "}
+        <em>Osoby</em> lub <em>Protokoły</em> zostanie dodany do aplikacji przy najbliższej synchronizacji i dostanie
+        identyfikator. Braki uzupełnia nazwa pliku (np. <em>Jan Kowalski.md</em> daje imię i nazwisko, a{" "}
+        <em>2026-11-02 Zebranie.md</em> datę i temat protokołu); niepoprawna kategoria przepisu lub data są zastępowane
+        wartościami domyślnymi.
+      </>,
+      <>
+        <K>Konflikty.</K> Gdy ten sam wpis zmienisz po obu stronach, w pliku zostaje wersja z aplikacji, a Twoja wersja
+        z vaultu trafia do osobnego pliku z dopiskiem <em>(konflikt data)</em> – nic nie ginie.
+      </>,
+      <>
+        <K>Kiedy to działa.</K> Synchronizację uruchamiasz przyciskiem w Ustawieniach – nie działa w tle. Odłączenie
+        usuwa tokeny i stan synchronizacji, a pliki w Twojej chmurze zostają.
       </>,
     ],
   },
@@ -500,7 +551,10 @@ export const guideSections: GuideSection[] = [
         <K>Zapisy na terminy.</K> Przy tworzeniu wybierz rodzaj <em>Zapisy na terminy</em>, ustaw liczbę miejsc w jednym
         terminie i limit terminów na osobę. Uczestnicy (także bez konta) widzą wolne miejsca i zapisują się podając
         imię, opcjonalnie e-mail oraz zgodę na przetwarzanie danych. W widoku ankiety widzisz zapisy pogrupowane według
-        terminów, możesz usunąć zapis (zwalnia miejsce) i pobrać listę jako plik CSV.
+        terminów, możesz usunąć zapis (zwalnia miejsce) i pobrać listę jako plik CSV. Uczestnik wybiera wolne terminy
+        (do ustawionego limitu), podaje imię, opcjonalnie e-mail i zgodę na przetwarzanie danych; zajęte terminy są
+        wyłączone, a zapis jest atomowy – ostatnie miejsce dostaje dokładnie jedna osoba. Jedna osoba jest rozpoznawana
+        po e-mailu, a bez niego po imieniu.
       </>,
       <>
         <K>Lista ankiet.</K> Ankiety są podzielone na otwarte i zamknięte, a przy każdej widać liczbę odpowiedzi, liczbę
@@ -654,6 +708,13 @@ export const guideSections: GuideSection[] = [
         <K>Udostępnianie na żywo.</K> Udostępnij listę innemu użytkownikowi – dodanie, odhaczenie i edycja pozycji
         pojawiają się u drugiej osoby po chwili, bez ręcznego odświeżania. Usunięcie całej listy przez właściciela
         zobaczysz po ponownym wejściu na stronę.
+      </>,
+      <>
+        <K>Powiadomienia o zmianach.</K> Gdy dodasz lub usuniesz pozycje na liście udostępnionej, druga osoba dostaje
+        powiadomienie. Kolejne akcje jedna po drugiej scalają się w jedno (po kilku sekundach bez zmian), np. „Dodano 3
+        pozycje do listy „Zakupy”” albo „Dodano 3 i usunięto 2 pozycje na liście „Zakupy””; przy jednej zmianie widać
+        nazwę pozycji. Pozycja dodana i od razu usunięta nie liczy się, odhaczenie nie jest zmianą. Powiadomienia
+        wyłączysz w Ustawieniach (<em>Wspólne listy zakupów</em>).
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub
@@ -1008,6 +1069,11 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie
         usuwa żadnych danych użytkownika.
+      </>,
+      <>
+        <K>Kopia moich danych.</K> W sekcji <em>Użytkownik</em> pobierzesz wszystkie swoje dane w jednym pliku JSON –
+        zadania, notatki, finanse, zdrowie, pisma, ankiety (także zapisy uczestników i ich odpowiedzi w cudzych
+        ankietach), listę plików w chmurze aplikacji. Plik nie zawiera haseł, tokenów OAuth ani kluczy push.
       </>,
       <>
         <K>Usunięcie konta.</K> Na dole sekcji <em>Użytkownik</em> znajdziesz opcję trwałego usunięcia konta. Kasuje ona

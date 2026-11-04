@@ -88,6 +88,23 @@ To najważniejsza część tego dokumentu.
 - Organizator tworzy ankietę; uczestnicy odpowiadają **bez konta** pod `/meet/[token]`.
 - Finalizacja (`/api/meeting-polls/[id]/finalize`) jest jednorazowa (`finalized_at`) i przy błędzie
   wycofuje utworzone wydarzenia.
+- Tryb zapisów (`mode = 'signup'`): sloty wynikają z ankiety (dni × zakres godzin × długość slotu), każdy ma
+  `slot_capacity` miejsc, a osoba może zająć do `max_slots_per_person` slotów. Zapis (`.../book`) waliduje serwer, a
+  rezerwację wykonuje funkcja bazy `book_meeting_poll_slots` (blokada wiersza ankiety `FOR UPDATE`, atomowość, brak
+  nadsprzedaży przy równoczesnych zapisach). Zajętość (`.../slots`) zwraca tylko liczby. Imiona i e-maile czyta wyłącznie
+  organizator (RLS na `meeting_poll_bookings`); dane nie trafiają do IndexedDB (`lib/queryPersister.ts`).
+
+### Powiadomienia o zmianach wspólnej listy
+
+- `useShoppingLists.updateElements` przekazuje różnicę stanów listy do `useSharedListNotifier`: bufor per lista,
+  wysyłka po `SHARED_LIST_NOTIFY_DELAY_MS` bez nowej zmiany, przy ukryciu karty i zamknięciu widoku; zmiany zbędne się znoszą.
+- Funkcja Edge `notify-shared` wyznacza odbiorcę z bazy (druga osoba listy), potwierdza zmiany stanem listy (dodana
+  pozycja musi być na liście, usunięta nie może), sprawdza ustawienie odbiorcy i zapisuje powiadomienie oraz push.
+
+### Wspólny widok poczty
+
+- `pages/mail.tsx`: widok „Wszystkie” składa listy ze wszystkich kont (`useMailMessagesOfAccounts`, wspólny cache z widokiem
+  konta) i przekierowane (`lib/mail/unified.ts`); treść wiadomości dalej tylko w pamięci.
 
 ### Offline
 
@@ -116,13 +133,15 @@ To najważniejsza część tego dokumentu.
 
 ## Ważne decyzje i ich koszty
 
-| Decyzja                                                             | Dlaczego                                  | Koszt                                                                  |
-| ------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
-| Klient pisze do bazy bezpośrednio                                   | Mniej kodu API, działa offline            | Cała autoryzacja w RLS – błędna polityka = wyciek                      |
-| Migracje poza repozytorium (od 1.38.7)                              | Migracja bazowa nie odpowiadała produkcji | Zmiany schematu nie są wersjonowane; zob. RUNBOOK                      |
-| Zewnętrzny kalendarz jako źródło prawdy                             | Brak konfliktów przy synchronizacji       | Edycje zaimportowanych wydarzeń w aplikacji znikają                    |
-| Sekwencyjne zapytania do Slacka                                     | Limity API                                | Synchronizacja dużych list trwa dłużej                                 |
-| Pula równoległości (`@/shared/asyncPool`) dla niezależnych operacji | Krótszy czas cronów                       | Błąd jednej operacji odrzuca całą pulę, jeśli nie jest łapany w środku |
+| Decyzja                                                             | Dlaczego                                            | Koszt                                                                                                     |
+| ------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Klient pisze do bazy bezpośrednio                                   | Mniej kodu API, działa offline                      | Cała autoryzacja w RLS – błędna polityka = wyciek                                                         |
+| Migracje poza repozytorium (od 1.38.7)                              | Migracja bazowa nie odpowiadała produkcji           | Zmiany schematu nie są wersjonowane; zob. RUNBOOK                                                         |
+| Zewnętrzny kalendarz jako źródło prawdy                             | Brak konfliktów przy synchronizacji                 | Edycje zaimportowanych wydarzeń w aplikacji znikają                                                       |
+| Jawne listy kolumn zamiast `select("*")` (`lib/db/columns.ts`)      | Sekret w nowej kolumnie nie trafia do klienta       | Nową kolumnę trzeba dopisać do listy (pilnuje test); typ zwracany `"*"` do czasu wygenerowania typów bazy |
+| Rezerwacje zapisów w funkcji bazy, nie w kodzie aplikacji           | Atomowość i limit miejsc przy równoległych zapisach | Reguły w SQL; testy tylko na PostgreSQL (`supabase/tests/`), poza CI                                      |
+| Sekwencyjne zapytania do Slacka                                     | Limity API                                          | Synchronizacja dużych list trwa dłużej                                                                    |
+| Pula równoległości (`@/shared/asyncPool`) dla niezależnych operacji | Krótszy czas cronów                                 | Błąd jednej operacji odrzuca całą pulę, jeśli nie jest łapany w środku                                    |
 
 ## Struktura katalogów (najważniejsze)
 
