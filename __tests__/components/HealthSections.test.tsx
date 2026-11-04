@@ -50,18 +50,6 @@ describe("HeartRateSection", () => {
     expect(screen.queryByRole("button", { name: /Pokaż więcej/ })).toBeNull();
   });
 
-  it("brak pomiarów: informacja; z podsumowaniem dnia (starsze wysyłki): kafelki z adnotacją", () => {
-    const { rerender } = render(<HeartRateSection records={[]} loading={false} />);
-    expect(screen.getByText(/Brak pomiarów tętna do wyświetlenia/)).toBeInTheDocument();
-    rerender(<HeartRateSection records={[]} loading={false} fallback={{ avg: 72, min: 51, max: 148, resting: 55 }} />);
-    expect(tile("Spoczynkowe")).toHaveTextContent("55 bpm");
-    expect(screen.getAllByText("Z podsumowania dnia")).toHaveLength(4);
-    rerender(
-      <HeartRateSection records={[]} loading={false} fallback={{ avg: null, min: null, max: null, resting: null }} />
-    );
-    expect(screen.getByText(/Brak pomiarów tętna do wyświetlenia/)).toBeInTheDocument();
-  });
-
   it("ładowanie: bez tabeli i bez komunikatu o braku danych", () => {
     render(<HeartRateSection records={[]} loading={true} />);
     expect(screen.queryByRole("table")).toBeNull();
@@ -124,14 +112,6 @@ describe("SleepSection", () => {
       />
     );
     expect(tile("Sen")).toHaveTextContent("8 h");
-  });
-
-  it("bez odcinków: czas snu z podsumowania dnia (bez faz) albo informacja o braku danych", () => {
-    const { rerender } = render(<SleepSection date="2026-11-03" segments={[]} loading={false} fallbackMinutes={431} />);
-    expect(tile("Sen")).toHaveTextContent("7 h 11 min");
-    expect(screen.getByText("Bez podziału na fazy")).toBeInTheDocument();
-    rerender(<SleepSection date="2026-11-03" segments={[]} loading={false} />);
-    expect(screen.getByText(/Brak danych o śnie do wyświetlenia/)).toBeInTheDocument();
   });
 });
 

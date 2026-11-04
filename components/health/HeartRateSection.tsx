@@ -15,46 +15,23 @@ import StatTile from "./StatTile";
 interface Props {
   records: HeartRateRecord[];
   loading: boolean;
-  /** Podsumowanie dnia przesłane bez rejestru (starsze wysyłki) – pokazywane, gdy brak pomiarów. */
-  fallback?: { avg: number | null; min: number | null; max: number | null; resting: number | null } | null;
 }
 
 const bpm = (value: number) => `${String(value).replace(".", ",")} bpm`;
 
-function FallbackTiles({ fallback }: Readonly<{ fallback: NonNullable<Props["fallback"]> }>) {
-  const items: [string, number | null][] = [
-    ["Średnie", fallback.avg],
-    ["Minimalne", fallback.min],
-    ["Maksymalne", fallback.max],
-    ["Spoczynkowe", fallback.resting],
-  ];
-  return (
-    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {items.map(([label, value]) => (
-        <StatTile key={label} label={label} value={value === null ? "–" : bpm(value)} hint="Z podsumowania dnia" />
-      ))}
-    </dl>
-  );
-}
-
-export default function HeartRateSection({ records, loading, fallback = null }: Readonly<Props>) {
+export default function HeartRateSection({ records, loading }: Readonly<Props>) {
   const [visible, setVisible] = useState(HEALTH_LIST_PAGE_SIZE);
   const summary = useMemo(() => summarizeHeartRate(records), [records]);
   const sorted = useMemo(
     () => [...records].sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at)),
     [records]
   );
-  const hasFallback = fallback && [fallback.avg, fallback.min, fallback.max, fallback.resting].some((v) => v !== null);
-
+  
   let body: React.ReactNode;
   if (loading) {
     body = <SkeletonList count={3} variant="row" />;
   } else if (!summary) {
-    body = hasFallback ? (
-      <FallbackTiles fallback={fallback} />
-    ) : (
-      <NoResultsState text="pomiarów tętna" hint="Skrót iOS nie przesłał jeszcze danych z tego dnia." />
-    );
+    body = <NoResultsState text="pomiarów tętna" hint="Skrót iOS nie przesłał jeszcze danych z tego dnia." />;
   } else {
     body = (
       <>

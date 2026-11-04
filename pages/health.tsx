@@ -23,7 +23,6 @@ export default function HealthPage() {
   const sleep = useSleepNight(date);
   const heart = useHeartRateDay(date);
   const daily = useHealthDays(date, date);
-  const legacy = daily.data?.[0] ?? null;
 
   const error = sleep.error ?? heart.error ?? daily.error;
   useEffect(() => {
@@ -38,28 +37,8 @@ export default function HealthPage() {
         {hasConsent ? (
           <>
             <HealthDateNav date={date} today={today} onChange={setDate} />
-            <SleepSection
-              key={`sleep-${date}`}
-              segments={sleep.data ?? []}
-              date={date}
-              loading={sleep.isLoading}
-              fallbackMinutes={legacy?.sleep_minutes ?? null}
-            />
-            <HeartRateSection
-              key={`heart-${date}`}
-              records={heart.data ?? []}
-              loading={heart.isLoading}
-              fallback={
-                legacy
-                  ? {
-                      avg: legacy.heart_rate_avg,
-                      min: legacy.heart_rate_min,
-                      max: legacy.heart_rate_max,
-                      resting: legacy.heart_rate_resting,
-                    }
-                  : null
-              }
-            />
+            <SleepSection key={`sleep-${date}`} segments={sleep.data ?? []} date={date} loading={sleep.isLoading} />
+            <HeartRateSection key={`heart-${date}`} records={heart.data ?? []} loading={heart.isLoading} />
           </>
         ) : (
           <NoResultsState

@@ -86,22 +86,6 @@ describe("strona /health", () => {
     expect(screen.getByText("Czas w łóżku").parentElement).toHaveTextContent("7 h");
   });
 
-  it("starsze wysyłki bez rejestru: wartości z podsumowania dnia", () => {
-    h.daily = [
-      {
-        date: "2026-11-02",
-        sleep_minutes: 431,
-        heart_rate_avg: 72,
-        heart_rate_min: 51,
-        heart_rate_max: 148,
-        heart_rate_resting: 55,
-      },
-    ];
-    render(<HealthPage />);
-    expect(screen.getByText("Bez podziału na fazy")).toBeInTheDocument();
-    expect(screen.getByText("Spoczynkowe").parentElement).toHaveTextContent("55 bpm");
-  });
-
   it("błąd pobierania: komunikat z przyczyną", () => {
     h.error = new Error("baza");
     render(<HealthPage />);

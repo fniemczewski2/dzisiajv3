@@ -16,11 +16,6 @@ import type { ManualWorkoutRow } from "@/lib/health/manualWorkout";
 export interface HealthDailyRow {
   date: string;
   steps: number | null;
-  sleep_minutes: number | null;
-  heart_rate_avg: number | null;
-  heart_rate_min: number | null;
-  heart_rate_max: number | null;
-  heart_rate_resting: number | null;
 }
 
 export interface HealthWorkoutRow {
@@ -34,7 +29,7 @@ export interface HealthWorkoutRow {
   source: string;
 }
 
-const DAILY_COLUMNS = "date, steps, sleep_minutes, heart_rate_avg, heart_rate_min, heart_rate_max, heart_rate_resting";
+const DAILY_COLUMNS = "date, steps";
 const WORKOUT_COLUMNS = "id, activity, started_at, duration_minutes, distance_km, energy_kcal, heart_rate_avg, source";
 
 type Page = PromiseLike<{ data: unknown; error: unknown }>;

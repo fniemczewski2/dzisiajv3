@@ -19,8 +19,6 @@ interface Props {
   /** Dzień (RRRR-MM-DD), dla którego pokazujemy sen: dzień przebudzenia. */
   date: string;
   loading: boolean;
-  /** Czas snu przesłany bez faz (starsze wysyłki) – pokazywany, gdy brak odcinków. */
-  fallbackMinutes?: number | null;
 }
 
 const STAGE_COLORS: Record<SleepStage, string> = {
@@ -135,7 +133,7 @@ function SleepSession({ summary }: Readonly<{ summary: SleepSummary }>) {
   );
 }
 
-export default function SleepSection({ segments, date, loading, fallbackMinutes = null }: Readonly<Props>) {
+export default function SleepSection({ segments, date, loading }: Readonly<Props>) {
   // Sny kończące się w wybranym dniu: noc i drzemka (albo dwie noce wysłane razem) nie zlewają się w jeden sen.
   const summaries = useMemo(
     () =>
@@ -162,12 +160,6 @@ export default function SleepSection({ segments, date, loading, fallbackMinutes 
           </div>
         ))}
       </div>
-    );
-  } else if (fallbackMinutes !== null) {
-    body = (
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Sen" value={formatMinutes(fallbackMinutes)} hint="Bez podziału na fazy" />
-      </dl>
     );
   } else {
     body = <NoResultsState text="danych o śnie" hint="Skrót iOS nie przesłał jeszcze snu z tego dnia." />;
