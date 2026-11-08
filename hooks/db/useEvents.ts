@@ -221,10 +221,10 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
   );
 
   const editEvent = useCallback(
-    async (event: Event & { shared_with_email?: string }) => {
+    async (event: Event & { shared_with_email?: string }, options: { silent?: boolean } = {}): Promise<boolean> => {
       if (event.id.startsWith("bday_") || event.id.startsWith("nday_")) {
         toast.error("Nie można edytować wydarzeń generowanych z kontaktów.");
-        return;
+        return false;
       }
       if (!userId) {
         throw new NotSignedInError();
@@ -262,13 +262,15 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         if (remote.linked && !remote.ok) {
           const where = remote.label ? ` ${remote.label}` : "";
           toast.error(`Zapisano w aplikacji, ale nie w kalendarzu${where}. Spróbuj ponownie później.`);
-        } else {
-          toast.success("Zaktualizowano wydarzenie");
-          markOtherRangesStale();
+          return false;
         }
+        if (!options.silent) toast.success("Zaktualizowano wydarzenie");
+        markOtherRangesStale();
+        return true;
       } catch {
         setRawEvents(previous);
         toast.error("Błąd edycji wydarzenia.");
+        return false;
       } finally {
         setLoading(false);
       }

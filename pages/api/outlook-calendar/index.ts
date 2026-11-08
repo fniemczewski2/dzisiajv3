@@ -46,7 +46,8 @@ function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
     client_id: credentials.clientId,
     response_type: "code",
     redirect_uri: `${publicEnv.appUrl}/api/outlook-calendar/callback`,
-    scope: "offline_access Calendars.Read User.Read",
+    // Zapis wydarzeń (eksport) wymaga Calendars.ReadWrite; sam odczyt daje 403 przy POST/PATCH w Graph.
+    scope: "offline_access Calendars.ReadWrite User.Read",
     state: nonce,
     prompt: "select_account",
   });
@@ -216,6 +217,15 @@ interface ExportableEvent {
   google_event_id: string | null;
 }
 
+async function graphErrorCode(response: Response): Promise<string> {
+  try {
+    const body = (await response.json()) as { error?: { code?: unknown } };
+    return typeof body.error?.code === "string" ? body.error.code : "brak_kodu";
+  } catch {
+    return "brak_tresci";
+  }
+}
+
 async function exportEventsToOutlook(
   supabase: SupabaseClient,
   events: ExportableEvent[],
@@ -257,6 +267,8 @@ async function exportEventsToOutlook(
         .eq("id", ev.id);
       exported++;
     } else {
+      // Treść odpowiedzi Graph nie trafia do logu (może zawierać dane wydarzenia): tylko status i kod błędu.
+      console.error(`[outlook export] ${method} → ${r.status} ${await graphErrorCode(r)}`);
       skipped++;
     }
   });

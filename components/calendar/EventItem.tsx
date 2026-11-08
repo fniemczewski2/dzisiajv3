@@ -21,7 +21,7 @@ import { sanitizeHref } from "@/lib/sanitize";
 interface EventItemProps {
   event: Event;
   loading: boolean;
-  onEditEvent: (event: Event) => Promise<void>;
+  onEditEvent: (event: Event) => Promise<boolean | void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
   userOptions: string[];

@@ -243,16 +243,31 @@ export const ToTasksButton = ({
   </button>
 );
 
-export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void; fileFormat: string }) => (
+export const DownloadButton = ({
+  onClick,
+  fileFormat,
+  small,
+  busy = false,
+  ariaLabel,
+}: {
+  onClick: () => void;
+  fileFormat?: string;
+  small?: boolean;
+  busy?: boolean;
+  /** Nazwa dla czytników ekranu, gdy przycisk dotyczy konkretnego pliku lub pola. */
+  ariaLabel?: string;
+}) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "success" })}
-    aria-label={`Pobierz plik ${fileFormat}`}
-    title={`Pobierz plik ${fileFormat}`}
+    disabled={busy}
+    aria-busy={busy}
+    className={actionButton({ color: "success", size: small ? "small" : "default" })}
+    aria-label={ariaLabel ?? (fileFormat ? `Pobierz plik ${fileFormat}` : "Pobierz plik")}
+    title={ariaLabel ?? (fileFormat ? `Pobierz plik ${fileFormat}` : "Pobierz plik")}
   >
     <Download className={actionIcon()} />
-    <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>
+    {!small && <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>}
   </button>
 );
 

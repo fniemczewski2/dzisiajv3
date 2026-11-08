@@ -2,10 +2,8 @@
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import { Clapperboard } from "lucide-react";
 import { useNotes } from "@/hooks/db/useNotes";
 import NoteList from "@/components/notes/NoteList";
-import { useRouter } from "next/router";
 import { AddButton, DownloadButton } from "@/components/ui/CommonButtons";
 import { downloadAllNotesMarkdown } from "@/lib/notes/export";
 import { useQuickAction } from "@/hooks/useQuickAction";
@@ -17,7 +15,6 @@ const NoteForm = dynamic(() => import("@/components/notes/NoteForm"), {
 
 export default function NotesPage() {
   const { notes, fetching, fetchNotes } = useNotes();
-  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => setShowForm(true);
@@ -35,21 +32,13 @@ export default function NotesPage() {
       <div className="mb-6 flex items-center justify-between gap-2">
         <div className="flex flex-row items-center gap-3 sm:gap-4">
           <h1 className="page-title">Notatki</h1>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              onClick={() => router.push("/notes/movies")}
-              type="button"
-              title="Filmy i seriale"
-              className="rounded-xl border border-line bg-surface p-2 text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
-            >
-              <Clapperboard className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-          </div>
         </div>
 
         {!showForm && (
           <div className="flex items-center gap-2">
-            {notes.length > 0 && <DownloadButton onClick={() => downloadAllNotesMarkdown(notes)} fileFormat=".md" />}
+            {notes.length > 0 && (
+              <DownloadButton onClick={() => downloadAllNotesMarkdown(notes)} small fileFormat=".md" />
+            )}
             <AddButton onClick={openNew} />
           </div>
         )}

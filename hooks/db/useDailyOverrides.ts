@@ -145,7 +145,7 @@ export function useDailyOverrides(dateStr: string) {
             );
 
         if (error) throw error;
-        toast.success("Przeniesiono rutynę");
+        toast.success(`Przeniesiono rutynę na ${newTime}`);
       } catch {
         setOverrides(previous);
         toast.error("Błąd przenoszenia rutyny.");

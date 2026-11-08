@@ -145,11 +145,10 @@ function findDeno() {
     join(homedir(), ".deno", "bin", process.platform === "win32" ? "deno.exe" : "deno"),
   ].filter(Boolean);
   for (const candidate of candidates) {
-    const probe = spawnSync(candidate.includes(" ") ? `"${candidate}"` : candidate, ["--version"], {
-      shell: true,
-      encoding: "utf8",
-    });
-    if (probe.status === 0) return candidate.includes(" ") ? `"${candidate}"` : candidate;
+    // Ścieżkę cytujemy sami, a argumenty wpisujemy w jednym poleceniu (bez tablicy argumentów przy shell: true).
+    const quoted = candidate.includes(" ") ? `"${candidate}"` : candidate;
+    const probe = spawnSync(`${quoted} --version`, { shell: true, encoding: "utf8" });
+    if (probe.status === 0) return quoted;
   }
   return null;
 }
@@ -176,6 +175,7 @@ const checks = [
     name: "format",
     label: "format:check (prettier)",
     run: () => {
+      run("npx prettier --write .");
       const r = run("npx prettier --check .");
       const warned = r.output.split("\n").filter((l) => l.startsWith("[warn]") && !l.includes("Code style"));
       return {

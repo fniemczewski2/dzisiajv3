@@ -169,6 +169,14 @@ describe("/api/outlook-calendar", () => {
     expect((await o({ query: { action: "list-calendars" } })).statusCode).toBe(401);
   });
 
+  it("auth-url: zgoda obejmuje zapis w kalendarzu (Calendars.ReadWrite), nie tylko odczyt", async () => {
+    const res = await o({ query: { action: "auth-url" } });
+    expect(res.statusCode).toBe(200);
+    const scope = new URL((res.body as { url: string }).url).searchParams.get("scope") ?? "";
+    expect(scope.split(" ")).toContain("Calendars.ReadWrite");
+    expect(scope.split(" ")).not.toContain("Calendars.Read");
+  });
+
   it("nieznana akcja → 404", async () => {
     expect((await o({ query: { action: "nie-ma" } })).statusCode).toBe(404);
     expect((await o({ query: {} })).statusCode).toBe(404);

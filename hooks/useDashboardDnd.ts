@@ -5,17 +5,24 @@ import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { Task } from "@/types/tasks";
 import { Event } from "@/types/events";
 import { dateToTimestamp } from "@/lib/dateUtils";
+import { useToast } from "@/providers/ToastProvider";
+
+type EditOptions = { silent?: boolean };
 
 interface UseDashboardDndProps {
   tasks: Task[];
   events: Event[];
   userId: string | undefined;
   date: Date;
-  editTask: (task: Task & { shared_with_email?: string }) => Promise<void>;
-  editEvent: (event: Event & { shared_with_email?: string }) => Promise<void>;
+  editTask: (task: Task & { shared_with_email?: string }, options?: EditOptions) => Promise<boolean>;
+  editEvent: (event: Event & { shared_with_email?: string }, options?: EditOptions) => Promise<boolean>;
 }
 
+const formatHm = (hours: number, minutes: number): string =>
+  `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+
 export function useDashboardDnd({ tasks, events, userId, date, editTask, editEvent }: Readonly<UseDashboardDndProps>) {
+  const { toast } = useToast();
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
 
@@ -49,6 +56,7 @@ export function useDashboardDnd({ tasks, events, userId, date, editTask, editEve
 
       const dragId = String(active.id);
       const [hours, minutes] = targetTime.split(":").map(Number);
+      if (Number.isNaN(hours)) return;
 
       if (dragId.startsWith("plan-task-") || dragId.startsWith("task-")) {
         const rawId = dragId.replace("plan-task-", "").replace("task-", "");
@@ -58,7 +66,11 @@ export function useDashboardDnd({ tasks, events, userId, date, editTask, editEve
         const scheduledDateTime = new Date(date);
         scheduledDateTime.setHours(hours, minutes || 0, 0, 0);
 
-        await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
+        const ok = await editTask(
+          { ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) },
+          { silent: true }
+        );
+        if (ok) toast.success(`Przeniesiono „${currentTask.title}” na ${formatHm(hours, minutes || 0)}`);
         return;
       }
 
@@ -75,14 +87,18 @@ export function useDashboardDnd({ tasks, events, userId, date, editTask, editEve
         newStart.setHours(hours, minutes || 0, 0, 0);
         const newEnd = new Date(newStart.getTime() + durationMs);
 
-        await editEvent({
-          ...currentEvent,
-          start_time: dateToTimestamp(newStart),
-          end_time: dateToTimestamp(newEnd),
-        });
+        const ok = await editEvent(
+          {
+            ...currentEvent,
+            start_time: dateToTimestamp(newStart),
+            end_time: dateToTimestamp(newEnd),
+          },
+          { silent: true }
+        );
+        if (ok) toast.success(`Przeniesiono „${currentEvent.title}” na ${formatHm(hours, minutes || 0)}`);
       }
     },
-    [userId, tasks, events, date, editTask, editEvent]
+    [userId, tasks, events, date, editTask, editEvent, toast]
   );
 
   return { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd };

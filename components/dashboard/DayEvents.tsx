@@ -10,7 +10,7 @@ interface DayEventsProps {
   events: Event[];
   fetchingEvents: boolean;
   loadingEvents: boolean;
-  onEditEvent: (event: Event) => Promise<void>;
+  onEditEvent: (event: Event) => Promise<boolean | void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
   userOptions: string[];

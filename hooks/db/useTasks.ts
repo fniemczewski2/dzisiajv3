@@ -211,7 +211,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   );
 
   const editTask = useCallback(
-    async (task: Task & { shared_with_email?: string }) => {
+    async (task: Task & { shared_with_email?: string }, options: { silent?: boolean } = {}): Promise<boolean> => {
       if (!userId) {
         throw new NotSignedInError();
       }
@@ -249,11 +249,13 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         );
         if (error) throw error;
 
-        toast.success("Zaktualizowano zadanie");
+        if (!options.silent) toast.success("Zaktualizowano zadanie");
         triggerSlackSync();
+        return true;
       } catch {
         setRawTasks(rollbackRef.current);
         toast.error("Błąd aktualizacji zadania.");
+        return false;
       } finally {
         setLoading(false);
       }

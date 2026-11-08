@@ -2,7 +2,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NotificationPreferences from "@/components/settings/NotificationPreferencesForm";
 import { DEFAULT_SETTINGS } from "@/config/defaults";
@@ -55,15 +55,23 @@ describe("przełączniki powiadomień", () => {
   });
 
   it("wszystkie klucze notif_* używane w funkcjach istnieją w formularzu", async () => {
-    const user = userEvent.setup();
     render(<NotificationPreferences />);
     updateSettings.mockClear();
-    for (const sw of screen.getAllByRole("switch")) await user.click(sw);
+    // Każde kliknięcie w act: przełączniki są blokowane w trakcie zapisu (isUpdating), więc czekamy na koniec aktualizacji.
+    for (const sw of screen.getAllByRole("switch")) {
+      await act(async () => {
+        fireEvent.click(sw);
+      });
+    }
     const formKeys = new Set(updateSettings.mock.calls.map(([patch]) => Object.keys(patch)[0]));
     const used = new Set(
-      ["process-notifications", "send-love"].flatMap(
-        (f) => read(`supabase/functions/${f}/index.ts`).match(/notif_[a-z_]+/g) ?? []
-      )
+      // Klucze z funkcji i z modułu współdzielonego, z którego korzysta notify-shared (sharedNotifyRules).
+      [
+        "process-notifications/index.ts",
+        "send-love/index.ts",
+        "notify-shared/index.ts",
+        "_shared/sharedNotifyRules.ts",
+      ].flatMap((f) => read(`supabase/functions/${f}`).match(/notif_[a-z_]+/g) ?? [])
     );
     const absent = [...used].filter((k) => !formKeys.has(k));
     expect(absent).toEqual([]);
