@@ -101,7 +101,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       } catch (err) {
         if (isAbortError(err)) return;
 
-        toast.info("Nie udało się pobrać szczegółów – uzupełniono podstawowe dane.");
+        toast.info("Nie udało się pobrać szczegółów, uzupełniono podstawowe dane.");
       }
       const data = buildMovieData(result, details);
       setForm({
@@ -192,7 +192,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               type="button"
               onClick={runSearch}
               disabled={fetching || !form.title.trim()}
-              className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 whitespace-nowrap text-text shadow transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 whitespace-nowrap text-text transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {fetching ? (
                 <>
@@ -258,7 +258,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
                           loading="lazy"
                           width={48}
                           height={72}
-                          className="h-18 w-12 shrink-0 rounded-lg object-cover shadow-sm"
+                          className="h-18 w-12 shrink-0 rounded-lg object-cover"
                         />
                       ) : (
                         <div
@@ -299,7 +299,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
             {selectedPoster && (
               <Image
                 src={selectedPoster}
-                alt=""
+                alt="Plakat wybranej pozycji"
                 width={40}
                 height={60}
                 className="h-15 w-10 shrink-0 rounded-lg object-cover"

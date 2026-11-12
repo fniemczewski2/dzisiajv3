@@ -20,7 +20,7 @@ export default function MeetingPollResultsPage() {
     <>
       <Seo
         title="Wyniki ankiety"
-        description="Wyniki ankiety dostępności i zapisy na terminy – widoczne tylko dla organizatora."
+        description="Wyniki ankiety dostępności i zapisy na terminy, widoczne tylko dla organizatora."
         canonical="https://www.dzisiaj.fun/meetings"
         noindex={true}
       />

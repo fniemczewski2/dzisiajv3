@@ -9,7 +9,6 @@ export default function PrivacyPage() {
         title="Polityka prywatności"
         description="Polityka prywatności aplikacji Dzisiaj.Fun: jakie dane przetwarzamy, w jakim celu, komu je przekazujemy, jak długo je przechowujemy i jakie masz prawa."
         canonical="https://www.dzisiaj.fun/privacy"
-        keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności, google calendar, outlook"
       />
 
       <main className="mx-auto max-w-3xl px-6 py-12">
@@ -79,7 +78,7 @@ export default function PrivacyPage() {
                 identyfikator użytkownika Slack oraz zaszyfrowany token dostępu. Aplikacja prosi o uprawnienia do
                 odczytu i zapisu list Slacka (<em>lists:read</em>, <em>lists:write</em>), odczytu plików{" ("}
                 <em>files:read</em>) oraz odczytu użytkowników i ich adresów e-mail (<em>users:read</em>,{" "}
-                <em>users:read.email</em>) – te ostatnie służą do dopasowania osób przypisanych do elementów listy. Z
+                <em>users:read.email</em>), te ostatnie służą do dopasowania osób przypisanych do elementów listy. Z
                 wybranymi przez Ciebie listami synchronizowane są tytuł, opis, termin, priorytet i status zadań, w obie
                 strony.
               </span>
@@ -91,16 +90,15 @@ export default function PrivacyPage() {
                 powiadomień i klucze szyfrujące. Treść powiadomień (np. przypomnienia) zapisujemy w bazie danych w
                 postaci jawnej, aby pokazać ją w historii powiadomień. Podczas wysyłki na urządzenie jest dodatkowo
                 szyfrowana zgodnie ze standardem Web Push. Powiadomienia o zmianach na wspólnej liście zakupów zawierają
-                nazwę listy oraz – przy pojedynczej zmianie – nazwę pozycji (przy kilku zmianach naraz tylko ich
-                liczbę); powstają po dodaniu lub usunięciu pozycji przez drugą osobę z listy i można je wyłączyć w
-                Ustawieniach.
+                nazwę listy oraz, przy pojedynczej zmianie, nazwę pozycji (przy kilku zmianach naraz tylko ich liczbę);
+                powstają po dodaniu lub usunięciu pozycji przez drugą osobę z listy i można je wyłączyć w Ustawieniach.
               </span>
             </Li>
             <Li>
-              <strong>Skróty Siri – automatyczny czas pracy (opcjonalne):</strong>{" "}
+              <strong>Skróty Siri, automatyczny czas pracy (opcjonalne):</strong>{" "}
               <span>
                 Po wygenerowaniu tokenu w ustawieniach przechowujemy wyłącznie jego skrót kryptograficzny (SHA-256),
-                datę utworzenia i datę ostatniego użycia – samego tokenu nie da się z nich odtworzyć. Skrót wywołany na
+                datę utworzenia i datę ostatniego użycia, samego tokenu nie da się z nich odtworzyć. Skrót wywołany na
                 Twoim urządzeniu tworzy lub zamyka wpis czasu pracy z godziną rozpoczęcia albo zakończenia.
               </span>
             </Li>
@@ -123,9 +121,9 @@ export default function PrivacyPage() {
               <strong>Nastrój (opcjonalny):</strong>{" "}
               <span>
                 Wpisy w module nastroju mogą ujawniać informacje o Twoim samopoczuciu, czyli dane o zdrowiu (art. 9
-                RODO). Zapisujemy je dopiero po Twojej wyraźnej zgodzie wyrażonej w module – zapamiętujemy datę zgody i
+                RODO). Zapisujemy je dopiero po Twojej wyraźnej zgodzie wyrażonej w module, zapamiętujemy datę zgody i
                 wersję treści, na którą się zgodziłeś; po zmianie treści poprosimy o zgodę ponownie. Zgodę cofniesz w
-                Ustawieniach → Nawyki i plan dnia – wszystkie wpisy nastroju zostaną wtedy usunięte.
+                Ustawieniach → Nawyki i plan dnia, wszystkie wpisy nastroju zostaną wtedy usunięte.
               </span>
             </Li>
             <Li>
@@ -140,14 +138,14 @@ export default function PrivacyPage() {
               <strong>Uczestnicy ankiet terminów:</strong>{" "}
               <span>
                 Osoby, które odpowiadają na Twoją ankietę (także bez konta), podają imię, opcjonalnie e-mail, oraz
-                zaznaczają terminy – zob. punkt 11.
+                zaznaczają terminy, zob. punkt 11.
               </span>
             </Li>
             <Li>
               <strong>Dane techniczne:</strong>{" "}
               <span>
                 Logi błędów aplikacji z identyfikatorem konta, opisem błędu i datą (bez treści Twoich notatek czy zadań)
-                – do diagnozowania problemów, przez 30 dni. Daty korzystania z aplikacji (bez godzin i szczegółów) – do
+                - do diagnozowania problemów, przez 30 dni. Daty korzystania z aplikacji (bez godzin i szczegółów), do
                 liczenia serii w module postępów. Adres IP i identyfikator konta są przez krótki czas (do kilkunastu
                 minut) używane do ograniczania liczby żądań, aby chronić usługę przed nadużyciami.
               </span>
@@ -215,7 +213,7 @@ export default function PrivacyPage() {
           <p className="mt-2">
             Pozostałe integracje wyłączysz w Ustawieniach: odłączenie Slacka usuwa token dostępu i konfigurację list
             (elementy już utworzone w Slacku pozostają w Twojej przestrzeni roboczej), wyłączenie powiadomień usuwa
-            subskrypcję push, a unieważnienie tokenu Skrótów Siri usuwa jego skrót – skrót na telefonie przestaje wtedy
+            subskrypcję push, a unieważnienie tokenu Skrótów Siri usuwa jego skrót, skrót na telefonie przestaje wtedy
             działać.
           </p>
           <p className="mt-2">
@@ -236,24 +234,24 @@ export default function PrivacyPage() {
         <Section title="5. Podstawa prawna przetwarzania (RODO)">
           <ul className="list-none space-y-2">
             <Li>
-              <strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) – przetwarzanie niezbędne do świadczenia usługi dostępu
+              <strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO), przetwarzanie niezbędne do świadczenia usługi dostępu
               do aplikacji.
             </Li>
             <Li>
-              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) – integracje z kalendarzami Google i Microsoft oraz ze
+              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO), integracje z kalendarzami Google i Microsoft oraz ze
               Slackiem, powiadomienia push i Skróty Siri są dobrowolne i włączasz je samodzielnie (w przypadku Google,
-              Microsoft i Slacka – przez wyraźną zgodę w procesie OAuth).
+              Microsoft i Slacka, przez wyraźną zgodę w procesie OAuth).
             </Li>
             <Li>
-              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) – lokalizacja: przeglądarka pyta o nią przy pierwszym
+              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO), lokalizacja: przeglądarka pyta o nią przy pierwszym
               użyciu funkcji pogody lub transportu; zgodę cofniesz w ustawieniach przeglądarki.
             </Li>
             <Li>
-              <strong>Wyraźna zgoda</strong> (art. 9 ust. 2 lit. a RODO) – wpisy w module nastroju, które mogą stanowić
+              <strong>Wyraźna zgoda</strong> (art. 9 ust. 2 lit. a RODO), wpisy w module nastroju, które mogą stanowić
               dane o zdrowiu. Zgodę wyrażasz przyciskiem, a cofasz w Ustawieniach (wpisy są wtedy usuwane).
             </Li>
             <Li>
-              <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – logi błędów i ograniczanie liczby żądań
+              <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO), logi błędów i ograniczanie liczby żądań
               (stabilność i bezpieczeństwo usługi) oraz obsługa ankiet terminów dla uczestników bez konta.
             </Li>
           </ul>
@@ -264,66 +262,71 @@ export default function PrivacyPage() {
             <strong>Nie sprzedajemy, nie wynajmujemy i nie przekazujemy</strong> Twoich danych reklamodawcom ani
             brokerom danych. Połączenia są szyfrowane (HTTPS), dostęp do danych w bazie ogranicza reguła „tylko
             właściciel” (Row Level Security), a tokeny integracji są szyfrowane algorytmem AES-256-GCM. Dane
-            przetwarzają w naszym imieniu lub otrzymują je – tylko w zakresie potrzebnym do danej funkcji – następujący
+            przetwarzają w naszym imieniu lub otrzymują je, tylko w zakresie potrzebnym do danej funkcji, następujący
             odbiorcy:
           </p>
           <ul className="list-none space-y-2">
             <Li>
-              <strong>Supabase Inc.</strong> – baza danych w regionie UE (eu-north-1, Sztokholm), logowanie, magazyn
+              <strong>Supabase Inc.</strong>, baza danych w regionie UE (eu-north-1, Sztokholm), logowanie, magazyn
               plików i funkcje serwerowe; siedziba spółki w USA.
             </Li>
             <Li>
-              <strong>Vercel Inc.</strong> (USA) – hosting aplikacji; funkcje serwerowe działają w regionie UE
+              <strong>Vercel Inc.</strong> (USA), hosting aplikacji; funkcje serwerowe działają w regionie UE
               (Sztokholm), a pliki statyczne mogą być dostarczane z węzłów sieci dostawcy na świecie.
             </Li>
             <Li>
-              <strong>Cloudflare, Inc.</strong> (USA) – przekierowania poczty na adres aplikacji (tylko jeśli z nich
+              <strong>Cloudflare, Inc.</strong> (USA), przekierowania poczty na adres aplikacji (tylko jeśli z nich
               korzystasz).
             </Li>
             <Li>
-              <strong>Upstash Inc.</strong> (USA) – krótkotrwałe liczniki żądań (adres IP lub identyfikator konta) do
+              <strong>Upstash Inc.</strong> (USA), krótkotrwałe liczniki żądań (adres IP lub identyfikator konta) do
               ochrony przed nadużyciami.
             </Li>
             <Li>
-              <strong>Google LLC / Microsoft Corp.</strong> (USA) – logowanie oraz, po połączeniu, synchronizacja
+              <strong>Google LLC / Microsoft Corp.</strong> (USA), logowanie oraz, po połączeniu, synchronizacja
               kalendarzy oraz odczyt i wysyłka poczty na Twoje żądanie.
             </Li>
             <Li>
-              <strong>Slack Technologies, LLC</strong> (USA) – tylko po połączeniu konta Slack: wymiana danych zadań z
+              <strong>Slack Technologies, LLC</strong> (USA), tylko po połączeniu konta Slack: wymiana danych zadań z
               wybranymi listami.
             </Li>
             <Li>
-              <strong>Usługi powiadomień przeglądarek</strong> (Google, Apple, Mozilla, Microsoft) – tylko po włączeniu
+              <strong>Usługi powiadomień przeglądarek</strong> (Google, Apple, Mozilla, Microsoft), tylko po włączeniu
               powiadomień: przekazują powiadomienie w postaci zaszyfrowanej (Web Push).
             </Li>
             <Li>
-              <strong>Open-Meteo</strong> (Szwajcaria) – prognoza pogody i jakość powietrza; przeglądarka wysyła
+              <strong>Open-Meteo</strong> (Szwajcaria), prognoza pogody i jakość powietrza; przeglądarka wysyła
               współrzędne bezpośrednio do tej usługi.
             </Li>
             <Li>
-              <strong>Photon / komoot GmbH</strong> (Niemcy) – nazwa miejscowości dla przybliżonych współrzędnych
+              <strong>Photon / komoot GmbH</strong> (Niemcy), nazwa miejscowości dla przybliżonych współrzędnych
               (zaokrąglonych do ok. 100 m), przez nasz serwer.
             </Li>
             <Li>
-              <strong>Przewoźnicy i zarządcy infrastruktury</strong> – PEKA (Poznań), ZDiTM (Szczecin), PKP Polskie
-              Linie Kolejowe S.A.: nazwy przystanków i stacji oraz numery pociągów potrzebne do pokazania odjazdów,
-              przez nasz serwer (bez danych konta).
+              <strong>Przewoźnicy i zarządcy infrastruktury</strong>, PEKA (Poznań), ZDiTM (Szczecin), PKP Polskie Linie
+              Kolejowe S.A.: nazwy przystanków i stacji oraz numery pociągów potrzebne do pokazania odjazdów, przez nasz
+              serwer (bez danych konta).
             </Li>
             <Li>
-              <strong>The Movie Database (TMDB)</strong> – wyszukiwanie filmów i seriali (sam tytuł, przez nasz serwer).
+              <strong>The Movie Database (TMDB)</strong>, wyszukiwanie filmów i seriali (sam tytuł, przez nasz serwer).
             </Li>
             <Li>
-              <strong>Narodowy Bank Polski</strong> – kursy walut w kalkulatorze (zapytanie bez danych osobowych).
+              <strong>Narodowy Bank Polski</strong>, kursy walut w kalkulatorze (zapytanie bez danych osobowych).
             </Li>
             <Li>
-              <strong>Wydawcy kanałów RSS</strong> wybranych przez Ciebie – pobieramy je z naszego serwera, bez danych
+              <strong>Cloudflare, Inc.</strong> (USA), weryfikacja antybotowa Turnstile w publicznych formularzach
+              ankiet terminów: Cloudflare otrzymuje adres IP i dane techniczne przeglądarki, bez imienia, e-maila ani
+              zaznaczonych terminów.
+            </Li>
+            <Li>
+              <strong>Wydawcy kanałów RSS</strong> wybranych przez Ciebie, pobieramy je z naszego serwera, bez danych
               konta.
             </Li>
           </ul>
           <p className="mt-3">
             <strong>Przekazywanie poza Europejski Obszar Gospodarczy:</strong> część odbiorców ma siedzibę w USA.
             Przekazanie odbywa się na podstawie decyzji wykonawczej Komisji (UE) 2023/1795 stwierdzającej odpowiedni
-            stopień ochrony (EU-US Data Privacy Framework, art. 45 RODO) – dla podmiotów certyfikowanych – albo
+            stopień ochrony (EU-US Data Privacy Framework, art. 45 RODO), dla podmiotów certyfikowanych, albo
             standardowych klauzul umownych przyjętych decyzją wykonawczą Komisji (UE) 2021/914 (art. 46 ust. 2 lit. c
             RODO). Kopię zabezpieczeń możesz otrzymać, pisząc na adres z punktu 1. Szwajcaria ma decyzję Komisji
             stwierdzającą odpowiedni stopień ochrony.
@@ -337,12 +340,12 @@ export default function PrivacyPage() {
               <strong>Dostępu</strong> do swoich danych oraz <strong>sprostowania</strong> danych nieprawidłowych.
             </Li>
             <Li>
-              <strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong> – w każdej chwili możesz
-              zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.
+              <strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong>, w każdej chwili możesz zażądać
+              całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.
             </Li>
             <Li>
               <strong>Ograniczenia przetwarzania</strong>, <strong>sprzeciwu</strong> wobec przetwarzania na podstawie
-              uzasadnionego interesu oraz <strong>przenoszenia danych</strong> – kopię w formacie JSON pobierzesz sam w
+              uzasadnionego interesu oraz <strong>przenoszenia danych</strong>, kopię w formacie JSON pobierzesz sam w
               Ustawieniach.
             </Li>
             <Li>
@@ -363,27 +366,27 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-none space-y-2">
             <Li>
-              <strong>Cookie sesji (sb-…)</strong> – utrzymanie zalogowania; usuwane przy wylogowaniu.
+              <strong>Cookie sesji (sb-…)</strong>, utrzymanie zalogowania; usuwane przy wylogowaniu.
             </Li>
             <Li>
-              <strong>Cookie stanu logowania OAuth</strong> (Google, Outlook, Slack) – zabezpieczenie procesu łączenia
+              <strong>Cookie stanu logowania OAuth</strong> (Google, Outlook, Slack), zabezpieczenie procesu łączenia
               konta; ważne 10 minut.
             </Li>
             <Li>
-              <strong>Cookie „gps_permission”</strong> – zapamiętuje, czy zgodziłeś się na lokalizację (bez
+              <strong>Cookie „gps_permission”</strong>, zapamiętuje, czy zgodziłeś się na lokalizację (bez
               współrzędnych); ważne rok.
             </Li>
             <Li>
-              <strong>localStorage</strong> – motyw jasny/ciemny, zamknięcie tej informacji, ostatnia pozycja (jeśli
+              <strong>localStorage</strong>, motyw jasny/ciemny, zamknięcie tej informacji, ostatnia pozycja (jeśli
               użyłeś lokalizacji), obserwowane tablice odjazdów, ustawienie powiadomień oraz token pozwalający poprawić
               odpowiedź w ankiecie terminów. Dane związane z kontem są usuwane przy wylogowaniu.
             </Li>
             <Li>
-              <strong>IndexedDB</strong> – kopia ostatnio pobranych list (do pracy bez sieci) i zapisy wykonane bez
+              <strong>IndexedDB</strong>, kopia ostatnio pobranych list (do pracy bez sieci) i zapisy wykonane bez
               sieci, czekające na wysłanie. Usuwane przy wylogowaniu i przy zalogowaniu innej osoby na tym urządzeniu.
             </Li>
             <Li>
-              <strong>Pamięć service workera</strong> – pliki aplikacji (skrypty, style, ikony), bez Twoich danych.
+              <strong>Pamięć service workera</strong>, pliki aplikacji (skrypty, style, ikony), bez Twoich danych.
             </Li>
           </ul>
           <p className="mt-2">
@@ -394,38 +397,36 @@ export default function PrivacyPage() {
 
         <Section title="9. Okres przechowywania danych">
           <ul className="list-none space-y-2">
-            <Li>Dane podstawowe (treści użytkownika) – przez czas istnienia konta w aplikacji.</Li>
+            <Li>Dane podstawowe (treści użytkownika), przez czas istnienia konta w aplikacji.</Li>
             <Li>
-              Tokeny integracji kalendarzowych – wyłącznie do momentu odłączenia kalendarza lub usunięcia konta
-              głównego.
+              Tokeny integracji kalendarzowych, wyłącznie do momentu odłączenia kalendarza lub usunięcia konta głównego.
             </Li>
             <Li>
-              Dane o zdrowiu (kroki, tętno, sen, treningi) – do cofnięcia zgody albo usunięcia konta; cofnięcie zgody
+              Dane o zdrowiu (kroki, tętno, sen, treningi), do cofnięcia zgody albo usunięcia konta; cofnięcie zgody
               usuwa je od razu.
             </Li>
-            <Li>Token i konfiguracja integracji ze Slackiem – do momentu odłączenia Slacka lub usunięcia konta.</Li>
-            <Li>Tokeny kont poczty (Gmail, Outlook) – do momentu odłączenia konta lub usunięcia konta głównego.</Li>
+            <Li>Token i konfiguracja integracji ze Slackiem, do momentu odłączenia Slacka lub usunięcia konta.</Li>
+            <Li>Tokeny kont poczty (Gmail, Outlook), do momentu odłączenia konta lub usunięcia konta głównego.</Li>
             <Li>
-              Wiadomości przekierowane na adres aplikacji – {MAIL_INBOX_RETENTION_HOURS} godziny, po czym są
+              Wiadomości przekierowane na adres aplikacji, {MAIL_INBOX_RETENTION_HOURS} godziny, po czym są
               automatycznie usuwane.
             </Li>
-            <Li>Skrót tokenu adresu przekierowania – do jego odwołania lub usunięcia konta.</Li>
+            <Li>Skrót tokenu adresu przekierowania, do jego odwołania lub usunięcia konta.</Li>
             <Li>
-              Identyfikatory wiadomości usuniętych z aplikacji (bez treści) – do odłączenia konta poczty lub usunięcia
+              Identyfikatory wiadomości usuniętych z aplikacji (bez treści), do odłączenia konta poczty lub usunięcia
               konta głównego.
             </Li>
             <Li>
-              Subskrypcje powiadomień push – do momentu wyłączenia powiadomień, wygaśnięcia subskrypcji w przeglądarce
+              Subskrypcje powiadomień push, do momentu wyłączenia powiadomień, wygaśnięcia subskrypcji w przeglądarce
               lub usunięcia konta.
             </Li>
             <Li>
-              Skrót tokenu Skrótów Siri – do momentu jego unieważnienia, wygenerowania nowego tokenu lub usunięcia
-              konta.
+              Skrót tokenu Skrótów Siri, do momentu jego unieważnienia, wygenerowania nowego tokenu lub usunięcia konta.
             </Li>
-            <Li>Logi błędów – 30 dni (usuwane automatycznie każdej nocy).</Li>
-            <Li>Liczniki ograniczania żądań – od kilkudziesięciu sekund do kilkunastu minut.</Li>
+            <Li>Logi błędów, 30 dni (usuwane automatycznie każdej nocy).</Li>
+            <Li>Liczniki ograniczania żądań, od kilkudziesięciu sekund do kilkunastu minut.</Li>
             <Li>
-              Odpowiedzi w ankietach terminów – do usunięcia ankiety przez organizatora, usunięcia jego konta albo
+              Odpowiedzi w ankietach terminów, do usunięcia ankiety przez organizatora, usunięcia jego konta albo
               usunięcia odpowiedzi na prośbę uczestnika.
             </Li>
           </ul>
@@ -443,14 +444,14 @@ export default function PrivacyPage() {
           <h2 className="section-title mb-4">11. Informacja dla uczestników ankiet terminów</h2>
           <div className="space-y-2 text-sm leading-relaxed text-text-secondary">
             <p>
-              Jeśli odpowiadasz na ankietę terminów (adres <code>dzisiaj.fun/meet/…</code>), Twoje dane – imię,
-              opcjonalnie adres e-mail i zaznaczone terminy – otrzymuje <strong>organizator ankiety</strong>, który je
+              Jeśli odpowiadasz na ankietę terminów (adres <code>dzisiaj.fun/meet/…</code>), Twoje dane, imię,
+              opcjonalnie adres e-mail i zaznaczone terminy, otrzymuje <strong>organizator ankiety</strong>, który je
               wykorzystuje do ustalenia terminu spotkania. Za techniczną obsługę ankiety i bezpieczeństwo danych
               odpowiada administrator z punktu 1.
             </p>
             <p>
               Podstawa prawna: uzasadniony interes organizatora i uczestników w umówieniu spotkania (art. 6 ust. 1 lit.
-              f RODO). Podanie e-maila jest dobrowolne – organizator może dzięki niemu wysłać zaproszenie. Dane są
+              f RODO). Podanie e-maila jest dobrowolne, organizator może dzięki niemu wysłać zaproszenie. Dane są
               przechowywane do usunięcia ankiety, usunięcia konta organizatora albo do Twojego żądania usunięcia.
               Przysługują Ci prawa opisane w punkcie 7, w tym prawo sprzeciwu; skontaktuj się z organizatorem albo z
               administratorem pod adresem z punktu 1.
@@ -460,10 +461,10 @@ export default function PrivacyPage() {
               organizator otrzymuje Twoje imię i nazwisko, opcjonalnie e-mail i wybrane terminy. Podstawą jest{" "}
               <strong>Twoja zgoda</strong> (art. 6 ust. 1 lit. a RODO) wyrażona przy zapisie; zapisujemy datę zgody i
               wersję jej treści. Dane są przechowywane do usunięcia ankiety, usunięcia konta organizatora albo do
-              wycofania zgody – wycofanie (usunięcie zapisu) możesz zgłosić organizatorowi lub administratorowi z punktu
+              wycofania zgody, wycofanie (usunięcie zapisu) możesz zgłosić organizatorowi lub administratorowi z punktu
               1. Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania przed jej wycofaniem. Zapis jest
-              rozpoznawany po adresie e-mail, a bez niego po imieniu i nazwisku – służy to wyłącznie do pilnowania
-              limitu terminów na osobę.
+              rozpoznawany po adresie e-mail, a bez niego po imieniu i nazwisku, służy to wyłącznie do pilnowania limitu
+              terminów na osobę.
             </p>
           </div>
         </section>
@@ -478,7 +479,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               <strong>Treść wiadomości nie jest zapisywana w bazie danych.</strong> Zapisujemy adres podłączonego konta,
-              zaszyfrowane tokeny dostępu oraz – w zadaniu – wyłącznie nadawcę. Wydarzenie z zaproszenia zawiera termin,
+              zaszyfrowane tokeny dostępu oraz, w zadaniu, wyłącznie nadawcę. Wydarzenie z zaproszenia zawiera termin,
               miejsce i linki do konferencji.
             </p>
             <p>
@@ -495,8 +496,8 @@ export default function PrivacyPage() {
               żądanie, w celu wyświetlenia, odpowiedzi lub utworzenia zadania, i nie kontaktujemy się z tymi osobami.
             </p>
             <p>
-              Wiadomość możesz usunąć z aplikacji – zapisujemy wtedy wyłącznie jej identyfikator, żeby nie wyświetlać
-              jej ponownie. Usunięcie w poczcie następuje tylko po Twoim wyborze i polega na przeniesieniu wiadomości do
+              Wiadomość możesz usunąć z aplikacji, zapisujemy wtedy wyłącznie jej identyfikator, żeby nie wyświetlać jej
+              ponownie. Usunięcie w poczcie następuje tylko po Twoim wyborze i polega na przeniesieniu wiadomości do
               kosza (Gmail) lub folderu „Elementy usunięte” (Outlook), skąd można ją przywrócić.
             </p>
             <p>

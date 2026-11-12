@@ -78,7 +78,7 @@ export default function MeetingPollBookings({ poll }: Readonly<{ poll: MeetingPo
           return (
             <li key={`${group.date}|${group.start_time}`} className="card space-y-2 p-4">
               <h2 className="text-sm font-semibold text-text">
-                {weekday} {day}, {group.start_time}–{group.end_time}{" "}
+                {weekday} {day}, {group.start_time}-{group.end_time}{" "}
                 <span className="font-normal text-text-secondary">
                   ({group.bookings.length}/{poll.slot_capacity})
                 </span>

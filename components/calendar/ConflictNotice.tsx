@@ -34,7 +34,7 @@ const ConflictNotice = forwardRef<HTMLDivElement, Readonly<Props>>(function Conf
       className="space-y-2 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card focus:outline-none focus-visible:ring-2"
     >
       {overlaps.length > 0 && (
-        <div className="rounded-lg border-l-4 border-warning-line bg-warning-soft px-3 py-2.5 text-warning">
+        <div className="rounded-lg border border-warning-line bg-warning-soft px-3 py-2.5 text-warning">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             {overlaps.length === 1

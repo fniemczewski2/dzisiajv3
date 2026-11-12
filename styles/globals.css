@@ -22,6 +22,8 @@
   --color-accent: var(--theme-accent);
   --color-background: var(--theme-background);
   --color-card: var(--theme-card);
+  /* Kolor elementów na wypełnieniach i gałki przełączników: ciepła biel, nie #fff. */
+  --color-on-solid: var(--theme-on-solid);
   --color-text: var(--theme-text);
   --color-text-secondary: var(--theme-text-secondary);
   --color-text-muted: var(--theme-text-muted);
@@ -177,7 +179,8 @@
     color-scheme: light;
 
     --theme-background: #f7f8fa;
-    --theme-card: #ffffff;
+    --theme-card: #fcfbf8;
+    --theme-on-solid: #fcfbf8;
     --theme-surface: #f0f3f6;
     --theme-surface-hover: #e4e9ef;
     --theme-text: #101a26;
@@ -273,6 +276,7 @@
 
     --theme-background: #04080f;
     --theme-card: #0a121d;
+    --theme-on-solid: #f4f1ec;
     --theme-surface: #111c2a;
     --theme-surface-hover: #1a2738;
     --theme-text: #e9eef4;

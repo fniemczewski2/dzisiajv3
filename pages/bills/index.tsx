@@ -59,7 +59,6 @@ export default function FinancePage() {
         title="Finanse"
         description="Rachunki stałe z terminami i przypomnieniami oraz miesięczne podsumowanie wydatków i wpływów."
         canonical="https://www.dzisiaj.fun/bills"
-        keywords="rachunki, wydatki, budżet domowy, finanse osobiste"
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -67,7 +66,7 @@ export default function FinancePage() {
           <h1 className="page-title">Finanse</h1>
         </div>
       </div>
-      <div className="card mx-auto mb-4 flex w-fit items-center p-1 shadow-sm">
+      <div className="card mx-auto mb-4 flex w-fit items-center p-1">
         <button
           onClick={() => shiftMonth(-1)}
           className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"

@@ -49,7 +49,6 @@ export default function DaySchemaPage() {
         title="Schemat dnia"
         description="Ułóż stały plan dnia z godzinami, np. poranną i wieczorną rutynę, i korzystaj z niego w widoku dnia."
         canonical="https://www.dzisiaj.fun/tasks/daySchema"
-        keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
       />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title">Plan dnia</h1>
@@ -74,7 +73,7 @@ export default function DaySchemaPage() {
       ) : (
         <ul className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {schemas.map((schema) => (
-            <li key={schema.id} className="card flex items-center justify-between border border-line p-3 shadow-sm">
+            <li key={schema.id} className="card flex items-center justify-between border border-line p-3">
               <span className="ml-1 flex flex-wrap items-center gap-2">
                 <span className="font-bold text-text">{schema.name}</span>
                 {schema.is_default && (
@@ -93,7 +92,7 @@ export default function DaySchemaPage() {
         </ul>
       )}
 
-      <div className="card mb-6 p-5 shadow-sm">
+      <div className="card mb-6 p-5">
         {sortedEntries.length > 0 ? (
           <div className="relative border-line py-2">
             <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />
@@ -125,7 +124,7 @@ function CurrentTimeLine({ entries, currentTime }: { readonly entries: ScheduleI
   return (
     <div className="absolute left-0 z-10 w-full transition-all duration-500 ease-in-out" style={{ top: offset + 8 }}>
       <div className="absolute -left-4 h-0.5 w-[calc(100%+1rem)] bg-danger-solid opacity-80" />
-      <div className="absolute -top-1.5 -left-5.25 h-3 w-3 rounded-full bg-danger-solid shadow-sm" />
+      <div className="absolute -top-1.5 -left-5.25 h-3 w-3 rounded-full bg-danger-solid" />
     </div>
   );
 }

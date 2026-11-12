@@ -3,7 +3,7 @@
 import { buildVCard } from "@/lib/vcard";
 import React, { useState } from "react";
 import { Phone, Mail, Clock, ChevronDown, ChevronUp, Cake, Gift } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import QrCode from "@/components/ui/QrCode";
 import { Person } from "@/types/people";
 import { EditButton, DeleteButton, ShareButton, CloseButton, ConfirmButton } from "../ui/CommonButtons";
 import Modal from "../ui/Modal";
@@ -30,7 +30,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
   return (
     <>
-      <div className="card relative flex flex-col p-4 shadow-sm transition-all">
+      <div className="card relative flex flex-col p-4 transition-all">
         <div className="flex cursor-pointer items-center justify-between select-none">
           <div className="flex flex-col">
             <h3 className="text-lg font-bold text-text">
@@ -121,8 +121,8 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
             Zeskanuj kod
           </h3>
 
-          <div className="rounded-xl bg-white p-4">
-            <QRCodeSVG value={getVCardData()} size={220} level="M" />
+          <div className="rounded-xl bg-on-solid p-4">
+            <QrCode value={getVCardData()} size={220} />
           </div>
 
           <CloseButton onClick={() => setShowQR(false)} />

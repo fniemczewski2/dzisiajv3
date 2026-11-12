@@ -12,6 +12,8 @@ let browserClient: SupabaseClient | null = null;
  * W komponentach używaj `useAuth().supabase`.
  */
 export function createClient(): SupabaseClient {
-  browserClient ??= createBrowserClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey);
+  browserClient ??= createBrowserClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey, {
+    cookieOptions: publicEnv.sessionCookieOptions,
+  });
   return browserClient;
 }

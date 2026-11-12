@@ -54,9 +54,8 @@ export default function StreaksPage() {
     <>
       <Seo
         title="Postępy"
-        description="Śledź nawyki i przedłużaj swoje serie dzień po dniu – zobacz, ile dni z rzędu udało Ci się wytrwać."
+        description="Śledź nawyki i przedłużaj swoje serie dzień po dniu, zobacz, ile dni z rzędu udało Ci się wytrwać."
         canonical="https://www.dzisiaj.fun/streaks"
-        keywords="nawyki, cele, postępy, postanowienia, pasma, streaks, dyscyplina"
       />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="page-title flex flex-nowrap justify-between gap-2">Postępy</h1>

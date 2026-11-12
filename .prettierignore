@@ -5,3 +5,4 @@ package-lock.json
 public/sw.js
 supabase/.temp/
 *.min.js
+docs/CODEMAP.md

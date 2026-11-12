@@ -53,7 +53,7 @@ export default function ShortcutTokenSection() {
   const generate = async () => {
     if (status) {
       const ok = await toast.confirm(
-        "Wygenerowanie nowego tokenu unieważni obecny – skrót na telefonie przestanie działać, dopóki go nie zaktualizujesz. Kontynuować?"
+        "Wygenerowanie nowego tokenu unieważni obecny, skrót na telefonie przestanie działać, dopóki go nie zaktualizujesz. Kontynuować?"
       );
       if (!ok) return;
     }
@@ -89,7 +89,7 @@ export default function ShortcutTokenSection() {
   };
 
   return (
-    <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6" id="api">
+    <section className="card mb-4 p-4 transition-colors sm:p-6" id="api">
       <div className="mb-4 flex items-center gap-3 text-text">
         <h3 className="text-lg font-bold">API Skróty</h3>
       </div>
@@ -125,7 +125,7 @@ export default function ShortcutTokenSection() {
 
       {freshToken && (
         <div className="mb-4 rounded-lg border border-warning-line bg-warning-soft p-3">
-          <p className="mb-2 text-xs font-semibold text-warning">Skopiuj token teraz – nie pokażemy go ponownie.</p>
+          <p className="mb-2 text-xs font-semibold text-warning">Skopiuj token teraz, nie pokażemy go ponownie.</p>
           <div className="flex items-center gap-2">
             <code className="flex-1 font-mono text-xs break-all">{freshToken}</code>
             <CopyButtonSmall text={freshToken} label="token" />

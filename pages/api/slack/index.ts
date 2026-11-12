@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { decryptToken } from "@/lib/server/tokenCrypto";
 import { listColumnsSafe, translateSlackError, type SlackColumn } from "@/lib/server/slackLists";
 import {
@@ -353,6 +354,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
+  if (!(await enforceRateLimit(res, "slackApi", user.id))) return;
 
   if (action === "auth-url") return handleAuthUrl(req, res);
 

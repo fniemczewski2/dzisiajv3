@@ -79,7 +79,7 @@ describe("SleepSection", () => {
     expect(tile("Sen")).toHaveTextContent("6 h 50 min");
     expect(tile("Przebudzenia")).toHaveTextContent("10 min");
     expect(tile("Czas w łóżku")).toHaveTextContent("7 h");
-    expect(tile("Okno snu")).toHaveTextContent("23:00–06:00");
+    expect(tile("Okno snu")).toHaveTextContent("23:00-06:00");
   });
 
   it("tabela faz: czas i udział; opis paska dla czytników ekranu", () => {
@@ -98,7 +98,7 @@ describe("SleepSection", () => {
     const timeline = screen.getByRole("table", { name: "Przebieg nocy: kolejne fazy snu" });
     const rows = within(timeline).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(5);
-    expect(rows[0]).toHaveTextContent("23:00–00:30");
+    expect(rows[0]).toHaveTextContent("23:00-00:30");
     expect(rows[0]).toHaveTextContent("Sen głęboki");
     expect(rows[3]).toHaveTextContent("Przebudzenia");
   });
@@ -139,7 +139,7 @@ describe("SleepSection – kilka snów w danych (regresja z rzeczywistej bazy)",
     started_at: from,
     ended_at: to,
   });
-  // Sen 1: zegarek, fazy, 2.11 00:32–02:25 (UTC+1). Sen 2: telefon, bez faz, 3.11 01:14–03:25.
+  // Sen 1: zegarek, fazy, 2.11 00:32-02:25 (UTC+1). Sen 2: telefon, bez faz, 3.11 01:14-03:25.
   const sleep1 = [
     seg("core", "2026-11-01T23:32:00Z", "2026-11-01T23:51:36Z"),
     seg("deep", "2026-11-01T23:51:36Z", "2026-11-01T23:59:08Z"),
@@ -166,7 +166,7 @@ describe("SleepSection – kilka snów w danych (regresja z rzeczywistej bazy)",
     expect(tile("Sen")).toHaveTextContent("2 h 2 min");
     expect(tile("Przebudzenia")).toHaveTextContent("9 min");
     expect(tile("Czas w łóżku")).toHaveTextContent("2 h 11 min");
-    expect(tile("Okno snu")).toHaveTextContent("01:14–03:25");
+    expect(tile("Okno snu")).toHaveTextContent("01:14-03:25");
     const table = screen.getByRole("table", { name: "Czas w poszczególnych fazach snu" });
     expect(within(table).getByText("Sen (bez podziału na fazy)")).toBeInTheDocument();
     expect(within(table).queryByText("Sen głęboki")).toBeNull();
@@ -178,7 +178,7 @@ describe("SleepSection – kilka snów w danych (regresja z rzeczywistej bazy)",
     expect(tile("Sen")).toHaveTextContent("1 h 53 min");
     expect(tile("Przebudzenia")).toHaveTextContent("1 min");
     expect(tile("Czas w łóżku")).toHaveTextContent("1 h 54 min");
-    expect(tile("Okno snu")).toHaveTextContent("00:32–02:25");
+    expect(tile("Okno snu")).toHaveTextContent("00:32-02:25");
     expect(
       within(screen.getByRole("table", { name: "Czas w poszczególnych fazach snu" })).getByText("Sen głęboki")
     ).toBeInTheDocument();
@@ -197,8 +197,8 @@ describe("SleepSection – kilka snów w danych (regresja z rzeczywistej bazy)",
   it("dwa sny kończące się tego samego dnia (noc i drzemka): osobne bloki z nagłówkami, bez sumowania", () => {
     const nap = [seg("core", "2026-11-03T06:00:00Z", "2026-11-03T07:00:00Z")];
     render(<SleepSection date="2026-11-03" segments={[...sleep2, ...nap]} loading={false} />);
-    expect(screen.getByRole("heading", { level: 3, name: "Sen 1: 01:14–03:25" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Sen 2: 07:00–08:00" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Sen 1: 01:14-03:25" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Sen 2: 07:00-08:00" })).toBeInTheDocument();
     expect(screen.getAllByText("Sen", { selector: "dt" })).toHaveLength(2);
   });
 });

@@ -45,7 +45,7 @@ const GROUPS = [
 function GuideCard({ section }: Readonly<{ section: GuideSection }>) {
   const feature = featureByGuideId.get(section.id);
   return (
-    <article id={section.id} className="scroll-mt-6 rounded-card border border-line bg-card p-5 shadow-sm sm:p-6">
+    <article id={section.id} className="scroll-mt-6 rounded-card border border-line bg-card p-5 sm:p-6">
       <header className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface text-primary [&_svg]:h-5 [&_svg]:w-5">
           {section.mainIcon}
@@ -74,7 +74,6 @@ export default function GuidePage() {
         title="Instrukcja"
         description="Opis modułów aplikacji Dzisiaj.Fun z instrukcjami krok po kroku i wskazówkami."
         canonical="https://www.dzisiaj.fun/guide"
-        keywords="przewodnik, pomoc, instrukcja obsługi, tutorial, faq"
       />
       <div className="mx-auto mb-10 max-w-4xl px-1 sm:px-2">
         <header className="mt-2 mb-6">
@@ -101,10 +100,7 @@ export default function GuidePage() {
         </nav>
 
         {changed.length > 0 && (
-          <section
-            aria-labelledby="guide-news"
-            className="mb-10 rounded-card border border-line bg-card p-5 shadow-sm sm:p-6"
-          >
+          <section aria-labelledby="guide-news" className="mb-10 rounded-card border border-line bg-card p-5 sm:p-6">
             <h2 id="guide-news" className="mb-4 font-display text-xl font-bold text-text">
               Co nowego
             </h2>

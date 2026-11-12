@@ -2,12 +2,13 @@
 //
 // Zapis uczestnika na terminy w ankiecie zapisów. Serwer waliduje dane i siatkę terminów, a rezerwację wykonuje
 // funkcja bazy book_meeting_poll_slots (blokada ankiety: pojemność slotu i limit na osobę są dotrzymane także przy
-// równoczesnych zapisach). Ochrona przed nadużyciami: limit żądań, pułapka na boty, wymagana zgoda.
+// równoczesnych zapisach). Ochrona przed nadużyciami: limit żądań, pułapka na boty, Cloudflare Turnstile, wymagana zgoda.
 
 import { CACHE_CONTROL } from "@/config/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
+import { enforceTurnstile } from "@/lib/server/turnstile";
 import { buildAllowedSlotSet, slotKey } from "@/lib/meetingPollGrid";
 import {
   bookingFailure,
@@ -37,6 +38,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const body = req.body as Record<string, unknown> | undefined;
   // Pułapka na boty: ukryte pole wypełnione = udajemy sukces, nic nie zapisując.
   if (typeof body?.website === "string" && body.website !== "") return res.status(200).json({ booked: 0 });
+
+  if (!(await enforceTurnstile(req, res, body?.turnstile_token))) return;
 
   const validated = validateBookingPayload(body);
   if ("error" in validated) return res.status(400).json({ error: validated.error });

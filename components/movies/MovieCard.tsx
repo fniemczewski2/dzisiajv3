@@ -102,7 +102,7 @@ export default function MovieCard({
 
   if (isEditing) {
     return (
-      <div className="card border p-4 shadow-sm">
+      <div className="card border p-4">
         <div className="space-y-4">
           <div>
             <label htmlFor={`${editPrefix}-title`} className="form-label">
@@ -201,7 +201,7 @@ export default function MovieCard({
       className={`group rounded-xl border p-4 transition-all duration-200 ${
         movie.watched
           ? "border-line bg-surface opacity-60 grayscale-[0.3]"
-          : "card shadow-sm hover:border-primary hover:shadow-md dark:hover:border-primary/50"
+          : "card hover:border-primary dark:hover:border-primary/50"
       }`}
     >
       <div className="flex h-full flex-col">
@@ -214,7 +214,7 @@ export default function MovieCard({
                 width={56}
                 height={84}
                 loading="lazy"
-                className="h-21 w-14 shrink-0 rounded-lg object-cover shadow-sm"
+                className="h-21 w-14 shrink-0 rounded-lg object-cover"
               />
             )}
             <div className="min-w-0 flex-1">

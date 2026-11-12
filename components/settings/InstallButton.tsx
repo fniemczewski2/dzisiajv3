@@ -60,7 +60,7 @@ export default function InstallPromptButton() {
     <button
       onClick={handleInstall}
       type="button"
-      className="flex w-fit items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2 font-bold text-white shadow-sm transition-all hover:bg-secondary-hover hover:shadow sm:w-auto"
+      className="flex w-fit items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2 font-bold text-white transition-all hover:bg-secondary-hover sm:w-auto"
     >
       <span>Zainstaluj</span>
       <Download className="h-5 w-5" aria-hidden="true" />

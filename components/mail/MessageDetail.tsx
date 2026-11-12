@@ -136,7 +136,7 @@ export default function MessageDetail({ client, accountId, message, invitation, 
               {invitation.allDay ? " (cały dzień)" : ""}
             </p>
           ) : (
-            <p className="text-sm text-text-muted">Brak daty w zaproszeniu – nie można dodać go do kalendarza.</p>
+            <p className="text-sm text-text-muted">Brak daty w zaproszeniu, nie można dodać go do kalendarza.</p>
           )}
           {invitation.location && (
             <p className="flex items-start gap-2 text-sm wrap-anywhere text-text-secondary">

@@ -291,7 +291,7 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
                   <button
                     onClick={() => handleTrackTrain(item)}
                     type="button"
-                    className="inline-flex items-center gap-1 rounded-lg bg-primary/10 text-xs font-bold text-primary shadow-sm transition-all hover:bg-secondary-hover hover:text-white"
+                    className="inline-flex items-center gap-1 rounded-lg bg-primary/10 text-xs font-bold text-primary transition-all hover:bg-secondary-hover hover:text-white"
                     title="Dodaj ten pociąg do Moich Pociągów"
                     disabled={isCancelled}
                   >
@@ -329,7 +329,7 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
         {selectedStations.map((station, index) => {
           const board = boardFor(index);
           return (
-            <div key={station} className="card flex max-w-none flex-col overflow-hidden bg-card shadow-sm">
+            <div key={station} className="card flex max-w-none flex-col overflow-hidden bg-card">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3">
                 <div className="flex min-w-0 flex-col">
                   <h3 className="truncate text-base font-semibold text-text first-letter:uppercase">{station}</h3>

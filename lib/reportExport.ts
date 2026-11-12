@@ -80,7 +80,7 @@ function mdCell(value: string): string {
       .replaceAll("\\", String.raw`\\`)
       .replaceAll("|", String.raw`\|`)
       .replaceAll(/\r?\n/g, " ")
-      .trim() || "—"
+      .trim() || "-"
   );
 }
 
@@ -169,7 +169,7 @@ function tasksBlock(tasks: ReportTask[], palette: ReportPalette): Content {
     { text: `${i + 1}.`, alignment: "right", color: palette.muted },
     { text: t.zadanie.trim() },
     { text: formatReportDate(t.data) || "–", noWrap: true },
-    { text: t.osoba?.trim() || "–" },
+    { text: t.osoba?.trim() || "-" },
   ]);
   return {
     table: { headerRows: 1, widths: [16, "*", 58, 120], body: [header, ...rows], dontBreakRows: true },
@@ -246,7 +246,7 @@ export function buildReportDocDefinition(report: Report, options: ReportLayoutOp
   return {
     pageSize: "A4",
     pageMargins: [50, 50, 50, 50],
-    info: { title: `Protokół – ${title}`, subject: "Protokół ze spotkania", creator: "Dzisiaj.Fun" },
+    info: { title: `Protokół: ${title}`, subject: "Protokół ze spotkania", creator: "Dzisiaj.Fun" },
     content: [
       titleBlock(title, date, logo),
       {
@@ -355,7 +355,7 @@ export async function downloadReportPDF(report: Report, template?: LoadedReportT
 export const SAMPLE_REPORT: Report = {
   id: "podglad",
   user_id: "",
-  topic: "Posiedzenie zarządu – przykład",
+  topic: "Posiedzenie zarządu, przykład",
   date: new Date().toISOString().slice(0, 10),
   agenda: ["Sprawozdanie z realizacji projektu", "Budżet na kolejny kwartał", "Sprawy różne"],
   participants: ["Anna Kowalska", "Jan Nowak", "Zofia Wiśniewska"],
@@ -363,7 +363,7 @@ export const SAMPLE_REPORT: Report = {
     { zadanie: "Przygotować sprawozdanie merytoryczne", data: "", osoba: "Anna Kowalska" },
     { zadanie: "Zebrać oferty na catering (zażółć gęślą jaźń)", data: "", osoba: "Jan Nowak" },
   ],
-  notes: "Zażółć gęślą jaźń – ZAŻÓŁĆ GĘŚLĄ JAŹŃ. Ten akapit sprawdza polskie znaki w czcionce treści.",
+  notes: "Zażółć gęślą jaźń, ZAŻÓŁĆ GĘŚLĄ JAŹŃ. Ten akapit sprawdza polskie znaki w czcionce treści.",
   inserted_at: "",
   updated_at: "",
 };

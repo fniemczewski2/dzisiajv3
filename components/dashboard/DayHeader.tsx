@@ -39,7 +39,7 @@ export default function DayHeader({
   return (
     <>
       <div className="relative flex items-center justify-between gap-2">
-        <div className="card flex w-full items-center p-1 hover:shadow-sm">
+        <div className="card flex w-full items-center p-1">
           <button
             onClick={onPrev}
             type="button"

@@ -10,10 +10,9 @@ export default function DemoPage() {
   return (
     <>
       <Seo
-        title="Demo – Dzisiaj.Fun"
+        title="Demo | Dzisiaj.Fun"
         description="Przewodnik po Dzisiaj.Fun: pierwsze kroki i wszystkie funkcje krok po kroku. Bez logowania."
         canonical="https://www.dzisiaj.fun/demo"
-        keywords="demo aplikacja, instrukcja, przewodnik, Dzisiaj.Fun"
       />
       <div className="mx-auto max-w-3xl space-y-10 px-2 py-8">
         <header className="space-y-3 text-center">
@@ -46,7 +45,7 @@ export default function DemoPage() {
         <footer className="space-y-3 text-center">
           <Link
             href="/start"
-            className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-secondary px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-secondary-hover"
+            className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-secondary px-6 py-3 font-semibold text-white transition-colors hover:bg-secondary-hover"
           >
             Przejdź do logowania
           </Link>

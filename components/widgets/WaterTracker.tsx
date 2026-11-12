@@ -43,13 +43,13 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
         <Droplet className="h-5 w-5 sm:h-6 sm:w-6" />
       </div>
 
-      <div className="relative mx-2 h-3 flex-1 rounded-full border border-line bg-surface shadow-inner">
+      <div className="relative mx-2 h-3 flex-1 rounded-full border border-line bg-surface">
         <div
           className="absolute top-0 left-0 h-full rounded-full bg-secondary transition-all duration-75 ease-linear"
           style={{ width: `${Math.min(100, fillPercent)}%` }}
         />
         <div
-          className="pointer-events-none absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 transform rounded-full border-4 border-primary bg-white shadow transition-all duration-75 ease-linear sm:h-6 sm:w-6"
+          className="pointer-events-none absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 transform rounded-full border-4 border-primary bg-on-solid transition-all duration-75 ease-linear sm:h-6 sm:w-6"
           style={{ left: `${Math.min(100, fillPercent)}%` }}
         />
         <input

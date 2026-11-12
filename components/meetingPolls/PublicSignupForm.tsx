@@ -12,6 +12,7 @@ import { formatPollDay, pluralPl, slotKey } from "@/lib/meetingPollGrid";
 import type { MeetingPollSlot, PublicMeetingPoll } from "@/types/meetingPolls";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 import { SaveButton } from "../ui/CommonButtons";
+import TurnstileWidget, { TURNSTILE_ENABLED } from "../ui/TurnstileWidget";
 
 interface Props {
   token: string;
@@ -30,6 +31,8 @@ export default function PublicSignupForm({ token, poll }: Readonly<Props>) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [done, setDone] = useState<string[] | null>(null);
 
   const capacity = slots?.capacity ?? poll.slot_capacity;
@@ -55,17 +58,31 @@ export default function PublicSignupForm({ token, poll }: Readonly<Props>) {
     });
   };
 
-  const canSubmit = selected.length > 0 && name.trim().length > 0 && consent && !submitting;
+  const canSubmit =
+    selected.length > 0 &&
+    name.trim().length > 0 &&
+    consent &&
+    !submitting &&
+    (!TURNSTILE_ENABLED || Boolean(turnstileToken));
 
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
     if (!canSubmit) return;
     try {
-      await submit({ name, email: email.trim() || null, slots: selected.map(parseKey), consent, website });
+      await submit({
+        name,
+        email: email.trim() || null,
+        slots: selected.map(parseKey),
+        consent,
+        website,
+        turnstile_token: turnstileToken ?? undefined,
+      });
       setDone(selected);
     } catch (error) {
       // Termin zajęty przez kogoś innego: zdejmujemy go z wyboru (zajętość pobiera hook po każdej próbie).
       if (error instanceof Error && "code" in error && error.code === "full") setSelected([]);
+      // Token Turnstile jest jednorazowy: po nieudanej próbie potrzebne jest nowe wyzwanie.
+      setTurnstileReset((value) => value + 1);
     }
   };
 
@@ -119,7 +136,7 @@ export default function PublicSignupForm({ token, poll }: Readonly<Props>) {
                         onClick={() => toggle(key)}
                         disabled={disabled}
                         aria-pressed={isSelected}
-                        aria-label={`${weekday} ${dayLabel}, ${slot.start_time}–${slot.end_time}, ${
+                        aria-label={`${weekday} ${dayLabel}, ${slot.start_time}-${slot.end_time}, ${
                           slot.full ? "brak wolnych miejsc" : `wolnych miejsc: ${slot.free} z ${capacity}`
                         }`}
                         className={`flex min-h-12 w-full flex-col items-center justify-center rounded-lg border px-2 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -129,7 +146,7 @@ export default function PublicSignupForm({ token, poll }: Readonly<Props>) {
                         }`}
                       >
                         <span className="font-semibold tabular-nums">
-                          {slot.start_time}–{slot.end_time}
+                          {slot.start_time}-{slot.end_time}
                         </span>
                         <span className="text-xs">{slot.full ? "zajęty" : `wolne: ${slot.free}/${capacity}`}</span>
                       </button>
@@ -204,6 +221,8 @@ export default function PublicSignupForm({ token, poll }: Readonly<Props>) {
           </Link>
         </span>
       </label>
+
+      <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileReset} />
 
       {submitError && (
         <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">

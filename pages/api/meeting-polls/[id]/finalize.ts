@@ -4,6 +4,7 @@ import { MAX_SLOTS_PER_FINALIZE } from "@/config/limits";
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { generateTimeSlots } from "@/lib/meetingPollGrid";
 import { validateFinalizeSlot, type FinalizeSlotValidated } from "@/lib/sanitize";
 import type { FinalizeRequest, FinalizeResponse, FinalizeResultSlot } from "@/types/meetingPolls";
@@ -40,6 +41,7 @@ async function loadFinalizeContext(req: NextApiRequest, res: NextApiResponse): P
     res.status(401).json({ error: "Brak autoryzacji." });
     return null;
   }
+  if (!(await enforceRateLimit(res, "pollFinalize", user.id))) return null;
 
   const { data: poll, error: pollError } = await supabase
     .from("meeting_polls")

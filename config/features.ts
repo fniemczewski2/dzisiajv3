@@ -70,7 +70,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       {
         title: "Kokpit dnia",
         description:
-          "Oś czasu 06:00–23:00 z zadaniami, wydarzeniami, rutynami i pociągami. Przeciągasz zadanie na godzinę, a plan układa się sam.",
+          "Oś czasu 06:00-23:00 z zadaniami, wydarzeniami, rutynami i pociągami. Przeciągasz zadanie na godzinę, a plan układa się sam.",
         icon: LayoutDashboard,
         path: "/",
         guideId: "dashboard",

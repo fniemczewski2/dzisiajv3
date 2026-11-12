@@ -20,7 +20,7 @@ export default function PublicMeetingPollPage() {
     <>
       <Seo
         title="Ustal termin spotkania"
-        description="Zaznacz, kiedy masz czas – organizator zobaczy wspólną dostępność wszystkich uczestników."
+        description="Zaznacz, kiedy masz czas, organizator zobaczy wspólną dostępność wszystkich uczestników."
         canonical={`https://www.dzisiaj.fun/meet/${token}`}
         noindex={true}
         nofollow={true}

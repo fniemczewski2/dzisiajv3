@@ -89,7 +89,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
         <h2 className="section-title">{mode === "signup" ? "Nowe zapisy na terminy" : "Nowa ankieta terminu"}</h2>
         <p className="text-sm text-text-secondary">
           {mode === "signup"
-            ? "Wybierz dni i godziny, wyślij link uczestnikom – każdy zapisze się na wolne miejsce w wybranym terminie."
+            ? "Wybierz dni i godziny, wyślij link uczestnikom, każdy zapisze się na wolne miejsce w wybranym terminie."
             : "Wybierz dni i godziny, wyślij link uczestnikom, a odpowiedzi zobaczysz na jednej siatce."}
         </p>
       </div>

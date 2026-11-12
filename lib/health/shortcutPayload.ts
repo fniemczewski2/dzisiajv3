@@ -199,7 +199,7 @@ function parseHeartRateSamples(raw: unknown): HeartRateSampleInput[] | string {
     const recordedAt = isoInstant(sample.time);
     const bpm = inRange(toNumber(sample.bpm), 20, 250);
     if (!recordedAt || !bpm.ok || bpm.value === undefined) {
-      return `Niepoprawny pomiar tętna nr ${index + 1} (wymagane „time” w ISO 8601, rok 2000–2100, i „bpm” 20–250).`;
+      return `Niepoprawny pomiar tętna nr ${index + 1} (wymagane „time” w ISO 8601, rok 2000-2100, i „bpm” 20-250).`;
     }
     samples.push({ recorded_at: recordedAt, bpm: bpm.value });
   }
@@ -227,7 +227,7 @@ function parseSleepSegments(raw: unknown): SleepSegmentInput[] | string {
     const start = isoInstant(segment.start);
     const end = isoInstant(segment.end);
     if (!start || !end || end <= start || Date.parse(end) - Date.parse(start) > MAX_SLEEP_SEGMENT_MS) {
-      return `Niepoprawny czas odcinka snu nr ${index + 1} („start” i „end” w ISO 8601, rok 2000–2100, koniec po początku, do 24 h).`;
+      return `Niepoprawny czas odcinka snu nr ${index + 1} („start” i „end” w ISO 8601, rok 2000-2100, koniec po początku, do 24 h).`;
     }
     segments.push({ stage, started_at: start, ended_at: end });
   }

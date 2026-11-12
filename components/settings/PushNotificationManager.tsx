@@ -207,7 +207,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
   };
 
   return (
-    <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
+    <div className="card mb-4 p-4 transition-colors sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <h3 className="text-lg font-bold">Powiadomienia</h3>

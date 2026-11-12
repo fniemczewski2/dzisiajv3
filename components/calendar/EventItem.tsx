@@ -13,7 +13,6 @@ import EventCategorySelect from "./EventCategorySelect";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { eventRule } from "@/lib/eventUtils";
 import { describeRule, legacyRepeatFor } from "@/shared/recurrence";
-import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons, DownloadButton } from "../ui/CommonButtons";
 import { linkifyText } from "@/lib/noteFormatting";
 import { sanitizeHref } from "@/lib/sanitize";
@@ -102,11 +101,11 @@ export default function EventItem({
 
   const renderedTime = isSameDay ? (
     <>
-      {formatTime(event.start_time)}–{formatTime(event.end_time)}
+      {formatTime(event.start_time)}-{formatTime(event.end_time)}
     </>
   ) : (
     <>
-      {formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}
+      {formatTime(event.start_time, true)}, {formatTime(event.end_time, true)}
     </>
   );
 
@@ -275,7 +274,8 @@ export default function EventItem({
       <div className="mt-auto flex w-full justify-between gap-1 border-t border-line pt-4 sm:gap-1.5">
         <DownloadButton
           onClick={() => {
-            generateSingleEventICS(event);
+            // ical.js ładuje się dopiero przy pobieraniu pliku.
+            void import("@/lib/icsGenerator").then((module) => module.generateSingleEventICS(event));
           }}
           fileFormat=".ics"
         />

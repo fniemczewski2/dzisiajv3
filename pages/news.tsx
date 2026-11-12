@@ -90,7 +90,6 @@ export default function NewsPage() {
         title="Wiadomości"
         description="Wiadomości z wybranych kanałów RSS w jednym miejscu."
         canonical="https://www.dzisiaj.fun/news"
-        keywords="rss, wiadomości, czytnik rss"
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -129,7 +128,7 @@ export default function NewsPage() {
           `Zaktualizowano ${updatedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}. `}
         {!loading &&
           failed > 0 &&
-          `Nie udało się pobrać ${failed} ${failed === 1 ? "źródła" : "źródeł"} – szczegóły w „Źródła”.`}
+          `Nie udało się pobrać ${failed} ${failed === 1 ? "źródła" : "źródeł"}, szczegóły w „Źródła”.`}
       </p>
       {error && (
         <p role="alert" className="mb-4 text-danger">
@@ -188,7 +187,7 @@ export default function NewsPage() {
                   <span className="font-semibold">{info?.name ?? item.sourceId}</span>
                   {item.published && (
                     <>
-                      <span aria-hidden="true"> – </span>
+                      <span aria-hidden="true">, </span>
                       <time dateTime={item.published}>{relative(item.published)}</time>
                     </>
                   )}

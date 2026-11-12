@@ -36,12 +36,12 @@ export default function NoteCard({
       )}
     >
       {note.pinned && !note.archived && (
-        <div className="card absolute -top-2 -right-2 rounded-full p-1.5 shadow-sm">
+        <div className="card absolute -top-2 -right-2 rounded-full p-1.5">
           <Pin className="h-4 w-4 fill-primary text-primary" />
         </div>
       )}
       {note.archived && (
-        <div className="card absolute -top-2 -right-2 rounded-full p-1.5 shadow-sm">
+        <div className="card absolute -top-2 -right-2 rounded-full p-1.5">
           <Archive className="h-4 w-4 text-text-muted" />
         </div>
       )}

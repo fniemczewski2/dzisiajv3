@@ -231,7 +231,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         <button
           type="button"
           aria-label="Zmień zdjęcie profilowe"
-          className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-primary/20 bg-surface shadow-sm"
+          className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-primary/20 bg-surface"
           onClick={() => fileInputRef.current?.click()}
         >
           {formData.avatar_url ? (

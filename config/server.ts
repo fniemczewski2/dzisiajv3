@@ -35,6 +35,20 @@ export const RATE_LIMITS = {
   mailDelete: { limit: 60, window: "10 m" },
   /** Odczyt poczty (lista, treść, zadanie, wydarzenie, konta, przekierowania), na użytkownika. */
   mailRead: { limit: 120, window: "60 s" },
+  /** Proxy TMDB (na użytkownika). */
+  tmdb: { limit: 60, window: "60 s" },
+  /** Tablica odjazdów PKP PLK (na użytkownika). */
+  stationBoard: { limit: 30, window: "60 s" },
+  /** Parsowanie biletu PDF: kosztowne, więc ciasny limit (na użytkownika). */
+  parseTicket: { limit: 10, window: "10 m" },
+  /** Finalizacja ankiety terminów (na użytkownika). */
+  pollFinalize: { limit: 10, window: "10 m" },
+  /** Import i eksport kalendarzy Google i Outlook (na użytkownika). */
+  calendarApi: { limit: 120, window: "60 s" },
+  /** Akcje integracji ze Slackiem (na użytkownika). */
+  slackApi: { limit: 60, window: "60 s" },
+  /** Rozpoczęcie łączenia konta OAuth: poczta, vault Obsidiana (na użytkownika). */
+  oauthStart: { limit: 20, window: "10 m" },
   /** Synchronizacja z vaultem Obsidiana (na użytkownika). */
   vaultSync: { limit: 10, window: "10 m" },
 } as const satisfies Record<string, RateLimitRule>;
@@ -48,6 +62,15 @@ export const RATE_LIMIT_MEMORY_MAX_KEYS = 10_000;
 
 /** Nagłówek z tokenem edycji odpowiedzi w ankiecie – zamiast parametru w adresie URL (logi, historia). */
 export const POLL_EDIT_TOKEN_HEADER = "x-edit-token";
+
+/** Cloudflare Turnstile: weryfikacja tokenu formularzy publicznych (ankiety terminów i zapisy). */
+export const TURNSTILE = {
+  verifyUrl: "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+  /** Maksymalny czas oczekiwania na odpowiedź Cloudflare. */
+  timeoutMs: 5_000,
+  /** Dłuższy token jest odrzucany bez pytania Cloudflare (limit z dokumentacji usługi). */
+  maxTokenLength: 2048,
+} as const;
 
 /** Nagłówki Cache-Control dla publicznych odpowiedzi. */
 export const CACHE_CONTROL = {

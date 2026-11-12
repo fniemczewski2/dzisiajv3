@@ -61,7 +61,6 @@ export default function SettingsPage() {
         title="Ustawienia"
         description="Dostosuj działanie aplikacji Dzisiaj.Fun: preferencje, powiadomienia, integrację ze Slackiem i Skrótami Siri oraz eksport danych."
         canonical="https://www.dzisiaj.fun/settings"
-        keywords="ustawienia, konfiguracja, personalizacja, profil, motyw"
         noindex={true}
       />
       <div className="mb-4 flex items-center justify-between">

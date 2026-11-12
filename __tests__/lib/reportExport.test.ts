@@ -38,7 +38,7 @@ describe("eksport protokołu", () => {
     expect(md).toContain("1. Budżet\n2. Sprawy różne");
     expect(md).toContain("- **Moderacja:** Anna\n- **Protokół:** Filip\n- Jan");
     expect(md).toContain("| 1 | Sprawozdanie dla NIW | 31.10.2026 | Anna |");
-    expect(md).toContain("Polityka RODO \\| v2 | — | — |"); // znak | nie łamie tabeli
+    expect(md).toContain("Polityka RODO \\| v2 | - | - |"); // znak | nie łamie tabeli
     expect(md).not.toContain("| 3 |"); // puste zadanie pominięte
     expect(md).toContain("Budżet przyjęty.  \nKolejne"); // twarde złamanie linii
   });
@@ -62,7 +62,7 @@ describe("eksport protokołu", () => {
     expect(json).not.toContain('"3"'); // brak trzeciego (pustego) wiersza zadania
     const footer = def.footer(2, 3) as { columns: Array<{ text: string }> };
     expect(footer.columns[1].text).toBe("2 / 3");
-    expect(def.info.title).toBe("Protokół – Zarząd Fundacji – październik");
+    expect(def.info.title).toBe("Protokół: Zarząd Fundacji – październik");
   });
 
   it("nazwa pliku bez polskich znaków", () => {

@@ -292,7 +292,7 @@ describe("czas spoza lat 2000–2100 (błąd formatu daty w skrócie)", () => {
   it("pomiar z datą z roku 1 (liczba sekund sformatowana jako data) jest odrzucany", () => {
     expect(
       parseHealthPayload({ date: "2026-11-02", heartRateSamples: [{ time: "0001-01-01T00:00:10+01:24", bpm: 63 }] })
-    ).toEqual({ ok: false, error: expect.stringContaining("rok 2000–2100") });
+    ).toEqual({ ok: false, error: expect.stringContaining("rok 2000-2100") });
   });
 
   it("odcinek snu i trening z taką datą też", () => {
@@ -301,7 +301,7 @@ describe("czas spoza lat 2000–2100 (błąd formatu daty w skrócie)", () => {
         date: "2026-11-02",
         sleepSegments: [{ stage: "core", start: "0001-01-01T00:00:10+01:24", end: "0001-01-01T01:00:10+01:24" }],
       })
-    ).toEqual({ ok: false, error: expect.stringContaining("rok 2000–2100") });
+    ).toEqual({ ok: false, error: expect.stringContaining("rok 2000-2100") });
     expect(
       parseHealthPayload({ date: "2026-11-02", workouts: [{ type: "Bieg", start: "0001-01-01T00:00:10Z" }] }).ok
     ).toBe(false);

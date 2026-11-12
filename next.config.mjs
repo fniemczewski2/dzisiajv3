@@ -19,12 +19,15 @@ const supabaseHostname = getSupabaseHostname();
 const supabaseOrigins = supabaseHostname ? [`https://${supabaseHostname}`, `wss://${supabaseHostname}`] : [];
 const isDev = process.env.NODE_ENV !== "production";
 
+// Cloudflare Turnstile (publiczne formularze ankiet): skrypt, ramka z wyzwaniem i weryfikacja.
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
 const csp = [
   "default-src 'self'",
   // Produkcja: tylko własne pliki i skrypt motywu (skrót). Tryb dev potrzebuje inline i eval (HMR).
   isDev
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : `script-src 'self' ${themeScriptHash(THEME_PROVIDER_PROPS)}`,
+    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${TURNSTILE_ORIGIN}`
+    : `script-src 'self' ${themeScriptHash(THEME_PROVIDER_PROPS)} ${TURNSTILE_ORIGIN}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: https://image.tmdb.org ${supabaseOrigins[0] ?? ""}`.trim(),
   "font-src 'self' data:",
@@ -34,8 +37,10 @@ const csp = [
     "https://api.open-meteo.com",
     "https://air-quality-api.open-meteo.com",
     "https://api.nbp.pl",
+    TURNSTILE_ORIGIN,
     ...(isDev ? ["ws:"] : []),
   ].join(" "),
+  `frame-src ${TURNSTILE_ORIGIN}`,
   "media-src 'self'",
   "worker-src 'self' blob:",
   "manifest-src 'self'",

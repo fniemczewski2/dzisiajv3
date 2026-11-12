@@ -56,7 +56,7 @@ export default function RespondentResultsGrid({ poll, results }: Readonly<Respon
                   const { weekday, day } = formatPollDay(r.date);
                   return (
                     <li key={`${r.date}-${r.startIndex}`}>
-                      {weekday} {day}, {r.start}–{r.end}
+                      {weekday} {day}, {r.start}-{r.end}
                     </li>
                   );
                 })}

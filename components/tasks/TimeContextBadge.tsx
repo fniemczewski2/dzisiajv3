@@ -22,7 +22,7 @@ export default function TimeContextBadge({
 
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-lg border bg-surface-hover uppercase shadow-sm transition-colors ${context.color} ${context.shouldPulse ? "animate-pulse" : ""} ${small ? "h-6 gap-1 px-2 py-1 text-xs font-medium" : "gap-1.5 px-2 py-1 text-xs font-bold md:px-3 md:py-1.5 md:text-sm"} ${className} `}
+      className={`inline-flex items-center justify-center rounded-lg border bg-surface-hover uppercase transition-colors ${context.color} ${context.shouldPulse ? "animate-pulse" : ""} ${small ? "h-6 gap-1 px-2 py-1 text-xs font-medium" : "gap-1.5 px-2 py-1 text-xs font-bold md:px-3 md:py-1.5 md:text-sm"} ${className} `}
     >
       {showIcon && (
         <span className="flex items-center justify-center text-base">

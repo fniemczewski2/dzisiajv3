@@ -63,7 +63,7 @@ export default function HealthConsentSection() {
       </h2>
       <p className="text-sm text-text-secondary">
         Skrót może przesyłać z Apple Zdrowie: liczbę kroków, pomiary tętna, fazy snu i treningi. Własne treningi możesz
-        też dodawać ręcznie. To dane dotyczące zdrowia – zapisujemy je tylko za Twoją wyraźną zgodą, wyłącznie do
+        też dodawać ręcznie. To dane dotyczące zdrowia, zapisujemy je tylko za Twoją wyraźną zgodą, wyłącznie do
         wyświetlania w aplikacji. Zgodę możesz cofnąć w każdej chwili; dane zostaną wtedy usunięte.
       </p>
       {hasConsent ? (

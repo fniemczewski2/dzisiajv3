@@ -53,7 +53,7 @@ export function decryptToken(stored: string | null | undefined): string {
     }
     if (!warnedAboutPlaintext) {
       warnedAboutPlaintext = true;
-      console.warn("[tokenCrypto] W bazie są niezaszyfrowane tokeny – uruchom scripts/encrypt-legacy-tokens.mjs.");
+      console.warn("[tokenCrypto] W bazie są niezaszyfrowane tokeny, uruchom scripts/encrypt-legacy-tokens.mjs.");
     }
     return stored;
   }

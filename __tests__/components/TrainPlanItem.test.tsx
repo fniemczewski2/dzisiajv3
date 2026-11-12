@@ -94,7 +94,7 @@ describe("TrainPlanItem", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     render(<TrainPlanItem train={makeTrain({ ...soon(60 * 24 * 3), wagon: "", seat: "" })} />);
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(screen.getAllByText("–").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("-").length).toBeGreaterThanOrEqual(2);
   });
 
   it("marks a cancelled train", async () => {

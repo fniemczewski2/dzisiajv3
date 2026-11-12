@@ -23,7 +23,6 @@ export default function ShoppingPage() {
         title="Listy zakupów"
         description="Twórz listy zakupów pogrupowane według kategorii i udostępniaj je domownikom."
         canonical="https://www.dzisiaj.fun/notes/shopping"
-        keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
       />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title">Listy zakupów</h1>

@@ -41,7 +41,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
 
       toast.success("Konto i wszystkie dane zostały usunięte.");
       await clearLocalUserData();
-      await router.replace("/start");
+      await router.replace("/thanks?z=konto");
     } catch {
       toast.error("Usuwanie konta nie powiodło się.");
     } finally {
@@ -50,7 +50,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
   };
 
   return (
-    <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6" id="konto">
+    <section className="card mb-4 p-4 transition-colors sm:p-6" id="konto">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <h3 className="text-lg font-bold">Użytkownik</h3>

@@ -21,7 +21,9 @@ import { useTasks } from "@/hooks/db/useTasks";
 import { useEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
-import { useDashboardDnd } from "@/hooks/useDashboardDnd";
+import { useDashboardDnd, MOVE_CONFIRM_OPTIONS } from "@/hooks/useDashboardDnd";
+import { useToast } from "@/providers/ToastProvider";
+import { UNDO_WINDOW_MS } from "@/config/timing";
 import { usePlanByHour } from "@/hooks/usePlanByHour";
 import { useDragAutoscroll } from "@/hooks/useDragAutoscroll";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
@@ -122,7 +124,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   }
   const isFirstLoadForDate = !loadedDates.has(dateStr);
 
-  const { overrides, hideSchema, moveSchema, fetchOverrides } = useDailyOverrides(dateStr);
+  const { overrides, hideSchema, moveSchema, restoreSchema, fetchOverrides } = useDailyOverrides(dateStr);
+  const { toast } = useToast();
   const {
     choice: schemaChoice,
     setChoice: setSchemaChoice,
@@ -213,7 +216,31 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
 
       const newTime = timeMatch[0];
 
-      await moveSchema(schemaId, newTime);
+      // Bieżący slot rutyny (klucz „HH:00” w planie) – upuszczenie w tym samym slocie = brak zmiany.
+      const currentSlot = Object.keys(planByHour).find((h) =>
+        planByHour[h].some((i) => i.type === "schema" && i.id === schemaId)
+      );
+      if (currentSlot?.slice(0, 2) === newTime.slice(0, 2)) return;
+      const title =
+        planByHour[currentSlot ?? ""]?.find((i) => i.type === "schema" && i.id === schemaId)?.title ?? "rutynę";
+
+      const ok = await toast.confirm(`Przenieść „${title}” na ${newTime}?`, MOVE_CONFIRM_OPTIONS);
+      if (!ok) return;
+
+      const previous = overrides.find((o) => o.schema_id === schemaId);
+      const saved = await moveSchema(schemaId, newTime);
+      if (!saved) return;
+      toast.success(`Przeniesiono „${title}” na ${newTime}`, {
+        durationMs: UNDO_WINDOW_MS,
+        action: {
+          label: "Cofnij",
+          onClick: () => {
+            void restoreSchema(schemaId, previous).then((undone) => {
+              if (undone) toast.success("Cofnięto przeniesienie");
+            });
+          },
+        },
+      });
     } else {
       void handleDragEnd(event);
     }
@@ -289,7 +316,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
               <div className="multi-draft-container mb-6 space-y-4">
                 {draftForms.map((draft, idx) => (
                   <div key={draft.id} className="relative w-full md:w-fit">
-                    <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white shadow">
+                    <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white">
                       {idx + 1}
                     </div>
                     {draft.type === "event" ? (
@@ -336,7 +363,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                       });
                     }}
                     type="button"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-secondary-hover"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary py-3 text-sm font-bold text-white transition-colors hover:bg-secondary-hover"
                   >
                     Dodaj wszystkie {draftForms.length}
                     <SaveAll className="h-5 w-5" />

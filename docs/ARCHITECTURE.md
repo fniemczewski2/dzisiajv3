@@ -57,7 +57,13 @@ To najważniejsza część tego dokumentu.
    Odbiorca wypisuje się z listy funkcją `leave_shared_shopping_list` (RLS nie pozwala mu na to zwykłym UPDATE).
 4. **Tokeny zewnętrzne** (Google, Outlook, Slack) są szyfrowane AES-256-GCM (`lib/server/tokenCrypto.ts`).
    Tokeny Skrótów Siri przechowujemy tylko jako SHA-256.
-5. **Funkcje `SECURITY DEFINER`** mają mieć pusty `search_path` i nie mogą być wywoływalne przez `anon`.
+5. **Polityki RLS** zapisujemy z `(select auth.uid())`, nie z gołym `auth.uid()` (jedno wyliczenie na zapytanie);
+   starsze polityki przepisuje `supabase/sql/2026-11-12_rls_initplan.sql`.
+6. **Ciasteczka sesji** (`@supabase/ssr`): `Secure` w produkcji, `SameSite=Lax` (`config/env.ts` → `sessionCookieOptions`).
+   `Strict` zablokowałoby powrót z logowania OAuth, a `HttpOnly` jest niemożliwe, bo klient przeglądarkowy czyta sesję
+   z ciasteczka. Tokeny dostępu żyją godzinę, refresh tokeny są rotowane (`supabase/config.toml`).
+7. **Formularze publiczne** (odpowiedź w ankiecie, zapis na termin): limit żądań, pułapka na boty i Cloudflare Turnstile.
+8. **Funkcje `SECURITY DEFINER`** mają mieć pusty `search_path` i nie mogą być wywoływalne przez `anon`.
    Kontrola: `supabase/introspect_schema.sql` → sekcja `security_findings`.
 
 ## Przepływy danych

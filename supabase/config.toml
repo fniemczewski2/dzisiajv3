@@ -19,6 +19,15 @@ port = 54323
 enabled = true
 site_url = "https://www.dzisiaj.fun"
 additional_redirect_urls = ["https://www.dzisiaj.fun/**"]
+# Token dostępu ważny godzinę; refresh tokeny rotowane, ponowne użycie starego unieważnia rodzinę tokenów
+# (po krótkim oknie na równoległe odświeżenia z kilku kart).
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+# Linki i kody jednorazowe (magic link, potwierdzenia) wygasają po godzinie.
+otp_expiry = 3600
 
 [storage]
 enabled = true

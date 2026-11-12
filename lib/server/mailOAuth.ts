@@ -9,6 +9,7 @@ import { randomBytes } from "node:crypto";
 import { publicEnv } from "@/config/env";
 import { CACHE_CONTROL } from "@/config/server";
 import { allowMethods, requireUser } from "@/lib/server/apiGuards";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/server/tokenCrypto";
 import { safeEqual } from "@/lib/server/safeEqual";
@@ -48,6 +49,7 @@ export async function startMailOAuth(
   if (!allowMethods(req, res, ["GET"])) return;
   const auth = await requireUser(req, res);
   if (!auth) return;
+  if (!(await enforceRateLimit(res, "oauthStart", auth.user.id))) return;
 
   const credentials = config.credentials();
   if (!credentials) {

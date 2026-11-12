@@ -23,13 +23,13 @@ interface Props {
 const fmt = (day: string) => day.split("-").reverse().join(".");
 
 function whenLabel(e: BulkEvent): string {
-  const days = e.start === e.end ? fmt(e.start) : `${fmt(e.start)} – ${fmt(e.end)}`;
+  const days = e.start === e.end ? fmt(e.start) : `${fmt(e.start)}, ${fmt(e.end)}`;
   if (!e.startTime) return `${days}, cały dzień`;
-  return `${days}, ${e.startTime}–${eventEndTime(e.startTime, e.endTime)}`;
+  return `${days}, ${e.startTime}-${eventEndTime(e.startTime, e.endTime)}`;
 }
 
 const PLACEHOLDER = [
-  "15.10.2026 10:00–12:00 Posiedzenie zarządu",
+  "15.10.2026 10:00-12:00 Posiedzenie zarządu",
   "Konferencja NGO | 20-22.11.2026",
   "17-18.10 Zjazd",
 ].join("\n");
@@ -144,8 +144,8 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
       </div>
 
       <p className="text-sm text-text-secondary">
-        Wklej listę – każda linia to wydarzenie: data lub zakres dat (np. 15.10.2026, 20-22.11, 7 listopada),
-        opcjonalnie godziny (10:00–12:00) i nazwa.
+        Wklej listę, każda linia to wydarzenie: data lub zakres dat (np. 15.10.2026, 20-22.11, 7 listopada), opcjonalnie
+        godziny (10:00-12:00) i nazwa.
       </p>
 
       <div>
@@ -235,8 +235,8 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
                         </span>
                         <span className="block text-sm text-text-secondary tabular-nums">
                           {whenLabel(e)}
-                          {past && " – minęło"}
-                          {dup && " – już w kalendarzu"}
+                          {past && ", minęło"}
+                          {dup && ", już w kalendarzu"}
                         </span>
                       </span>
                     </label>

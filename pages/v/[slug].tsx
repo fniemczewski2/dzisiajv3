@@ -21,7 +21,7 @@ export default function PublicVCard({ profile, error }: Readonly<PublicVCardProp
   return (
     <div className="min-h-screen bg-surface py-10">
       <Seo
-        title={`${profile.full_name} – wizytówka`}
+        title={`${profile.full_name} | wizytówka`}
         description={`Wizytówka: ${[profile.full_name, profile.organization].filter(Boolean).join(", ")}. Dane kontaktowe do zapisania w telefonie.`}
         canonical={`https://www.dzisiaj.fun/v/${profile.public_slug}`}
         ogType="profile"

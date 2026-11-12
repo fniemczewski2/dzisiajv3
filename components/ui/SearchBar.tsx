@@ -115,7 +115,7 @@ export default function SearchBar({
           aria-label={placeholder || "Szukaj"}
           autoComplete="off"
           spellCheck={false}
-          className="card w-full py-2.5 pr-10 pl-11 text-text shadow-sm transition-all focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
+          className="card w-full py-2.5 pr-10 pl-11 text-text transition-all focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
         />
         {value && (
           <button

@@ -77,7 +77,7 @@ describe("MeetingPollResults", () => {
     expect(screen.getByText("Ustalamy termin")).toBeInTheDocument();
 
     const best = screen.getByRole("region", { name: "Najlepsze terminy" });
-    expect(within(best).getByRole("button", { name: /pon\. 05\.10 · 10:30–11:30/ })).toBeInTheDocument();
+    expect(within(best).getByRole("button", { name: /pon\. 05\.10 · 10:30-11:30/ })).toBeInTheDocument();
     expect(within(best).getByText(/Najwięcej osób naraz: 2 z 2|dostępni są wszyscy/)).toBeInTheDocument();
   });
 
@@ -91,7 +91,7 @@ describe("MeetingPollResults", () => {
     const summary = screen.getByRole("region", { name: "Anna Nowak" });
     expect(within(summary).getByText("1 h 30 min")).toBeInTheDocument();
     expect(within(summary).getByText("1 z 2")).toBeInTheDocument();
-    expect(within(summary).getByText("10:00–11:30")).toBeInTheDocument();
+    expect(within(summary).getByText("10:00-11:30")).toBeInTheDocument();
 
     expect(
       screen.getByRole("button", { name: /2026-10-05 10:00: Anna Nowak: dostępność zaznaczona/ })
@@ -131,10 +131,10 @@ describe("MeetingPollResults", () => {
     render(<MeetingPollResults pollId="p1" />);
     await screen.findByRole("heading", { level: 1 });
 
-    await user.click(screen.getByRole("button", { name: /pon\. 05\.10 · 10:30–11:30/ }));
+    await user.click(screen.getByRole("button", { name: /pon\. 05\.10 · 10:30-11:30/ }));
 
     const panel = screen.getByRole("region", { name: "Wybrany termin" });
-    expect(within(panel).getByText(/10:30–11:30/)).toBeInTheDocument();
+    expect(within(panel).getByText(/10:30-11:30/)).toBeInTheDocument();
     expect(within(panel).getByText("Anna Nowak")).toBeInTheDocument();
     expect(within(panel).getByText("Bartek")).toBeInTheDocument();
     expect(within(panel).getByLabelText("Tytuł wydarzenia:")).toHaveValue("Planowanie sprintu");

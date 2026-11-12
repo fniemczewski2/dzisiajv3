@@ -10,7 +10,7 @@ import FeatureStatusBadge from "@/components/features/FeatureStatusBadge";
 import { buildDemoSteps, tryHref, type DemoStep } from "@/lib/demoTour";
 
 const PRIMARY =
-  "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-secondary px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-secondary-hover";
+  "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-secondary px-6 py-3 font-semibold text-white transition-colors hover:bg-secondary-hover";
 const SECONDARY =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-line-strong bg-card px-6 py-3 font-semibold text-text transition-colors hover:bg-surface";
 

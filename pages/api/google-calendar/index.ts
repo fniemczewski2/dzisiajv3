@@ -16,6 +16,7 @@ import { mapPool, chunk, forEachPage } from "@/shared/asyncPool";
 import { resolveExportTarget, canAttachToTarget } from "@/lib/server/exportTarget";
 import { publicEnv, serverEnv } from "@/config/env";
 import { cols } from "@/lib/db/columns";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 
 function getRedirectUri(): string {
   return `${publicEnv.appUrl}/api/google-calendar/callback`;
@@ -329,6 +330,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Brak autoryzacji." });
+    if (!(await enforceRateLimit(res, "calendarApi", auth.user.id))) return;
 
     const { action } = req.query;
     if (action === "auth-url" && req.method === "GET") return handleAuthUrl(res);

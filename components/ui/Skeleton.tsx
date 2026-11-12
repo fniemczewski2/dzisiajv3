@@ -16,7 +16,7 @@ export function SkeletonCard({ lines = 2 }: { readonly lines?: number }) {
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4 shadow-sm"
+      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4"
     >
       <Bar className="h-4 w-2/5" />
       {lineIds.map((lineId, i) => (
@@ -32,7 +32,7 @@ export function SkeletonSlotGrid({ columns = 5, rows = 8 }: { readonly columns?:
   const colIds = useMemo(() => Array.from({ length: columns }, (_, i) => `${id}-col-${i}`), [columns, id]);
 
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="card block space-y-1 p-4 shadow-sm">
+    <output aria-busy="true" aria-label="Ładowanie" className="card block space-y-1 p-4">
       {rowIds.map((rowId) => (
         <div key={rowId} className="flex gap-1">
           {colIds.map((colId) => (
@@ -49,7 +49,7 @@ export function SkeletonRow() {
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex items-center gap-4 rounded-card border border-line bg-card p-4 shadow-sm"
+      className="flex items-center gap-4 rounded-card border border-line bg-card p-4"
     >
       <Bar className="h-10 w-10 shrink-0 rounded-full" />
       <div className="flex flex-1 flex-col gap-2">
@@ -65,7 +65,7 @@ function SkeletonStreakCard() {
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex items-center gap-4 rounded-xl border border-line bg-card p-5 shadow-sm"
+      className="flex items-center gap-4 rounded-xl border border-line bg-card p-5"
     >
       <Bar className="h-14 w-14 shrink-0 rounded-xl" />
       <div className="flex flex-1 flex-col gap-2.5">
@@ -82,7 +82,7 @@ function SkeletonMovieCard() {
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex items-start gap-4 rounded-card border border-line bg-card p-4 shadow-sm"
+      className="flex items-start gap-4 rounded-card border border-line bg-card p-4"
     >
       <Bar className="h-24 w-16 shrink-0 rounded-lg" />
       <div className="flex flex-1 flex-col gap-2">
@@ -100,7 +100,7 @@ export function SkeletonShoppingList() {
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4 shadow-sm"
+      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4"
     >
       <Bar className="h-5 w-2/5" />
       {[85, 70, 60].map((w) => (
@@ -185,7 +185,7 @@ export function SkeletonStopCard({ departures = 4 }: { readonly departures?: num
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4 shadow-sm"
+      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4"
     >
       <div className="flex items-center gap-3">
         <Bar className="h-8 w-8 shrink-0 rounded-lg" />
@@ -234,7 +234,7 @@ export function SkeletonReport() {
     <output
       aria-busy="true"
       aria-label="Ładowanie"
-      className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5 shadow-sm"
+      className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5"
     >
       <div className="flex items-start justify-between">
         <Bar className="h-5 w-2/5" />
@@ -271,7 +271,7 @@ export function SkeletonSettings() {
 
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-4">
-      <div className="card p-3 shadow-sm">
+      <div className="card p-3">
         <Bar className="mb-3 h-3 w-16" />
         <div className="grid grid-cols-4 gap-2">
           {gridIds.map((gridId) => (
@@ -279,7 +279,7 @@ export function SkeletonSettings() {
           ))}
         </div>
       </div>
-      <div className="card flex flex-col gap-4 p-4 shadow-sm">
+      <div className="card flex flex-col gap-4 p-4">
         <Bar className="h-5 w-2/5" />
         {listIds.map((listId) => (
           <div key={listId} className="flex items-center justify-between">
@@ -288,11 +288,11 @@ export function SkeletonSettings() {
           </div>
         ))}
       </div>
-      <div className="card flex items-center gap-4 p-4 shadow-sm">
+      <div className="card flex items-center gap-4 p-4">
         <Bar className="h-10 w-10 shrink-0 rounded-lg" />
         <Bar className="h-4 flex-1" />
       </div>
-      <div className="card flex items-center gap-4 p-4 shadow-sm">
+      <div className="card flex items-center gap-4 p-4">
         <Bar className="h-10 w-10 shrink-0 rounded-lg" />
         <Bar className="h-4 flex-1" />
       </div>

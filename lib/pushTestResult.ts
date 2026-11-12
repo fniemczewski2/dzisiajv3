@@ -18,7 +18,7 @@ export type PushTestOutcome = { ok: true; message: string } | { ok: false; messa
  * przez serwer, żeby dało się ustalić, co poszło nie tak.
  */
 export function describePushHttpError(status: number, body: { error?: string; message?: string } | null): string {
-  if (status === 401) return "Sesja wygasła – zaloguj się ponownie i spróbuj jeszcze raz.";
+  if (status === 401) return "Sesja wygasła, zaloguj się ponownie i spróbuj jeszcze raz.";
   if (status === 404) return "Funkcja send-push nie jest wdrożona w Supabase (błąd 404).";
   const reason = body?.error || body?.message;
   const detail = reason ? `${status}: ${reason}` : String(status);

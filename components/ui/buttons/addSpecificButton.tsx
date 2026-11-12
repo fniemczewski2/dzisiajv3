@@ -39,11 +39,11 @@ export const AddSpecificButton = ({
       type="button"
       disabled={disabled}
       title={title}
-      className={`group relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg border border-transparent bg-surface p-1.5 text-primary shadow-sm transition-colors hover:border-info-line hover:bg-info-soft hover:text-info disabled:cursor-not-allowed disabled:opacity-50 sm:gap-1.5 sm:p-2 ${small && "my-auto h-min min-h-11 w-min min-w-11"}`}
+      className={`group relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg border border-transparent bg-surface p-1.5 text-primary transition-colors hover:border-info-line hover:bg-info-soft hover:text-info disabled:cursor-not-allowed disabled:opacity-50 sm:gap-1.5 sm:p-2 ${small && "my-auto h-min min-h-11 w-min min-w-11"}`}
       aria-label={`dodaj ${label}`}
     >
       <div className="relative top-0 h-5 w-5 sm:h-6 sm:w-6">
-        <Icon className="h-5 w-5 transition-transform group-hover:scale-110 sm:h-6 sm:w-6" />
+        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
         <Plus className="absolute top-2 left-3 h-3.5 w-3.5 rounded-full bg-surface sm:top-3 sm:h-4 sm:w-4" />
       </div>
       {!small && (

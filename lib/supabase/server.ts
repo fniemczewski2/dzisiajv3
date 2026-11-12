@@ -17,6 +17,7 @@ export function createServerSupabase(
   res: GetServerSidePropsContext["res"] | NextApiResponse
 ) {
   return createServerClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey, {
+    cookieOptions: publicEnv.sessionCookieOptions,
     cookies: {
       getAll() {
         return Object.keys(req.cookies).map((name) => ({ name, value: req.cookies[name] || "" }));

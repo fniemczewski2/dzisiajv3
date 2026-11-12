@@ -3,7 +3,7 @@
 import { VCARD_DEFAULT_COLOR_DARK, VCARD_DEFAULT_COLOR_LIGHT } from "@/config/defaults";
 import React from "react";
 import Image from "next/image";
-import { QRCodeSVG } from "qrcode.react";
+import QrCode from "@/components/ui/QrCode";
 import { CopyButton, DownloadButton, CopyButtonSmall } from "../ui/CommonButtons";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -410,8 +410,8 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
           </p>
         )}
 
-        <div className="mt-2 rounded-xl border bg-white p-3 shadow-sm">
-          <QRCodeSVG value={profile.is_public ? publicLink : "Wizytówka jest prywatna."} size={150} level="M" />
+        <div className="mt-2 rounded-xl border border-line bg-on-solid p-3">
+          <QrCode value={profile.is_public ? publicLink : "Wizytówka jest prywatna."} size={150} />
         </div>
 
         <div className="mt-2 grid w-full grid-cols-2 gap-3">

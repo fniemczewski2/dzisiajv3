@@ -190,7 +190,7 @@ function MenuItemLink({ href, title, Icon, label, badge, isActive, onNavigate }:
         {label}
       </span>
       {badge && (
-        <span className="absolute -top-1.5 -right-1 z-10 rounded-full border-2 border-card bg-danger-solid px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+        <span className="absolute -top-1.5 -right-1 z-10 rounded-full border-2 border-card bg-danger-solid px-1.5 py-0.5 text-xs font-semibold text-white">
           {badge}
         </span>
       )}

@@ -7,7 +7,7 @@
 // automatyczne mają w karcie przyciski „Zatwierdź” i „Odrzuć”.
 
 import React, { useId, useMemo, useState } from "react";
-import { Check, Link2, Sparkles, X } from "lucide-react";
+import { Check, Lightbulb, Link2, X } from "lucide-react";
 import { formatPln, summarizeMonth } from "@/lib/finance";
 import TransactionForm from "./TransactionForm";
 import CsvImport from "./CsvImport";
@@ -224,7 +224,7 @@ function TransactionCard({
 
           {suggested && (
             <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-line-strong px-3 py-2 text-sm">
-              <Sparkles className="h-4 w-4 shrink-0 text-text-secondary" aria-hidden="true" />
+              <Lightbulb className="h-4 w-4 shrink-0 text-text-secondary" aria-hidden="true" />
               <span className="min-w-0 flex-1 text-text">
                 Sugestia: to płatność <strong className="font-semibold">{linkedBill}</strong>?
               </span>
@@ -362,7 +362,7 @@ export default function TransactionsSection(props: Readonly<Props>) {
 
       {suggestions > 0 && (
         <output className="mb-3 flex items-center gap-2 text-sm text-text-secondary">
-          <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <Lightbulb className="h-4 w-4 shrink-0" aria-hidden="true" />
           Sugestie powiązań do sprawdzenia: {suggestions}.
         </output>
       )}
@@ -370,7 +370,7 @@ export default function TransactionsSection(props: Readonly<Props>) {
       {transactions.length === 0 ? (
         <p className="text-sm text-text-secondary">Brak transakcji w tym miesiącu.</p>
       ) : (
-        <ul className="flex flex-col gap-4" aria-label={`Transakcje – ${monthLabel} (od ${monthFrom})`}>
+        <ul className="flex flex-col gap-4" aria-label={`Transakcje, ${monthLabel} (od ${monthFrom})`}>
           {transactions.map((t) => (
             <TransactionCard
               key={t.id}

@@ -7,6 +7,7 @@ import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { buildAllowedSlotSet, slotKey } from "@/lib/meetingPollGrid";
 import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
+import { enforceTurnstile } from "@/lib/server/turnstile";
 import { validateEmail, validateSlot } from "@/lib/sanitize";
 import type {
   MeetingPollResponsePayload,
@@ -216,6 +217,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   const validated = validateResponsePayload(body);
   if ("error" in validated) return res.status(400).json({ error: validated.error });
   const { respondentName, respondentEmail, slots, editToken } = validated;
+
+  // Edycja istniejącej odpowiedzi jest chroniona tokenem edycji; nową odpowiedź potwierdza Turnstile.
+  if (!editToken && !(await enforceTurnstile(req, res, body?.turnstile_token))) return;
 
   const pollResult = await loadOpenPoll(token);
   if ("error" in pollResult) return res.status(pollResult.status).json({ error: pollResult.error });

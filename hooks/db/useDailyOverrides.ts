@@ -8,6 +8,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
 import { DailyOverride } from "@/types/schemas";
+import { useLatestRef } from "@/hooks/useLatestRef";
 
 const NO_OVERRIDES: DailyOverride[] = [];
 
@@ -52,6 +53,8 @@ export function useDailyOverrides(dateStr: string) {
     initial: NO_OVERRIDES,
     enabled: Boolean(userId),
   });
+  // Rollback w writeOverride liczony z aktualnego stanu (wywołanie „Cofnij” z toastu ma starsze domknięcie).
+  const overridesRef = useLatestRef(overrides);
 
   const hideSchema = useCallback(
     async (schemaId: string) => {
@@ -60,7 +63,7 @@ export function useDailyOverrides(dateStr: string) {
       }
 
       setLoading(true);
-      const previous = overrides;
+      const previous = overridesRef.current;
       setOverrides((prev) => {
         const existing = prev.find((o) => o.schema_id === schemaId);
         if (existing) {
@@ -100,23 +103,27 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast, withRetry, setOverrides]
+    [supabase, userId, dateStr, toast, withRetry, setOverrides, overridesRef]
   );
 
-  const moveSchema = useCallback(
-    async (schemaId: string, newTime: string) => {
+  /**
+   * Zapis nadpisania rutyny (przesunięcie albo przywrócenie stanu sprzed przesunięcia).
+   * Zwraca true po udanym zapisie; błąd przywraca poprzedni stan i pokazuje toast.
+   */
+  const writeOverride = useCallback(
+    async (schemaId: string, patch: { new_time: string | null; is_hidden: boolean }): Promise<boolean> => {
       if (!userId) {
         throw new NotSignedInError();
       }
 
       setLoading(true);
-      const previous = overrides;
+      const previous = overridesRef.current;
       setOverrides((prev) => {
         const existing = prev.find((o) => o.schema_id === schemaId);
         if (existing) {
-          return prev.map((o) => (o.schema_id === schemaId ? { ...o, new_time: newTime, is_hidden: false } : o));
+          return prev.map((o) => (o.schema_id === schemaId ? { ...o, ...patch } : o));
         }
-        return [...prev, { schema_id: schemaId, new_time: newTime, is_hidden: false }];
+        return [...prev, { schema_id: schemaId, ...patch }];
       });
 
       try {
@@ -131,30 +138,44 @@ export function useDailyOverrides(dateStr: string) {
         );
 
         const { error } = existing
-          ? await withRetry(() =>
-              supabase.from("daily_overrides").update({ new_time: newTime, is_hidden: false }).eq("id", existing.id)
-            )
+          ? await withRetry(() => supabase.from("daily_overrides").update(patch).eq("id", existing.id))
           : await withRetry(() =>
               supabase.from("daily_overrides").insert({
                 user_id: userId,
                 date: dateStr,
                 schema_id: schemaId,
-                new_time: newTime,
-                is_hidden: false,
+                ...patch,
               })
             );
 
         if (error) throw error;
-        toast.success(`Przeniesiono rutynę na ${newTime}`);
+        return true;
       } catch {
         setOverrides(previous);
         toast.error("Błąd przenoszenia rutyny.");
+        return false;
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast, withRetry, setOverrides]
+    [supabase, userId, dateStr, toast, withRetry, setOverrides, overridesRef]
   );
 
-  return { overrides, loading, fetching, hideSchema, moveSchema, fetchOverrides };
+  /** Przesunięcie rutyny na newTime. Bez toastu sukcesu – potwierdzenie i „Cofnij” po stronie wywołującego. */
+  const moveSchema = useCallback(
+    (schemaId: string, newTime: string) => writeOverride(schemaId, { new_time: newTime, is_hidden: false }),
+    [writeOverride]
+  );
+
+  /** Przywrócenie nadpisania sprzed przesunięcia (brak = godzina ze schematu). */
+  const restoreSchema = useCallback(
+    (schemaId: string, previous: DailyOverride | undefined) =>
+      writeOverride(schemaId, {
+        new_time: previous?.new_time ?? null,
+        is_hidden: previous?.is_hidden ?? false,
+      }),
+    [writeOverride]
+  );
+
+  return { overrides, loading, fetching, hideSchema, moveSchema, restoreSchema, fetchOverrides };
 }

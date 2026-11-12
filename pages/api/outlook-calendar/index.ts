@@ -13,6 +13,7 @@ import { outlookToSupabaseTime, warsawNaiveToRFC3339 } from "@/lib/server/calend
 import { mapPool, forEachPage } from "@/shared/asyncPool";
 import { resolveExportTarget, canAttachToTarget, type ExportTarget } from "@/lib/server/exportTarget";
 import { cols } from "@/lib/db/columns";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: ConnectedCalendarRow): Promise<string> {
   let accessToken = decryptToken(mainAcc.access_token);
   const storedRefreshToken = decryptToken(mainAcc.refresh_token);
@@ -384,6 +385,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (authError || !user) {
     return res.status(401).json({ error: "Nieautoryzowany dostęp" });
   }
+  if (!(await enforceRateLimit(res, "calendarApi", user.id))) return;
 
   const { action } = req.query;
 

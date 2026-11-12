@@ -38,7 +38,7 @@ export default function LoveButton() {
       onClick={sendLove}
       type="button"
       disabled={loading || sent}
-      className={`rounded-xl border p-2.5 shadow-sm transition-colors ${
+      className={`rounded-xl border p-2.5 transition-colors ${
         sent || loading
           ? "border-deco-pink bg-deco-pink-solid text-white"
           : "border-deco-pink-line bg-deco-pink-soft text-deco-pink hover:bg-deco-pink-line"

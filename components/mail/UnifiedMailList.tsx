@@ -75,7 +75,7 @@ export default function UnifiedMailList({
               onClick={() => onSelect(accountId, message.id)}
               aria-current={isSelected ? "true" : undefined}
               className={`flex min-h-11 min-w-0 flex-1 flex-col gap-0.5 py-3 pr-2 pl-4 text-left transition-colors hover:bg-surface ${
-                isSelected ? "border-l-4 border-primary bg-surface" : "border-l-4 border-transparent"
+                isSelected ? "bg-surface-hover ring-1 ring-primary ring-inset" : ""
               }`}
             >
               <span className="flex w-full min-w-0 items-baseline justify-between gap-3">

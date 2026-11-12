@@ -92,7 +92,7 @@ export default function SlackListEditor({
                     onChange={(e) => setDraftMap((prev) => ({ ...prev, [field]: e.target.value || undefined }))}
                     className="input-field min-w-0 flex-1 text-sm"
                   >
-                    <option value="">– nie synchronizuj –</option>
+                    <option value="">nie synchronizuj -</option>
                     {columns.map((column) => (
                       <option key={column.id} value={column.id}>
                         {column.name} ({column.type})

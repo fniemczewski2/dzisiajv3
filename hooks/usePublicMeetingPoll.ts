@@ -86,7 +86,12 @@ export function usePublicMeetingPoll(token: string | undefined) {
   const results = resultsQuery.data ?? null;
 
   const submitResponse = useCallback(
-    async (respondentName: string, respondentEmail: string, slots: MeetingPollSlot[]): Promise<boolean> => {
+    async (
+      respondentName: string,
+      respondentEmail: string,
+      slots: MeetingPollSlot[],
+      turnstileToken?: string
+    ): Promise<boolean> => {
       if (!token) return false;
       if (!respondentName.trim()) {
         toast.error("Podaj swoje imię.");
@@ -108,6 +113,7 @@ export function usePublicMeetingPoll(token: string | undefined) {
             respondent_email: respondentEmail.trim() || null,
             slots,
             edit_token: existingEditToken,
+            turnstile_token: turnstileToken,
           }),
         });
         const data = await res.json();

@@ -100,11 +100,11 @@ export default function StreakCard({
   const dayLabel = days === 1 ? "dzień" : "dni";
 
   return (
-    <div className="card flex h-full flex-col p-4 shadow-sm transition-all hover:shadow-md">
+    <div className="card flex h-full flex-col p-4 transition-all">
       <div className="mb-4 flex items-start justify-between">
         <div className="relative flex flex-1 items-start gap-3">
           <button
-            className={`shrink-0 rounded-xl p-3 text-primary ${isEditing ? "cursor-pointer hover:scale-105 hover:bg-info-soft" : ""} transition-transform`}
+            className={`shrink-0 rounded-xl p-3 text-primary ${isEditing ? "cursor-pointer hover:bg-info-soft" : ""} transition-colors`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
             type="button"
             title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
@@ -129,7 +129,7 @@ export default function StreakCard({
                     }}
                     className={`flex items-center justify-center rounded-lg p-2 transition-colors ${
                       editedIcon === item.name
-                        ? "bg-secondary text-white shadow-sm"
+                        ? "bg-secondary text-white"
                         : "text-text-secondary hover:bg-surface hover:text-text"
                     }`}
                   >
@@ -188,13 +188,13 @@ export default function StreakCard({
       <div className="mt-auto">
         {!isEditing && (
           <div className="mb-3 rounded-xl border border-line bg-surface py-4 text-center">
-            <div className="text-5xl font-bold tracking-tighter text-primary drop-shadow-sm">{days}</div>
+            <div className="text-5xl font-bold tracking-tighter text-primary">{days}</div>
             <div className="mt-1 text-xs font-medium text-text-secondary">{dayLabel} z rzędu</div>
           </div>
         )}
         {milestone && !isEditing && (
           <div className="mb-3 text-center">
-            <div className="inline-block rounded-full border border-warning-line bg-warning-soft px-3 py-1 text-xs font-bold text-warning shadow-sm">
+            <div className="inline-block rounded-full border border-warning-line bg-warning-soft px-3 py-1 text-xs font-bold text-warning">
               {milestone}
             </div>
           </div>

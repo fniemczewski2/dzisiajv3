@@ -3,6 +3,7 @@
 import { serverEnv } from "@/config/env";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -45,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     error: authError,
   } = await supabase.auth.getUser();
   if (authError || !user) return res.status(401).json({ error: "Brak autoryzacji." });
+  if (!(await enforceRateLimit(res, "tmdb", user.id))) return;
 
   const apiKey = serverEnv.tmdbApiKey;
   if (!apiKey) return res.status(500).json({ error: "Brak zmiennej środowiskowej TMDB_API_KEY" });

@@ -88,8 +88,8 @@ describe("MeetingPollBookings", () => {
     expect(screen.getByText("Zajętych miejsc: 3")).toBeInTheDocument();
     expect(screen.getByText("Zapisanych osób: 2")).toBeInTheDocument();
     expect(screen.getByText("https://www.dzisiaj.fun/meet/tok-1")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /10:00–10:30.*\(2\/3\)/ })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /10:30–11:00.*\(1\/3\)/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /10:00-10:30.*\(2\/3\)/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /10:30-11:00.*\(1\/3\)/ })).toBeInTheDocument();
     expect(screen.getAllByText("anna@x.pl")).toHaveLength(2);
     expect(screen.getByText("Bartek")).toBeInTheDocument();
   });

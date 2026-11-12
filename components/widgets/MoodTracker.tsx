@@ -35,11 +35,11 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
       <section className="widget space-y-3 px-4 py-3" aria-labelledby="mood-consent-heading">
         <h3 id="mood-consent-heading" className="flex items-center font-medium text-text">
           <Smile className="mr-3 h-5 w-5 text-primary sm:h-6 sm:w-6" aria-hidden="true" />
-          Nastrój – potrzebna zgoda
+          Nastrój, potrzebna zgoda
         </h3>
         <p className="text-sm text-text-secondary">
           Wpisy nastroju mogą ujawniać informacje o Twoim zdrowiu. Zapisujemy je tylko za Twoją wyraźną zgodą (art. 9
-          RODO), wyłącznie w Twoim koncie. Zgodę cofniesz w Ustawieniach – wpisy zostaną wtedy usunięte.{" "}
+          RODO), wyłącznie w Twoim koncie. Zgodę cofniesz w Ustawieniach, wpisy zostaną wtedy usunięte.{" "}
           <Link href="/privacy" className="font-semibold text-primary underline-offset-4 hover:underline">
             Polityka prywatności
           </Link>

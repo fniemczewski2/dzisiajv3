@@ -76,7 +76,7 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
 
     if (loading) {
       return (
-        <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-2 bg-surface py-1.5 text-center text-xs font-bold text-text-muted shadow-sm">
+        <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-2 bg-surface py-1.5 text-center text-xs font-bold text-text-muted">
           <Loader2 className="h-3 w-3 animate-spin" /> Aktualizacja...
         </div>
       );
@@ -92,7 +92,7 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
 
     if (isRateLimited) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-warning-solid py-1.5 text-center text-xs font-bold text-white shadow-sm">
+        <div className="absolute top-0 left-0 w-full bg-warning-solid py-1.5 text-center text-xs font-bold text-white">
           Limit zapytań osiągnięty.
         </div>
       );
@@ -115,7 +115,7 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
     }[punctuality.kind];
     return (
       <div
-        className={`absolute top-0 left-0 flex w-full items-center justify-center gap-1 py-1.5 text-center text-xs font-bold text-white shadow-sm ${tone[punctuality.kind]}`}
+        className={`absolute top-0 left-0 flex w-full items-center justify-center gap-1 py-1.5 text-center text-xs font-bold text-white ${tone[punctuality.kind]}`}
         aria-live="polite"
       >
         <Icon className="h-3 w-3" aria-hidden="true" /> {punctuality.label}

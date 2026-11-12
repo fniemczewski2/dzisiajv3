@@ -71,6 +71,8 @@ export interface MeetingPollResponsePayload {
   respondent_email?: string | null;
   slots: MeetingPollSlot[];
   edit_token?: string;
+  /** Token Cloudflare Turnstile (wymagany przy pierwszej odpowiedzi, gdy weryfikacja jest włączona). */
+  turnstile_token?: string;
 }
 
 export interface MeetingPollResponseSubmitResult {
@@ -155,6 +157,8 @@ export interface MeetingPollBookingPayload {
   consent: boolean;
   /** Pułapka na boty: prawdziwy formularz zostawia puste. */
   website?: string;
+  /** Token Cloudflare Turnstile (wymagany, gdy weryfikacja jest włączona). */
+  turnstile_token?: string;
 }
 
 export interface MeetingPollBooking {

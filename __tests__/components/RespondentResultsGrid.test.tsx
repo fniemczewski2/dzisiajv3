@@ -36,7 +36,7 @@ describe("RespondentResultsGrid", () => {
     );
     expect(screen.getByText("Odpowiedziało: 3 osoby")).toBeInTheDocument();
     expect(screen.getByText("Najwięcej osób (3 z 3):")).toBeInTheDocument();
-    expect(screen.getByText(/27\.10, 10:00–11:00/)).toBeInTheDocument();
+    expect(screen.getByText(/27\.10, 10:00-11:00/)).toBeInTheDocument();
   });
 
   it("renderuje wszystkie komórki siatki dni × godziny", () => {

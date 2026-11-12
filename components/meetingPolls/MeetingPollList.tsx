@@ -88,7 +88,7 @@ function PollCard({
               </Meta>
             )}
             <Meta icon={Clock}>
-              {poll.time_start.slice(0, 5)}–{poll.time_end.slice(0, 5)}
+              {poll.time_start.slice(0, 5)}-{poll.time_end.slice(0, 5)}
             </Meta>
             <Meta icon={Timer}>{poll.slot_duration_minutes} min</Meta>
             {poll.mode === "signup" && (

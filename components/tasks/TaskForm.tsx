@@ -145,19 +145,17 @@ export default function TaskForm({
             <button
               type="button"
               onClick={decreasePriority}
-              className="flex flex-1 shrink-0 items-center justify-center rounded-lg border border-line bg-surface p-1 text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
+              className="flex flex-1 shrink-0 items-center justify-center rounded-lg border border-line bg-surface p-1 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
               title="Zmniejsz priorytet"
               aria-label="Zmniejsz priorytet"
             >
               <Minus size={18} />
             </button>
-            <div className="input-field card flex flex-1 items-center justify-center text-text shadow-inner">
-              {priority}
-            </div>
+            <div className="input-field card flex flex-1 items-center justify-center text-text">{priority}</div>
             <button
               type="button"
               onClick={increasePriority}
-              className="flex flex-1 shrink-0 items-center justify-center rounded-lg border border-line bg-surface p-1 text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
+              className="flex flex-1 shrink-0 items-center justify-center rounded-lg border border-line bg-surface p-1 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
               title="Zwiększ priorytet"
               aria-label="Zwiększ priorytet"
             >

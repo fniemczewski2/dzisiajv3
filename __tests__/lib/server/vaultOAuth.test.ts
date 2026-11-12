@@ -12,7 +12,7 @@ const h = vi.hoisted(() => ({
   deleted: [] as string[],
   fetch: vi.fn(),
   clear: vi.fn(),
-  requireUser: vi.fn(async () => true),
+  requireUser: vi.fn(async (): Promise<{ user: { id: string } } | null> => ({ user: { id: "u1" } })),
 }));
 
 vi.mock("@/config/env", () => ({
@@ -33,6 +33,7 @@ vi.mock("@/lib/supabase/server", () => ({
     }),
   }),
 }));
+vi.mock("@/lib/server/rateLimit", () => ({ enforceRateLimit: async () => true }));
 vi.mock("@/lib/server/tokenCrypto", () => ({
   encryptToken: (t: string) => `enc(${t})`,
   decryptToken: (t: string) => t,
@@ -94,7 +95,7 @@ beforeEach(() => {
   h.upsert.mockReset().mockResolvedValue({ error: null });
   h.deleted.length = 0;
   h.clear.mockClear();
-  h.requireUser.mockReset().mockResolvedValue(true);
+  h.requireUser.mockReset().mockResolvedValue({ user: { id: "u1" } });
   h.fetch
     .mockReset()
     .mockImplementation(async (url: string) =>
@@ -137,7 +138,7 @@ describe("startVaultOAuth", () => {
     expect((await start("gdrive")).statusCode).toBe(503);
     h.credentials = { clientId: "cid", clientSecret: "sec" };
     expect((await start("gdrive", "POST")).statusCode).toBe(405);
-    h.requireUser.mockResolvedValue(false);
+    h.requireUser.mockResolvedValue(null);
     const res = await start("gdrive");
     expect(res.headers["set-cookie"]).toBeUndefined();
   });

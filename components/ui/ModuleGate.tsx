@@ -16,7 +16,7 @@ export default function ModuleGate({ children }: Readonly<{ children: ReactNode 
   return (
     <section className="mx-auto max-w-md rounded-card border border-line bg-card p-6 text-center">
       <PowerOff className="mx-auto mb-3 h-8 w-8 text-text-secondary" aria-hidden="true" />
-      <h1 className="page-title mb-2">{title} – moduł wyłączony</h1>
+      <h1 className="page-title mb-2">{title}: moduł wyłączony</h1>
       <p className="mb-5 text-text-secondary">
         Włączysz go w Ustawieniach, w sekcji „Moduły”. Twoje dane są zachowane.
       </p>

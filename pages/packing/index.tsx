@@ -20,7 +20,6 @@ export default function PackingMenuPage() {
         title="Pakowanie"
         description="Gotowe listy rzeczy do spakowania: plecak, walizka i plecak bezpieczeństwa na sytuacje awaryjne."
         canonical="https://www.dzisiaj.fun/packing"
-        keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"
       />
       <div className="mb-6 flex w-full items-center">
         <h1 className="page-title mx-auto text-center first-letter:uppercase">Wybierz listę</h1>
@@ -34,7 +33,7 @@ export default function PackingMenuPage() {
               key={list.id}
               onClick={() => router.push(`/packing/${list.id}`)}
               type="button"
-              className="card flex flex-col items-center justify-center gap-4 border border-transparent p-6 transition-all hover:scale-[1.02] hover:border-primary/20 hover:bg-surface-hover"
+              className="card flex flex-col items-center justify-center gap-4 border border-transparent p-6 transition-all hover:border-primary/20 hover:bg-surface-hover"
             >
               <div className={`rounded-full bg-info-soft p-4 text-primary`}>
                 <Icon className="h-8 w-8" />

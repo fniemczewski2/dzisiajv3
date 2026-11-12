@@ -73,8 +73,8 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
 
         toast.success(
           missing.length
-            ? "Bilet odczytany częściowo – uzupełnij brakujące pola"
-            : "Bilet odczytany – sprawdź dane przed zapisem"
+            ? "Bilet odczytany częściowo, uzupełnij brakujące pola"
+            : "Bilet odczytany, sprawdź dane przed zapisem"
         );
         setFormData(parsed);
         setMissingFromTicket(missing);

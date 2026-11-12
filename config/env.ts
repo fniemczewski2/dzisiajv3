@@ -68,8 +68,20 @@ export const publicEnv = {
   get appUrl(): string {
     return (optional(process.env.NEXT_PUBLIC_APP_URL) ?? DEFAULT_APP_URL).replace(/\/$/, "");
   },
+  /** Klucz witryny Cloudflare Turnstile (publiczny). Bez niego widżet jest ukryty. */
+  get turnstileSiteKey(): string | undefined {
+    return optional(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  },
   get vapidPublicKey(): string | undefined {
     return optional(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+  },
+  /**
+   * Ciasteczka sesji Supabase: `Secure` w produkcji (tylko HTTPS), `SameSite=Lax`. Wariant `Strict` zablokowałby
+   * powrót z logowania OAuth (przekierowanie z Google nie niosłoby ciasteczek). `HttpOnly` jest niemożliwe, bo
+   * przeglądarkowy klient Supabase odczytuje sesję z ciasteczka.
+   */
+  get sessionCookieOptions(): { path: string; sameSite: "lax"; secure: boolean } {
+    return { path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" };
   },
   /** Wersja z package.json, wstrzykiwana w next.config.mjs. */
   get appVersion(): string {
@@ -88,6 +100,13 @@ export const publicEnv = {
 export const serverEnv = {
   get supabaseSecretKey(): string {
     return required("SUPABASE_SECRET_KEY", process.env.SUPABASE_SECRET_KEY);
+  },
+  /**
+   * Sekret Cloudflare Turnstile. Gdy ustawiony, publiczne formularze ankiet wymagają poprawnego tokenu;
+   * bez niego weryfikacja jest pomijana (tryb deweloperski).
+   */
+  get turnstileSecretKey(): string | undefined {
+    return optional(process.env.TURNSTILE_SECRET_KEY);
   },
   get cronSecret(): string | undefined {
     return optional(process.env.CRON_SECRET);

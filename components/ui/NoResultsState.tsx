@@ -23,7 +23,7 @@ export default function NoResultsState({
 
   const content = (
     <output className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line-strong bg-surface/60 px-6 py-8 text-center">
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-text-muted shadow-sm">
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-text-muted">
         <Icon aria-hidden="true" className="h-5 w-5" />
       </span>
       <div className="space-y-1">

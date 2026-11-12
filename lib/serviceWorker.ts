@@ -59,6 +59,6 @@ export async function checkForServiceWorkerUpdate(reg: ServiceWorkerRegistration
   try {
     await reg.update();
   } catch (error) {
-    console.warn("[SW] Nie udało się sprawdzić aktualizacji service workera – spróbujemy później:", error);
+    console.warn("[SW] Nie udało się sprawdzić aktualizacji service workera, spróbujemy później:", error);
   }
 }

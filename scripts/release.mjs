@@ -11,7 +11,7 @@
 //   node scripts/release.mjs --dry-run       # tylko kontrole i podsumowanie; bez zmian w plikach, commita i push
 //   node scripts/release.mjs --only lint,test  # wybrane kontrole (do diagnozy; wydanie wymaga wszystkich)
 
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -49,6 +49,29 @@ const run = (command, { cwd, quiet = true, env = {} } = {}) => {
   if (!quiet) process.stdout.write(output);
   return { code: result.status ?? 1, output, ms: Date.now() - started };
 };
+
+/** Wersja asynchroniczna: kontrole są długie, więc co HEARTBEAT_MS wypisujemy czas trwania zamiast milczeć. */
+const HEARTBEAT_MS = 5000;
+const runAsync = (command, { cwd, env = {} } = {}) =>
+  new Promise((resolve) => {
+    const started = Date.now();
+    const child = spawn(command, { shell: true, cwd, env: { ...process.env, ...env } });
+    let output = "";
+    const collect = (chunk) => {
+      output += chunk;
+    };
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", collect);
+    child.stderr.on("data", collect);
+    const timer = setInterval(() => say(`      … trwa ${Math.round((Date.now() - started) / 1000)} s`), HEARTBEAT_MS);
+    const finish = (code, text) => {
+      clearInterval(timer);
+      resolve({ code, output: text.replace(ANSI_COLOR, ""), ms: Date.now() - started });
+    };
+    child.on("error", (error) => finish(1, String(error)));
+    child.on("close", (code) => finish(code ?? 1, output));
+  });
 
 const git = (command) => run(`git ${command}`);
 const gitOut = (command) => git(command).output.trim();
@@ -174,9 +197,9 @@ const checks = [
   {
     name: "format",
     label: "format:check (prettier)",
-    run: () => {
-      run("npx prettier --write .");
-      const r = run("npx prettier --check .");
+    run: async () => {
+      await runAsync("npx prettier --write .");
+      const r = await runAsync("npx prettier --check .");
       const warned = r.output.split("\n").filter((l) => l.startsWith("[warn]") && !l.includes("Code style"));
       return {
         ok: r.code === 0,
@@ -189,8 +212,8 @@ const checks = [
   {
     name: "lint",
     label: "lint (oxlint)",
-    run: () => {
-      const r = run("npx oxlint");
+    run: async () => {
+      const r = await runAsync("npx oxlint");
       const found = /Found (\d+) warnings? and (\d+) errors?/.exec(r.output);
       const summary = found ? `${found[1]} ostrzeżeń, ${found[2]} błędów` : "brak wyniku";
       return { ok: r.code === 0, summary, ms: r.ms, detail: r.code === 0 ? "" : r.output.slice(-1500) };
@@ -199,8 +222,8 @@ const checks = [
   {
     name: "typecheck",
     label: "typecheck (tsc)",
-    run: () => {
-      const r = run("npx tsc --noEmit");
+    run: async () => {
+      const r = await runAsync("npx tsc --noEmit");
       return {
         ok: r.code === 0,
         summary: r.code === 0 ? "bez błędów" : "błędy typów",
@@ -212,8 +235,8 @@ const checks = [
   {
     name: "test",
     label: "testy (vitest)",
-    run: () => {
-      const r = run("npx vitest run");
+    run: async () => {
+      const r = await runAsync("npx vitest run");
       const tests = /Tests\s+(?:(\d+) failed \| )?(\d+) passed/.exec(r.output);
       const files = /Test Files\s+(?:(\d+) failed \| )?(\d+) passed/.exec(r.output);
       const failed = Number(tests?.[1] ?? 0);
@@ -239,8 +262,8 @@ const checks = [
   {
     name: "knip",
     label: "knip (nieużywany kod)",
-    run: () => {
-      const r = run("npx --yes knip@5.88.1");
+    run: async () => {
+      const r = await runAsync("npx --yes knip@5.88.1");
       return {
         ok: r.code === 0,
         summary: r.code === 0 ? "brak nieużywanego kodu" : "znaleziono nieużywany kod",
@@ -252,7 +275,7 @@ const checks = [
   {
     name: "deno",
     label: "deno check (Edge Functions)",
-    run: () => {
+    run: async () => {
       const deno = findDeno();
       if (!deno) {
         return {
@@ -264,7 +287,7 @@ const checks = [
       }
       // Lista plików liczona w Node (nie przez glob powłoki), żeby działało też w cmd na Windows.
       const files = edgeFunctionEntryPoints();
-      const r = run(`deno check --no-lock --node-modules-dir=none ${files.join(" ")}`, {
+      const r = await runAsync(`deno check --no-lock --node-modules-dir=none ${files.join(" ")}`, {
         cwd: "supabase/functions",
       });
       return {
@@ -278,12 +301,12 @@ const checks = [
   {
     name: "build",
     label: "build (next build)",
-    run: () => {
+    run: async () => {
       // next build przepisuje next-env.d.ts (ścieżki .next/types zamiast .next/dev/types): nie chcemy tego w commicie.
       const generated = "next-env.d.ts";
       const before = existsSync(generated) ? readFileSync(generated, "utf8") : null;
       // Te same wartości zastępcze co w CI (.github/workflows): build nie łączy się z bazą.
-      const r = run("npm run build", {
+      const r = await runAsync("npm run build", {
         env: {
           NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "ci-placeholder",
@@ -389,19 +412,22 @@ const indent = (text) =>
     .map((line) => `    ${line}`)
     .join("\n");
 
-function runChecks() {
+async function runChecks() {
   const results = [];
   let testSummary = null;
-  for (const check of checks) {
+  const total = checks.length;
+  for (const [index, check] of checks.entries()) {
+    const step = `[${index + 1}/${total}]`;
     if (ONLY && !ONLY.has(check.name)) {
       results.push({ ...check, skipped: true, ok: false, summary: "pominięto (--only)", ms: 0 });
+      say(`${step} ${check.label}: pominięto (--only)`);
       continue;
     }
-    say(`→ ${check.label} …`);
-    const r = check.run();
+    say(`${step} ${check.label} … start`);
+    const r = await check.run();
     if (check.name === "test" && r.tests) testSummary = r.tests;
     results.push({ ...check, ...r });
-    say(`  ${r.ok ? "OK" : "BŁĄD"}: ${r.summary}`);
+    say(`${step} ${check.label}: ${r.ok ? "OK" : "BŁĄD"}, ${r.summary} (${(r.ms / 1000).toFixed(1)} s)`);
     if (!r.ok && r.detail) say(indent(r.detail));
   }
   return { results, testSummary };
@@ -435,6 +461,7 @@ async function confirm(question) {
 }
 
 async function commitAndPush({ branch, originals, results, testSummary, version }) {
+  say("\nCommit: dodawanie zmian (git add -A) …");
   git("add -A");
   const message = buildCommitMessage({
     version,
@@ -454,10 +481,12 @@ async function commitAndPush({ branch, originals, results, testSummary, version 
 
   const messageFile = ".git/RELEASE_COMMIT_MSG";
   writeFileSync(messageFile, message);
+  say("Commit: git commit …");
   const commit = git(`commit -F ${messageFile}`);
   if (commit.code !== 0) throw new Error(`git commit nie powiódł się:\n${commit.output}`);
   say(`\nZacommitowano: ${message.split("\n")[0]}`);
 
+  say("Push: git push …");
   const hasUpstream = git("rev-parse --abbrev-ref --symbolic-full-name @{u}").code === 0;
   const push = git(hasUpstream ? "push" : `push -u origin ${branch}`);
   if (push.code !== 0) throw new Error(`git push nie powiódł się (commit zostaje lokalnie):\n${push.output}`);
@@ -479,8 +508,13 @@ async function main() {
   );
 
   heading("Kontrole");
+  say(
+    DRY_RUN
+      ? "Podbicie wersji: pominięte (dry-run)"
+      : `Podbicie wersji w package.json i package-lock.json → ${nextVersion}`
+  );
   const originals = DRY_RUN ? null : applyVersion(nextVersion);
-  const { results, testSummary } = runChecks();
+  const { results, testSummary } = await runChecks();
   printSummary(results, nextVersion, files);
 
   const failed = results.filter((r) => !r.skipped && !r.ok);

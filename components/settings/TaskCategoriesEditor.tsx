@@ -171,7 +171,7 @@ export default function TaskCategoriesEditor({
       />
 
       <div className="mt-4 border-t border-line pt-3">
-        <p className="mb-2 text-xs font-semibold text-text-secondary">Kategorie systemowe – zawsze dostępne</p>
+        <p className="mb-2 text-xs font-semibold text-text-secondary">Kategorie systemowe, zawsze dostępne</p>
         <ul className="flex flex-wrap gap-2">
           {SYSTEM_TASK_CATEGORIES.map((name) => (
             <li

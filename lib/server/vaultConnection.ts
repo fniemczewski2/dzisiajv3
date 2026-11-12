@@ -16,6 +16,7 @@ import {
 } from "@/config/server";
 import { DEFAULT_NOTE_COLOR } from "@/config/noteColors";
 import { allowMethods, requireUser } from "@/lib/server/apiGuards";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { decryptToken, encryptToken } from "@/lib/server/tokenCrypto";
 import { safeEqual } from "@/lib/server/safeEqual";
@@ -76,7 +77,9 @@ export async function startVaultOAuth(
   provider: VaultProvider
 ): Promise<void> {
   if (!allowMethods(req, res, ["GET"])) return;
-  if (!(await requireUser(req, res))) return;
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  if (!(await enforceRateLimit(res, "oauthStart", auth.user.id))) return;
   const credentials = PROVIDERS[provider].credentials();
   if (!credentials) {
     res.status(503).json({ error: "Połączenie z tą chmurą nie jest skonfigurowane." });

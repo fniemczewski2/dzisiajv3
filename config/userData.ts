@@ -24,9 +24,9 @@ export interface UserTable {
 export const USER_TABLES: readonly UserTable[] = [
   // Etap 1 – tabele bez zależnych.
   { table: "task_reminders", label: "Przypomnienia o zadaniach", owner: "user_id", stage: 1 },
-  { table: "slack_task_links", label: "Slack – powiązane zadania", owner: "user_id", stage: 1 },
-  { table: "slack_task_targets", label: "Slack – zadania do wysłania", owner: "user_id", stage: 1 },
-  { table: "slack_deleted_tasks", label: "Slack – zadania do usunięcia", owner: "user_id", stage: 1 },
+  { table: "slack_task_links", label: "Slack, powiązane zadania", owner: "user_id", stage: 1 },
+  { table: "slack_task_targets", label: "Slack, zadania do wysłania", owner: "user_id", stage: 1 },
+  { table: "slack_deleted_tasks", label: "Slack, zadania do usunięcia", owner: "user_id", stage: 1 },
   { table: "day_schema_choices", label: "Wybrane schematy dnia", owner: "user_id", stage: 1 },
   { table: "daily_overrides", label: "Wyjątki od schematów dnia", owner: "user_id", stage: 1 },
   { table: "quick_notes", label: "Szybkie notatki", owner: "user_id", stage: 1 },
@@ -69,18 +69,18 @@ export const USER_TABLES: readonly UserTable[] = [
     stage: 1,
   },
   { table: "reports", label: "Protokoły", owner: "user_id", stage: 1 },
-  { table: "health_daily", label: "Zdrowie – dane dzienne", owner: "user_id", stage: 1 },
-  { table: "health_workouts", label: "Zdrowie – treningi", owner: "user_id", stage: 1 },
+  { table: "health_daily", label: "Zdrowie, dane dzienne", owner: "user_id", stage: 1 },
+  { table: "health_workouts", label: "Zdrowie, treningi", owner: "user_id", stage: 1 },
   {
     table: "health_sleep_segments",
-    label: "Zdrowie – fazy snu",
+    label: "Zdrowie, fazy snu",
     owner: "user_id",
     exportColumns: "id, date, stage, started_at, ended_at",
     stage: 1,
   },
   {
     table: "health_heart_rate",
-    label: "Zdrowie – pomiary tętna",
+    label: "Zdrowie, pomiary tętna",
     owner: "user_id",
     exportColumns: "recorded_at, bpm",
     stage: 1,
@@ -139,7 +139,7 @@ export const USER_TABLES: readonly UserTable[] = [
   { table: "bills", label: "Rachunki (dawny moduł)", owner: "user_id", stage: 2 },
   {
     table: "slack_lists",
-    label: "Slack – listy",
+    label: "Slack, listy",
     owner: "user_id",
     exportColumns:
       "id, list_id, list_title, column_map, is_default, sync_enabled, assignee_emails, import_category, created_at, updated_at",
@@ -182,10 +182,10 @@ export const USER_TABLES: readonly UserTable[] = [
  */
 export const MEETING_POLL_EXPORT_LABELS = {
   polls: "Ankiety terminów",
-  dates: "Ankiety – dni",
-  responses: "Ankiety – odpowiedzi uczestników",
-  availabilities: "Ankiety – dostępność uczestników",
-  bookings: "Ankiety zapisów – zapisy uczestników",
+  dates: "Ankiety, dni",
+  responses: "Ankiety, odpowiedzi uczestników",
+  availabilities: "Ankiety, dostępność uczestników",
+  bookings: "Ankiety zapisów, zapisy uczestników",
   ownResponses: "Moje odpowiedzi w ankietach innych osób",
 } as const;
 

@@ -20,7 +20,7 @@ const NAV_BUTTON =
 
 export default function HealthDateNav({ date, today, onChange }: Readonly<Props>) {
   return (
-    <div className="card flex w-full items-center p-1 hover:shadow-sm">
+    <div className="card flex w-full items-center p-1">
       <button
         onClick={() => onChange(addDaysToDate(date, -1))}
         type="button"

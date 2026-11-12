@@ -117,7 +117,7 @@ export function usePushNotifications(userId: string | undefined) {
       const vapidKey = publicEnv.vapidPublicKey;
       if (!subscription || !vapidKey || subscriptionMatchesVapidKey(subscription, vapidKey)) return subscription;
 
-      console.warn("[SW] Subskrypcja push z innym kluczem VAPID – tworzę nową");
+      console.warn("[SW] Subskrypcja push z innym kluczem VAPID, tworzę nową");
       const endpoint = subscription.toJSON().endpoint;
       await subscription.unsubscribe();
       await deleteStoredSubscription(endpoint);

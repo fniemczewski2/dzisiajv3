@@ -63,10 +63,10 @@ export default function YearTable({ year }: Readonly<{ year: number }>) {
                 <th scope="row" className="py-1.5 text-left font-normal text-text capitalize">
                   {r.name}
                 </th>
-                <td className="py-1.5">{r.income || "—"}</td>
-                <td className="py-1.5">{r.expenses || "—"}</td>
+                <td className="py-1.5">{r.income || "-"}</td>
+                <td className="py-1.5">{r.expenses || "-"}</td>
                 <td className={`py-1.5 ${r.balance < 0 ? "text-danger" : ""}`}>
-                  {r.income || r.expenses ? r.balance : "—"}
+                  {r.income || r.expenses ? r.balance : "-"}
                 </td>
               </tr>
             ))}

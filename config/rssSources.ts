@@ -171,7 +171,7 @@ export const RSS_SOURCES: readonly RssSource[] = [
   // Wiadomości z Polski – ogólnoinformacyjne
   {
     id: "pap",
-    name: "PAP – Polska Agencja Prasowa",
+    name: "PAP, Polska Agencja Prasowa",
     url: "https://pap-mediaroom.pl/rss.xml",
     group: "Wiadomości z Polski",
     lang: "pl",
@@ -179,7 +179,7 @@ export const RSS_SOURCES: readonly RssSource[] = [
   },
   {
     id: "tvn24",
-    name: "TVN24 – najnowsze",
+    name: "TVN24, najnowsze",
     url: "https://tvn24.pl/najnowsze.xml",
     group: "Wiadomości z Polski",
     lang: "pl",

@@ -45,7 +45,7 @@ export default function DaySchemaSwitcher({ schemas, weekday, choice, onChange, 
         onChange={(e) => onChange(e.target.value)}
         className="input-field w-auto min-w-48 flex-1 sm:flex-none"
       >
-        <option value="default">{fallback ? `${fallback.name} (domyślny)` : "Domyślny – brak schematu"}</option>
+        <option value="default">{fallback ? `${fallback.name} (domyślny)` : "Domyślny, brak schematu"}</option>
         {forDay
           .filter((s) => s.id !== fallback?.id)
           .map((s) => (

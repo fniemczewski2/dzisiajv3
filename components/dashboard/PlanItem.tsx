@@ -48,11 +48,11 @@ const getTimes = (e: PlanItemData["data"]) => {
 
     const renderedTime = isSameDay ? (
       <>
-        {formatTime(e.start_time)}–{formatTime(e.end_time)}
+        {formatTime(e.start_time)}-{formatTime(e.end_time)}
       </>
     ) : (
       <>
-        {formatTime(e.start_time, true)} – {formatTime(e.end_time, true)}
+        {formatTime(e.start_time, true)}, {formatTime(e.end_time, true)}
       </>
     );
     return renderedTime;
@@ -67,12 +67,12 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
   const colors = getPriorityColors(Number(item.data?.priority ?? 3));
 
   return (
-    <div className="group mb-2 flex items-center justify-between rounded-lg border border-line bg-surface p-2 text-text shadow-sm transition-colors">
+    <div className="group mb-2 flex items-center justify-between rounded-lg border border-line bg-surface p-2 text-text transition-colors">
       <div className="flex min-w-0 flex-1 flex-col gap-y-1 pr-2">
         <p className="flex items-center gap-2 truncate text-sm leading-tight font-bold">
           {item.type === "task" && (
             <span
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-xs font-bold shadow-sm"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
               style={colors}
             >
               {item.data?.priority}

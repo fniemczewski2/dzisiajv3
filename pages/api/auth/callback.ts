@@ -21,9 +21,9 @@ export function renderCallbackPage(nextPath: string): string {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
-    <title>Logowanie – Dzisiaj.Fun</title>
+    <title>Logowanie | Dzisiaj.Fun</title>
     <style>
-      :root { color-scheme: light dark; --bg: #F7F8FA; --card: #FFFFFF; --text: #101A26; --muted: #34475C; --line: #CBD3DD; --accent: #1D5FB0; }
+      :root { color-scheme: light dark; --bg: #F7F8FA; --card: #FCFBF8; --text: #101A26; --muted: #34475C; --line: #CBD3DD; --accent: #1D5FB0; }
       @media (prefers-color-scheme: dark) { :root { --bg: #04080F; --card: #0A121D; --text: #E9EEF4; --muted: #B9C5D3; --line: #2A3A4F; --accent: #7EB0EE; } }
       * { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; background: var(--bg); color: var(--text);

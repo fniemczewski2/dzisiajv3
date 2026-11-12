@@ -55,7 +55,7 @@ export const ToggleChip = ({ label, active, onClick, disabled = false }: Readonl
     aria-pressed={active}
     className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
       active
-        ? "border-transparent bg-secondary text-white shadow-sm"
+        ? "border-transparent bg-secondary text-white"
         : "border-line bg-surface text-text-secondary hover:bg-surface-hover hover:text-text"
     }`}
   >
@@ -87,7 +87,7 @@ export const ToggleSwitch = ({ id, label, checked, onChange, disabled = false }:
   >
     <span
       aria-hidden="true"
-      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-on-solid ring-0 transition duration-200 ease-in-out ${
         checked ? "translate-x-5" : "translate-x-0"
       }`}
     />

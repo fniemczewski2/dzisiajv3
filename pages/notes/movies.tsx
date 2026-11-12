@@ -26,7 +26,6 @@ export default function MoviesPage() {
         title="Filmy i seriale"
         description="Wyszukuj tytuły w bazie TMDB, zapisuj filmy i seriale do obejrzenia, oceniaj obejrzane i śledź postęp sezonów."
         canonical="https://www.dzisiaj.fun/notes/movies"
-        keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"
       />
       {fetching && movies.length === 0 ? (
         <SkeletonList count={4} variant="movie" />

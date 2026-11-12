@@ -116,7 +116,7 @@ const timeFmt = new Intl.DateTimeFormat("pl-PL", { hour: "2-digit", minute: "2-d
 /** „10:00–11:30” albo „pon. 10:00 – wt. 09:00” dla wydarzeń przez kilka dni. */
 export function formatConflictRange(c: EventConflict): string {
   const sameDay = c.start.toDateString() === c.end.toDateString();
-  if (sameDay) return `${timeFmt.format(c.start)}–${timeFmt.format(c.end)}`;
+  if (sameDay) return `${timeFmt.format(c.start)}-${timeFmt.format(c.end)}`;
   const dayFmt = new Intl.DateTimeFormat("pl-PL", { weekday: "short", day: "numeric", month: "numeric" });
-  return `${dayFmt.format(c.start)} ${timeFmt.format(c.start)} – ${dayFmt.format(c.end)} ${timeFmt.format(c.end)}`;
+  return `${dayFmt.format(c.start)} ${timeFmt.format(c.start)}, ${dayFmt.format(c.end)} ${timeFmt.format(c.end)}`;
 }

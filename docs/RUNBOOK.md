@@ -35,6 +35,7 @@ Dlatego **nie używaj `supabase db push`**.
 
 | Skrypt                                                | Co robi                                                                                                                           | Uwagi                                                                                                                 |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `supabase/sql/2026-11-12_rls_initplan.sql`            | opakowuje `auth.uid()` w `(select auth.uid())` we wszystkich politykach RLS w `public` (szybsze zapytania na dużych tabelach)     | po uruchomieniu zapytanie kontrolne z nagłówka skryptu zwraca 0 wierszy; skrypt jest idempotentny                     |
 | `supabase/sql/2026-10-17_errors_retention.sql`        | pg_cron: usuwanie logów błędów po 30 dniach                                                                                       | wymaga rozszerzenia `pg_cron`                                                                                         |
 | `supabase/sql/2026-10-18_audit_hardening.sql`         | indeksy, uprawnienia `anon`, `NOT NULL` na `user_id`, unikalne subskrypcje push, kolumna `mood_consent_at`, bucket `user-exports` | tabele z wierszami bez właściciela są wypisane w NOTICE i pominięte – przypisz lub usuń te wiersze i uruchom ponownie |
 | `supabase/sql/2026-10-19_trains_consent_realtime.sql` | kolumny `user_trains.planned_arrival`, `settings.mood_consent_version`; `shopping_lists` w publikacji Realtime                    | bez niego: przyjazd pociągu i wersja zgody nie są zapisywane, listy nie odświeżają się na żywo                        |
@@ -177,6 +178,20 @@ zablokuje odpowiedź funkcji (CORS, w UI „Brak połączenia z funkcją…”).
 1. Tymczasowo: `CSP_REPORT_ONLY=1` w Vercel i ponowne wdrożenie (polityka tylko raportuje).
 2. Dopisz domenę do właściwej dyrektywy w `next.config.mjs` (np. `connect-src` dla nowego API).
 3. Usuń `CSP_REPORT_ONLY` i wdroż ponownie.
+
+## Cloudflare Turnstile (publiczne formularze ankiet)
+
+Odpowiedź w ankiecie terminów (`/meet/<token>`, tylko nowa odpowiedź) i zapis na termin przechodzą weryfikację
+Turnstile (`lib/server/turnstile.ts`, widżet `components/ui/TurnstileWidget.tsx`).
+
+1. Cloudflare → Turnstile → dodaj widżet dla domeny aplikacji (tryb Managed).
+2. Vercel: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (publiczny) i `TURNSTILE_SECRET_KEY` (sekret), potem nowe wdrożenie.
+3. Bez `TURNSTILE_SECRET_KEY` serwer nie wymaga tokenu (tryb deweloperski); bez klucza witryny widżet się nie wyświetla.
+   W produkcji ustaw obie zmienne: z samym sekretem formularz nie da się wysłać, bo widżet nie wygeneruje tokenu.
+4. Lokalnie: klucze testowe Cloudflare z `.env.example` (zawsze zaliczają).
+5. CSP dopuszcza `https://challenges.cloudflare.com` w `script-src`, `connect-src` i `frame-src` (`next.config.mjs`).
+6. Awaria: odpowiedź 503 z endpointu ankiety oznacza brak odpowiedzi Cloudflare; po usunięciu przyczyny nic poza
+   ponowieniem próby nie jest potrzebne. Na czas awarii można usunąć `TURNSTILE_SECRET_KEY` (wyłącza weryfikację).
 
 ## Build produkcyjny i CSP
 

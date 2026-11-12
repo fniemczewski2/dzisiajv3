@@ -84,7 +84,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               <button
                 onClick={this.handleReset}
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2 font-medium text-white shadow-sm transition-colors hover:bg-secondary-hover"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2 font-medium text-white transition-colors hover:bg-secondary-hover"
               >
                 <RefreshCw aria-hidden="true" className="h-5 w-5" />
                 Spróbuj ponownie

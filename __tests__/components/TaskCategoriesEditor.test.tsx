@@ -62,7 +62,7 @@ describe("TaskCategoriesEditor", () => {
 
   it("pokazuje kategorie systemowe jako stałe", () => {
     setup();
-    expect(screen.getByText("Kategorie systemowe – zawsze dostępne")).toBeTruthy();
+    expect(screen.getByText("Kategorie systemowe, zawsze dostępne")).toBeTruthy();
     expect(screen.getByText("terminy")).toBeTruthy();
   });
 });

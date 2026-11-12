@@ -351,7 +351,7 @@ export default function EventForm({
             className="input-field"
             disabled={loading}
           >
-            <option value="local">Aplikacja – kalendarz domyślny</option>
+            <option value="local">Aplikacja, kalendarz domyślny</option>
             {calendars.map((cal) => (
               <option key={cal.id} value={cal.id} disabled={isRecurring}>
                 {calendarTargetLabel(cal)}

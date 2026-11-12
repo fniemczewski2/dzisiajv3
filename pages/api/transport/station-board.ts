@@ -4,6 +4,7 @@ import { TIMEOUTS_MS } from "@/config/server";
 import { serverEnv } from "@/config/env";
 import { getAppDateTime } from "@/lib/dateUtils";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type {
   StationsDictionaryResponse,
@@ -37,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     error,
   } = await supabase.auth.getUser();
   if (error || !user) return res.status(401).json({ error: "Brak autoryzacji." });
+  if (!(await enforceRateLimit(res, "stationBoard", user.id))) return;
 
   if (!stationName || Array.isArray(stationName)) return res.status(400).json({ error: "Brak nazwy stacji." });
 

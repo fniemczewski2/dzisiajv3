@@ -73,7 +73,7 @@ export default function BudgetOverview({
   }
 
   return (
-    <div className="card mb-6 p-4 shadow-sm sm:p-6">
+    <div className="card mb-6 p-4 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-bold text-text">Budżet</h3>
         <div className="flex gap-1 rounded-xl bg-surface p-1">
@@ -83,7 +83,7 @@ export default function BudgetOverview({
               onClick={() => setView(v)}
               type="button"
               className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
-                view === v ? "bg-secondary text-white shadow-sm" : "text-text-muted hover:text-text"
+                view === v ? "bg-secondary text-white" : "text-text-muted hover:text-text"
               }`}
             >
               {v === "year" ? "Rok" : "Miesiąc"}

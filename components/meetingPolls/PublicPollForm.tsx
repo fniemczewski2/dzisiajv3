@@ -11,6 +11,7 @@ import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 import RespondentResultsGrid from "./RespondentResultsGrid";
 import PublicSignupForm from "./PublicSignupForm";
+import TurnstileWidget, { TURNSTILE_ENABLED } from "../ui/TurnstileWidget";
 
 interface PublicPollFormProps {
   token: string;
@@ -34,6 +35,8 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const dragModeRef = React.useRef<"select" | "deselect">("select");
 
   // Wczytana wcześniejsza odpowiedź uczestnika – wypełnienie formularza w trakcie renderu.
@@ -76,8 +79,13 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
       const [date, start_time] = key.split("|");
       return { date, start_time };
     });
-    await submitResponse(name, email, slots);
+    const saved = await submitResponse(name, email, slots, turnstileToken ?? undefined);
+    // Token Turnstile jest jednorazowy: po nieudanej próbie potrzebne jest nowe wyzwanie.
+    if (!saved) setTurnstileReset((value) => value + 1);
   };
+
+  // Poprawa istniejącej odpowiedzi jest chroniona tokenem edycji, więc nie wymaga Turnstile.
+  const needsTurnstile = TURNSTILE_ENABLED && !hasExistingResponse;
 
   if (loading) {
     return <SkeletonSlotGrid />;
@@ -125,7 +133,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
         <h1 className="page-title">{poll.title}</h1>
         {poll.description && <p className="mt-1 text-sm text-text-secondary">{poll.description}</p>}
         {hasExistingResponse && (
-          <p className="mt-2 text-xs text-primary">Znaleźliśmy Twoją wcześniejszą odpowiedź – możesz ją tu poprawić.</p>
+          <p className="mt-2 text-xs text-primary">Znaleźliśmy Twoją wcześniejszą odpowiedź, możesz ją tu poprawić.</p>
         )}
       </div>
 
@@ -173,7 +181,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
           Zaznacz pasujące terminy, przeciągając po komórkach. Siatkę przewiniesz, przesuwając nagłówek z datami lub
           kolumnę godzin.
         </p>
-        <div className="card overflow-x-auto p-4 shadow-sm">
+        <div className="card overflow-x-auto p-4">
           <table ref={gridRef} className="border-collapse select-none">
             <thead>
               <tr>
@@ -231,7 +239,9 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
         </div>
       </div>
 
-      <SaveButton onClick={() => void handleSubmit()} disabled={submitting} />
+      {needsTurnstile && <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileReset} />}
+
+      <SaveButton onClick={() => void handleSubmit()} disabled={submitting || (needsTurnstile && !turnstileToken)} />
     </div>
   );
 }

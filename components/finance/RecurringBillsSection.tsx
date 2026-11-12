@@ -125,7 +125,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
 
       <div className="mt-4 rounded-card border border-dashed border-line-strong p-3">
         <p className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="text-sm font-medium text-text">Prognoza rachunków – {nextMonthLabel}</span>
+          <span className="text-sm font-medium text-text">Prognoza rachunków, {nextMonthLabel}</span>
           <span className="text-lg font-semibold text-text tabular-nums">{formatPln(forecast.total)}</span>
         </p>
         {forecast.items.length > 0 && (
@@ -145,7 +145,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
       {inactiveOrOther.length > 0 && (
         <details className="mt-3">
           <summary className="min-h-11 cursor-pointer py-2 text-sm text-text-secondary">
-            Pozostałe rachunki ({inactiveOrOther.length}) – bez terminu w tym miesiącu lub nieaktywne
+            Pozostałe rachunki ({inactiveOrOther.length}), bez terminu w tym miesiącu lub nieaktywne
           </summary>
           <ul className="divide-y divide-line">
             {inactiveOrOther.map((b) => (

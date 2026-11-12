@@ -7,21 +7,15 @@ import OfflineSync from "@/components/OfflineSync";
 import { SettingsProvider } from "@/providers/SettingsProvider";
 import { useEffect } from "react";
 import { type AppProps } from "next/app";
-import { Atkinson_Hyperlegible_Next } from "next/font/google";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
+import "@/lib/fonts";
 import "../styles/globals.css";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { installGlobalErrorHandlers } from "@/lib/errorReport";
 import { ThemeProvider } from "next-themes";
 import CookieBanner from "@/components/CookieBanner";
 import Layout from "@/components/ui/Layout";
-
-const atkinson = Atkinson_Hyperlegible_Next({
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-  variable: "--font-atkinson",
-});
 
 export default function MyApp({ Component, pageProps }: Readonly<AppProps>) {
   useEffect(() => {
@@ -41,11 +35,6 @@ export default function MyApp({ Component, pageProps }: Readonly<AppProps>) {
             <ToastProvider>
               <SettingsProvider>
                 <OfflineSync />
-                <style jsx global>{`
-                  :root {
-                    --font-atkinson: ${atkinson.style.fontFamily};
-                  }
-                `}</style>
                 <div className="contents">
                   <Layout>
                     <Component {...pageProps} />

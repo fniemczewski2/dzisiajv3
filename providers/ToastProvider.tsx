@@ -40,10 +40,10 @@ function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const VARIANT_STYLES: Record<ToastVariant, string> = {
-  success: "border-l-success [--toast-icon:var(--color-green-700)] dark:[--toast-icon:var(--color-green-300)]",
-  error: "border-l-danger [--toast-icon:var(--color-red-700)] dark:[--toast-icon:var(--color-red-300)]",
-  info: "border-l-info [--toast-icon:var(--color-blue-700)] dark:[--toast-icon:var(--color-blue-300)]",
-  loading: "border-l-info [--toast-icon:var(--color-blue-700)] dark:[--toast-icon:var(--color-blue-300)]",
+  success: "[--toast-icon:var(--color-success)]",
+  error: "[--toast-icon:var(--color-danger)]",
+  info: "[--toast-icon:var(--color-info)]",
+  loading: "[--toast-icon:var(--color-info)]",
 };
 
 function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
@@ -62,7 +62,7 @@ function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
 }
 
 function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; onRemove: (id: string) => void }>) {
-  const className = `flex items-start gap-3 w-full pl-3.5 pr-2.5 py-3 rounded-xl border border-line border-l-4 bg-card text-text shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`;
+  const className = `flex items-start gap-3 w-full pl-3.5 pr-2.5 py-3 rounded-xl border border-line bg-card text-text shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`;
   const content = (
     <>
       <ToastIcon variant={item.variant} />
@@ -261,7 +261,7 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
         ))}
       </section>
       {/* Potwierdzenia renderujemy poza kontenerem powiadomień przyklejonym do
-          dołu ekranu – modalny <dialog> trafia do top layer i jest wyśrodkowany. */}
+          dołu ekranu, modalny <dialog> trafia do top layer i jest wyśrodkowany. */}
       {confirms.map((item) => (
         <ConfirmEl key={item.id} item={item} onRemove={remove} />
       ))}

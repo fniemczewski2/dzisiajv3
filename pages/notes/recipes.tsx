@@ -33,7 +33,6 @@ export default function RecipesPage() {
         title="Przepisy"
         description="Zbieraj przepisy z listą składników w kategoriach: śniadania, zupy, dania główne, przystawki, sałatki i desery."
         canonical="https://www.dzisiaj.fun/notes/recipes"
-        keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"
       />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title">Przepisy</h1>

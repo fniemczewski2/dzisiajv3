@@ -48,7 +48,6 @@ export default function TrainsPage() {
         title="Pociągi"
         description="Śledź pociągi PKP z opóźnieniem na żywo, dodawaj je z biletu PDF i sprawdzaj tablice odjazdów wybranych stacji."
         canonical="https://www.dzisiaj.fun/trains"
-        keywords="pociągi, PKP, opóźnienia, bilet, rozkład jazdy, tablica odjazdów"
       />
       <div className="mb-4 flex items-center">
         <h1 className="page-title">Pociągi</h1>
@@ -78,7 +77,7 @@ export default function TrainsPage() {
               </summary>
               <p className="mb-3 text-sm text-text-secondary">
                 Ostatnie 12 miesięcy, od najnowszych. Status z PKP PLK pobieramy tylko od 3 h przed planowym odjazdem do
-                3 h po planowym przyjeździe – dla odbytych podróży już nie.
+                3 h po planowym przyjeździe, dla odbytych podróży już nie.
               </p>
               <div className="grid min-w-0 items-start gap-4 md:grid-cols-2">
                 {pastTrains.slice(0, pastLimit).map((train) => (

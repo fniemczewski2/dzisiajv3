@@ -18,31 +18,31 @@ const TEMPLATES: Record<Exclude<LetterCategory, "Inne">, LetterTemplateMeta> = {
   Wniosek: {
     subject: "Wniosek",
     legalBasis:
-      "art. 63 § 1 oraz art. 221 § 1 ustawy z dnia 14 czerwca 1960 r. – Kodeks postępowania administracyjnego (t.j. Dz.U. z 2024 r. poz. 572 z późn. zm.)",
+      "art. 63 § 1 oraz art. 221 § 1 ustawy z dnia 14 czerwca 1960 r., Kodeks postępowania administracyjnego (t.j. Dz.U. z 2024 r. poz. 572 z późn. zm.)",
     opening: "zwracam się z wnioskiem w następującej sprawie:",
   },
   Skarga: {
     subject: "Skarga",
     legalBasis:
-      "art. 227 i n. ustawy z dnia 14 czerwca 1960 r. – Kodeks postępowania administracyjnego (t.j. Dz.U. z 2024 r. poz. 572 z późn. zm.)",
+      "art. 227 i n. ustawy z dnia 14 czerwca 1960 r., Kodeks postępowania administracyjnego (t.j. Dz.U. z 2024 r. poz. 572 z późn. zm.)",
     opening: "wnoszę skargę w następującej sprawie:",
   },
   "Wykroczenie drogowe": {
     subject: "Zawiadomienie o popełnieniu wykroczenia drogowego",
     legalBasis:
-      "art. 6 ustawy z dnia 24 sierpnia 2001 r. – Kodeks postępowania w sprawach o wykroczenia (t.j. Dz.U. z 2024 r. poz. 977 z późn. zm.) w związku z przepisami ustawy z dnia 20 czerwca 1997 r. – Prawo o ruchu drogowym (t.j. Dz.U. z 2024 r. poz. 1251 z późn. zm.)",
+      "art. 6 ustawy z dnia 24 sierpnia 2001 r., Kodeks postępowania w sprawach o wykroczenia (t.j. Dz.U. z 2024 r. poz. 977 z późn. zm.) w związku z przepisami ustawy z dnia 20 czerwca 1997 r., Prawo o ruchu drogowym (t.j. Dz.U. z 2024 r. poz. 1251 z późn. zm.)",
     opening: "zawiadamiam o popełnieniu wykroczenia drogowego przez kierującego następującym pojazdem:",
   },
   Wykroczenie: {
     subject: "Zawiadomienie o popełnieniu wykroczenia",
     legalBasis:
-      "art. 6 ustawy z dnia 24 sierpnia 2001 r. – Kodeks postępowania w sprawach o wykroczenia (t.j. Dz.U. z 2024 r. poz. 977 z późn. zm.)",
+      "art. 6 ustawy z dnia 24 sierpnia 2001 r., Kodeks postępowania w sprawach o wykroczenia (t.j. Dz.U. z 2024 r. poz. 977 z późn. zm.)",
     opening: "zawiadamiam o popełnieniu wykroczenia:",
   },
   Przestępstwo: {
     subject: "Zawiadomienie o podejrzeniu popełnienia przestępstwa",
     legalBasis:
-      "art. 304 § 1 ustawy z dnia 6 czerwca 1997 r. – Kodeks postępowania karnego (t.j. Dz.U. z 2024 r. poz. 37 z późn. zm.)",
+      "art. 304 § 1 ustawy z dnia 6 czerwca 1997 r., Kodeks postępowania karnego (t.j. Dz.U. z 2024 r. poz. 37 z późn. zm.)",
     opening: "zawiadamiam o podejrzeniu popełnienia przestępstwa:",
   },
 };

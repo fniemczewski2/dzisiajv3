@@ -40,6 +40,7 @@ const client = () => ({
 });
 
 vi.mock("@supabase/supabase-js", () => ({ createClient: () => client() }));
+vi.mock("@/lib/server/rateLimit", () => ({ enforceRateLimit: async () => true }));
 vi.mock("@/lib/supabase/server", () => ({ createServerSupabase: () => client() }));
 vi.mock("@/config/env", () => ({
   publicEnv: { appUrl: "https://www.dzisiaj.fun", supabaseUrl: "https://x.supabase.co", supabasePublishableKey: "pk" },

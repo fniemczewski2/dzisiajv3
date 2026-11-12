@@ -14,7 +14,7 @@ export default function DynamicPackingPage() {
         return {
           pageTitle: "Plecak",
           headerTitle: "Plecak",
-          description: "Lista rzeczy do spakowania do plecaka na krótki wyjazd – odhaczaj spakowane rzeczy.",
+          description: "Lista rzeczy do spakowania do plecaka na krótki wyjazd, odhaczaj spakowane rzeczy.",
           categories: BACKPACK,
         };
       case "safety":
@@ -28,7 +28,7 @@ export default function DynamicPackingPage() {
         return {
           pageTitle: "Walizka",
           headerTitle: "Walizka",
-          description: "Lista rzeczy do spakowania do walizki na dłuższy wyjazd – odhaczaj spakowane rzeczy.",
+          description: "Lista rzeczy do spakowania do walizki na dłuższy wyjazd, odhaczaj spakowane rzeczy.",
           categories: SUITCASE,
         };
       case undefined:

@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error(`[account/delete] Przerwano na kroku ${step}:`, error);
     return res.status(500).json({
       error:
-        "Nie udało się usunąć wszystkich danych. Konto pozostało aktywne – spróbuj ponownie lub napisz do administratora.",
+        "Nie udało się usunąć wszystkich danych. Konto pozostało aktywne, spróbuj ponownie lub napisz do administratora.",
     });
   }
 }

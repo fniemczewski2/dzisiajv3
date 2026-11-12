@@ -1,3 +1,6 @@
+/** Skrypt widżetu Cloudflare Turnstile (źródło dopuszczone w CSP w next.config.mjs). */
+export const TURNSTILE_SCRIPT_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
 export const DESCRIPTION_MAPPINGS = [
   { match: ["BIEDRONKA"], name: "Biedronka" },
   { match: ["LIDL"], name: "Lidl" },

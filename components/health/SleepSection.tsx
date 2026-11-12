@@ -91,7 +91,7 @@ function Timeline({ timeline }: Readonly<{ timeline: SleepSegment[] }>) {
           <thead className="sticky top-0 bg-card">
             <tr className="text-left text-text-muted">
               <th scope="col" className="px-3 py-2 font-semibold">
-                Od – do
+                Od, do
               </th>
               <th scope="col" className="px-3 py-2 font-semibold">
                 Faza
@@ -105,7 +105,7 @@ function Timeline({ timeline }: Readonly<{ timeline: SleepSegment[] }>) {
             {timeline.map((s) => (
               <tr key={`${s.started_at}-${s.stage}`} className="border-t border-line text-text tabular-nums">
                 <td className="px-3 py-1.5">
-                  {warsawTime(s.started_at)}–{warsawTime(s.ended_at)}
+                  {warsawTime(s.started_at)}-{warsawTime(s.ended_at)}
                 </td>
                 <td className="px-3 py-1.5">{SLEEP_STAGE_LABELS[s.stage]}</td>
                 <td className="px-3 py-1.5 text-right">{formatMinutes(durationMinutes(s))}</td>
@@ -125,7 +125,7 @@ function SleepSession({ summary }: Readonly<{ summary: SleepSummary }>) {
         <StatTile label="Sen" value={formatMinutes(summary.asleepMinutes)} />
         <StatTile label="Przebudzenia" value={formatMinutes(summary.awakeMinutes)} />
         <StatTile label="Czas w łóżku" value={formatMinutes(summary.inBedMinutes)} />
-        <StatTile label="Okno snu" value={`${warsawTime(summary.startedAt)}–${warsawTime(summary.endedAt)}`} />
+        <StatTile label="Okno snu" value={`${warsawTime(summary.startedAt)}-${warsawTime(summary.endedAt)}`} />
       </dl>
       <StageBreakdown summary={summary} />
       <Timeline timeline={summary.timeline} />
@@ -154,7 +154,7 @@ export default function SleepSection({ segments, date, loading }: Readonly<Props
         {summaries.map((summary, index) => (
           <div key={summary.startedAt} className="space-y-3">
             <h3 className="text-sm font-semibold text-text">
-              Sen {index + 1}: {warsawTime(summary.startedAt)}–{warsawTime(summary.endedAt)}
+              Sen {index + 1}: {warsawTime(summary.startedAt)}-{warsawTime(summary.endedAt)}
             </h3>
             <SleepSession summary={summary} />
           </div>

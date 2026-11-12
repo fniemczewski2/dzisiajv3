@@ -323,7 +323,7 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         {...common}
         id="finanse"
         title="Finanse"
-        description="Profile finansowe zapisują się od razu; pozostałe pola – przyciskiem „Zapisz”."
+        description="Profile finansowe zapisują się od razu; pozostałe pola, przyciskiem „Zapisz”."
         keys={["show_budget_items", "daily_spending_categories", "daily_spending_limit"] as const}
       >
         {(d, set) => (

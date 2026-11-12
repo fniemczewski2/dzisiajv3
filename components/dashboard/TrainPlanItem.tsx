@@ -16,7 +16,7 @@ function Detail({ label, value }: Readonly<{ label: string; value: string | null
     <div className="flex- 1 flex min-w-0 items-end justify-center">
       <span className="text-xs text-text-muted">{label}:&nbsp;</span>
       <span className={`truncate text-sm font-bold tabular-nums ${value ? "text-text" : "text-text-muted"}`}>
-        {value ?? "–"}
+        {value ?? "-"}
       </span>
     </div>
   );
@@ -76,7 +76,7 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   });
   const badge = { text: punctuality.label, cls: BADGE_CLASS[punctuality.kind] };
   return (
-    <div className={"group mb-2 rounded-lg border border-line bg-surface p-2 text-text shadow-sm transition-colors"}>
+    <div className={"group mb-2 rounded-lg border border-line bg-surface p-2 text-text transition-colors"}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2 truncate text-sm leading-tight font-bold">{title}</p>
@@ -107,7 +107,7 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
               planned={planned}
               expected={expected}
               delayed={delayed}
-              fallback={(!isArrival && train.departureTime) || "–"}
+              fallback={(!isArrival && train.departureTime) || "-"}
             />
           </span>
         </div>

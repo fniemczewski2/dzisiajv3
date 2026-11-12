@@ -32,7 +32,7 @@ export default function ConnectedCalendars() {
   const mainAccounts = accounts.filter((a) => a.google_calendar_id === "@account_connection");
 
   return (
-    <div className="card mt-2 overflow-hidden shadow-sm transition-all">
+    <div className="card mt-2 overflow-hidden transition-all">
       <button
         onClick={() => setExpanded((p) => !p)}
         type="button"
@@ -83,7 +83,7 @@ export default function ConnectedCalendars() {
                               {account.sync_error && (
                                 <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-warning">
                                   <AlertTriangle className="h-3 w-3 shrink-0" />
-                                  <span>Wymaga ponownej autoryzacji – połącz konto ponownie</span>
+                                  <span>Wymaga ponownej autoryzacji, połącz konto ponownie</span>
                                 </div>
                               )}
                             </div>
@@ -135,7 +135,7 @@ export default function ConnectedCalendars() {
                                     )}
                                     <span
                                       aria-hidden="true"
-                                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-on-solid ring-0 transition duration-200 ease-in-out ${
                                         isCurrentlyOn ? "translate-x-4" : "translate-x-0"
                                       } ${isToggling ? "opacity-0" : "opacity-100"}`}
                                     />
@@ -157,14 +157,14 @@ export default function ConnectedCalendars() {
                   <button
                     type="button"
                     onClick={handleConnectGoogle}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-bold text-text shadow-sm transition-colors hover:bg-surface-hover"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-bold text-text transition-colors hover:bg-surface-hover"
                   >
                     <GoogleIcon decorative /> Google
                   </button>
                   <button
                     type="button"
                     onClick={handleConnectOutlook}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-bold text-text shadow-sm transition-colors hover:bg-surface-hover"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-bold text-text transition-colors hover:bg-surface-hover"
                   >
                     <MicrosoftIcon decorative /> Outlook
                   </button>

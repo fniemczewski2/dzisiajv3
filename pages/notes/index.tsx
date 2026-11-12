@@ -25,9 +25,8 @@ export default function NotesPage() {
     <>
       <Seo
         title="Notatki"
-        description="Szybkie notatki z prostym formatowaniem tekstu – zapisuj pomysły, informacje i listy w jednym miejscu."
+        description="Szybkie notatki z prostym formatowaniem tekstu, zapisuj pomysły, informacje i listy w jednym miejscu."
         canonical="https://www.dzisiaj.fun/notes"
-        keywords="notatki, second brain, baza wiedzy, zapiski, notatnik online"
       />
       <div className="mb-6 flex items-center justify-between gap-2">
         <div className="flex flex-row items-center gap-3 sm:gap-4">

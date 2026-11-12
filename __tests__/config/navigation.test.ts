@@ -8,7 +8,18 @@ import { join, relative } from "node:path";
 import { BOTTOM_BAR, NAVIGATION_BUTTONS, isPathEnabled, menuItemsFor, menuRowSizes } from "@/config/modules";
 
 /** Widoki poza menu: strona główna, publiczne, ustawienia i przewodnik (z ustawień), widoki dynamiczne. */
-const OUTSIDE_MENU = new Set(["/", "/start", "/demo", "/privacy", "/settings", "/guide"]);
+const OUTSIDE_MENU = new Set([
+  "/",
+  "/start",
+  "/demo",
+  "/privacy",
+  "/terms",
+  "/thanks",
+  "/404",
+  "/500",
+  "/settings",
+  "/guide",
+]);
 
 function pageRoutes(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {

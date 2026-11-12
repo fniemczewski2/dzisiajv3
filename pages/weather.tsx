@@ -25,15 +25,15 @@ import { useWeather } from "@/hooks/useWeather";
 import { HourlyRow, WeatherData } from "@/types/weather";
 
 function WeatherIcon({ code }: { readonly code: number }) {
-  if (code <= 1) return <Sun className="h-10 w-10 text-warning drop-shadow-sm" />;
-  if (code === 2) return <CloudSun className="h-10 w-10 text-warning drop-shadow-sm" />;
-  if (code <= 3) return <Cloud className="h-10 w-10 text-text-muted drop-shadow-sm" />;
-  if (code <= 48) return <CloudFog className="h-10 w-10 text-text-muted drop-shadow-sm" />;
-  if (code <= 67) return <CloudDrizzle className="h-10 w-10 text-info drop-shadow-sm" />;
-  if (code <= 77) return <CloudSnow className="h-10 w-10 text-info drop-shadow-sm" />;
-  if (code <= 82) return <CloudRain className="h-10 w-10 text-primary drop-shadow-sm" />;
-  if (code <= 86) return <CloudSnow className="h-10 w-10 text-info drop-shadow-sm" />;
-  return <CloudLightning className="h-10 w-10 text-warning drop-shadow-sm" />;
+  if (code <= 1) return <Sun className="h-10 w-10 text-warning" />;
+  if (code === 2) return <CloudSun className="h-10 w-10 text-warning" />;
+  if (code <= 3) return <Cloud className="h-10 w-10 text-text-muted" />;
+  if (code <= 48) return <CloudFog className="h-10 w-10 text-text-muted" />;
+  if (code <= 67) return <CloudDrizzle className="h-10 w-10 text-info" />;
+  if (code <= 77) return <CloudSnow className="h-10 w-10 text-info" />;
+  if (code <= 82) return <CloudRain className="h-10 w-10 text-primary" />;
+  if (code <= 86) return <CloudSnow className="h-10 w-10 text-info" />;
+  return <CloudLightning className="h-10 w-10 text-warning" />;
 }
 
 function airQualityColor(value: number): string {
@@ -103,7 +103,7 @@ export default function WeatherPage() {
     content = (
       <>
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <ThermometerSnowflake className="h-5 w-5 text-info" />
             <span className="text-base font-medium text-text">
               {"Min "}
@@ -111,7 +111,7 @@ export default function WeatherPage() {
             </span>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <ThermometerSun className="h-5 w-5 text-danger" />
             <span className="text-base font-medium text-text">
               {"Max "}
@@ -119,7 +119,7 @@ export default function WeatherPage() {
             </span>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <CloudRain className="h-5 w-5 text-info" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Opady</span>
@@ -127,7 +127,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Wind
               className="h-5 w-5 text-info"
               style={{ transform: `rotate(${forecast.hourly.winddirection_10m?.[0] ?? 0}deg)` }}
@@ -140,7 +140,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Cloud className={`h-5 w-5 ${airQualityColor(air.hourly.pm10?.[0] ?? 0)}`} />
             <div className="flex flex-col text-text">
               <span className="font-medium">PM10</span>
@@ -148,7 +148,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Cloud className={`h-5 w-5 ${airQualityColor(air.hourly.pm2_5?.[0] ?? 0)}`} />
             <div className="flex flex-col text-text">
               <span className="font-medium">PM2.5</span>
@@ -156,7 +156,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Gauge className="h-5 w-5 text-info" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Ciśnienie</span>
@@ -166,7 +166,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Droplet className="h-5 w-5 text-deco-violet" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Wilgotność</span>
@@ -176,7 +176,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Sun className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="font-medium">UV max</span>
@@ -185,7 +185,7 @@ export default function WeatherPage() {
           </div>
 
           {biomet && (
-            <div className="card flex items-center space-x-3 p-3 shadow">
+            <div className="card flex items-center space-x-3 p-3">
               <Gauge className={`h-5 w-5 ${biomet.color}`} />
               <div className="flex flex-col text-text">
                 <span className="text-base font-medium">Biomet</span>
@@ -194,7 +194,7 @@ export default function WeatherPage() {
             </div>
           )}
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Sunrise className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Wschód</span>
@@ -207,7 +207,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3">
             <Sunset className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Zachód</span>
@@ -222,7 +222,7 @@ export default function WeatherPage() {
         </div>
 
         <h3 className="mb-2 text-lg font-semibold text-text">Prognoza na kolejne 24h</h3>
-        <div className="mb-6 overflow-x-auto rounded-xl border border-line shadow-md">
+        <div className="mb-6 overflow-x-auto rounded-xl border border-line">
           <table className="min-w-full table-auto text-left text-sm">
             <thead className="border-b border-line bg-surface font-semibold text-text-secondary">
               <tr>
@@ -265,7 +265,7 @@ export default function WeatherPage() {
         <h3 className="mb-2 text-lg font-semibold text-text">Prognoza na kolejne dni</h3>
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-7">
           {forecast.daily.time.slice(1).map((date: string, i: number) => (
-            <div key={date} className="card p-4 text-center shadow">
+            <div key={date} className="card p-4 text-center">
               <p className="text-sm text-text-secondary">
                 {new Date(date).toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
               </p>
@@ -290,7 +290,6 @@ export default function WeatherPage() {
         title="Pogoda"
         description="Prognoza pogody dla Twojej lokalizacji z jakością powietrza, indeksem UV oraz godzinami wschodu i zachodu słońca."
         canonical="https://www.dzisiaj.fun/weather"
-        keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
       />
       <h1 className="page-title mb-4">Pogoda</h1>
       {content}

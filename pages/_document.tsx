@@ -1,10 +1,11 @@
 // pages/_document.tsx
 
 import { Html, Head, Main, NextScript } from "next/document";
+import { atkinson } from "@/lib/fonts";
 
 export default function Document() {
   return (
-    <Html lang="pl">
+    <Html lang="pl" className={atkinson.variable}>
       <Head>
         <meta charSet="UTF-8" />
         <link rel="manifest" href="/manifest.json" />

@@ -55,7 +55,7 @@ export function validateTaskCategoryName(raw: string, others: readonly string[])
   const name = normalizeTaskCategoryName(raw);
   if (!name) return "Nazwa kategorii nie może być pusta.";
   if (name.length > MAX_TASK_CATEGORY_LENGTH) return `Nazwa może mieć najwyżej ${MAX_TASK_CATEGORY_LENGTH} znaków.`;
-  if (isSystemTaskCategory(name)) return `„${name}” to kategoria systemowa – jest dostępna zawsze.`;
+  if (isSystemTaskCategory(name)) return `„${name}” to kategoria systemowa, jest dostępna zawsze.`;
   if (others.some((o) => sameName(o, name))) return `Kategoria „${name}” już istnieje.`;
   return null;
 }

@@ -97,7 +97,7 @@ function TimerControlButtons({ controls, running, paused, isMultiPhase }: Readon
         <button
           onClick={controls.pause}
           type="button"
-          className="flex flex-[1.5] flex-col items-center justify-center gap-1 rounded-xl border-transparent bg-secondary py-2 text-white shadow-sm transition-all hover:bg-secondary-hover active:scale-95 sm:py-3"
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 rounded-xl border-transparent bg-secondary py-2 text-white transition-all hover:bg-secondary-hover active:scale-95 sm:py-3"
           title={paused ? "Wznów" : "Pauza"}
           aria-label={paused ? "Wznów" : "Pauza"}
         >
@@ -108,7 +108,7 @@ function TimerControlButtons({ controls, running, paused, isMultiPhase }: Readon
         <button
           onClick={controls.start}
           type="button"
-          className="flex flex-[1.5] flex-col items-center justify-center gap-1 rounded-xl border border-transparent bg-secondary py-2 text-white shadow-sm transition-all hover:bg-secondary-hover active:scale-95 sm:py-3"
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 rounded-xl border border-transparent bg-secondary py-2 text-white transition-all hover:bg-secondary-hover active:scale-95 sm:py-3"
           title="Start"
           aria-label="Start"
         >
@@ -170,7 +170,7 @@ export default function UniversalTimer({
 
   return (
     <div
-      className={`card mx-auto flex w-full max-w-md flex-col items-center shadow-md transition-colors ${
+      className={`card mx-auto flex w-full max-w-md flex-col items-center transition-colors ${
         compact ? "gap-3 p-4 sm:gap-4" : "gap-6 p-6"
       }`}
     >

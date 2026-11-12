@@ -180,7 +180,7 @@ export default function RecurrenceEditor({
             <span>
               {Number(startDay.slice(8, 10))}. dnia miesiąca
               {Number(startDay.slice(8, 10)) > 28 && (
-                <span className="block text-sm text-text-secondary">w krótszych miesiącach – ostatniego dnia</span>
+                <span className="block text-sm text-text-secondary">w krótszych miesiącach, ostatniego dnia</span>
               )}
             </span>
           </label>

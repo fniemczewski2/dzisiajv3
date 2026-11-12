@@ -173,10 +173,7 @@ export default function ShoppingListView({
         }
 
         return (
-          <li
-            key={list.id}
-            className="card group flex h-full break-inside-avoid flex-col p-5 shadow-sm transition-shadow hover:shadow-md"
-          >
+          <li key={list.id} className="card group flex h-full break-inside-avoid flex-col p-5">
             <div className="mb-4 flex items-start justify-between">
               <div className="mr-4 min-w-0 flex-1">
                 <h3 className="truncate text-lg leading-tight font-bold text-text">{list.name}</h3>

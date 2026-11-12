@@ -32,7 +32,7 @@ export default function NoteColorPicker({ value, onChange, disabled = false }: R
             <span
               aria-hidden="true"
               className={clsx(
-                "h-8 w-8 rounded-full border-2 transition-shadow peer-checked:ring-2 peer-checked:ring-text peer-checked:ring-offset-2 peer-checked:ring-offset-card peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card",
+                "h-8 w-8 rounded-full border-2 peer-checked:ring-2 peer-checked:ring-text peer-checked:ring-offset-2 peer-checked:ring-offset-card peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card",
                 color.className
               )}
             />

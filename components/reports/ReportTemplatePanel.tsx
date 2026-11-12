@@ -140,7 +140,7 @@ export default function ReportTemplatePanel() {
 
       {set.templates.length === 0 && (
         <p className="text-sm text-text-secondary">
-          Nie masz jeszcze szablonów – PDF ma wygląd domyślny. Dodaj pierwszy szablon powyżej.
+          Nie masz jeszcze szablonów, PDF ma wygląd domyślny. Dodaj pierwszy szablon powyżej.
         </p>
       )}
 
@@ -210,7 +210,7 @@ export default function ReportTemplatePanel() {
                 </li>
               ))}
             </ul>
-            <div className="rounded-lg border border-line bg-white p-4" aria-hidden="true">
+            <div className="rounded-lg border border-line bg-on-solid p-4" aria-hidden="true">
               <p style={{ color: palette.heading }} className="text-lg font-bold">
                 Posiedzenie zarządu
               </p>
@@ -226,7 +226,7 @@ export default function ReportTemplatePanel() {
             </div>
             {adjusted && (
               <output className="block text-sm text-text-secondary">
-                Ten kolor jest za jasny na białym tle – w dokumencie użyjemy ciemniejszego odcienia ({palette.heading}).
+                Ten kolor jest za jasny na białym tle, w dokumencie użyjemy ciemniejszego odcienia ({palette.heading}).
               </output>
             )}
           </fieldset>

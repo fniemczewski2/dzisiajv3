@@ -345,7 +345,7 @@ describe("POST /api/health/shortcut – rejestr tętna", () => {
     });
     await handler(req, res);
     expect(res.statusCode).toBe(400);
-    expect(res.payload.error).toContain("rok 2000–2100");
+    expect(res.payload.error).toContain("rok 2000-2100");
     expect(h.upserts).toHaveLength(0);
   });
 });

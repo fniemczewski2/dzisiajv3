@@ -60,7 +60,6 @@ export default function PomodoroPage() {
         title="Pomodoro"
         description="Licznik pracy techniką Pomodoro: bloki skupienia przeplatane przerwami, z własną długością każdej fazy."
         canonical="https://www.dzisiaj.fun/tasks/pomodoro"
-        keywords="pomodoro, technika pomodoro, skupienie, focus, timer, praca głęboka"
       />
       <div className="relative mb-4 flex items-center justify-start gap-3">
         <h1 className="page-title">Pomodoro</h1>

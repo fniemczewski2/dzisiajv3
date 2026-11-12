@@ -48,6 +48,15 @@ export default function Layout({ children }: { readonly children: ReactNode }) {
             >
               Polityka prywatności
             </Link>
+            <span aria-hidden="true" className="mx-2">
+              ·
+            </span>
+            <Link
+              href="/terms"
+              className="text-primary underline-offset-4 transition-colors hover:text-primary-strong hover:underline"
+            >
+              Regulamin
+            </Link>
           </p>
         </footer>
       </main>

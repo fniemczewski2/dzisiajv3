@@ -185,13 +185,10 @@ export default function WorkLogsPage() {
 
         <ul className="flex flex-wrap gap-4 sm:gap-6">
           {workLogs.map((log) => (
-            <li
-              key={log.id}
-              className="card group relative flex flex-col justify-between p-5 transition-all hover:shadow-md"
-            >
+            <li key={log.id} className="card group relative flex flex-col justify-between p-5 transition-all">
               <div className="mb-4 space-y-2">
                 <p className="mb-3 text-lg leading-tight font-bold text-text">{log.description}</p>
-                <div className="flex items-center justify-center gap-2 rounded-lg bg-surface px-3 py-1.5 font-bold text-primary shadow-sm">
+                <div className="flex items-center justify-center gap-2 rounded-lg bg-surface px-3 py-1.5 font-bold text-primary">
                   <Clock className="h-4 w-4 sm:h-5 sm:w-5" /> {calculateDuration(log.start_time, log.end_time)}
                 </div>
                 <div className="space-y-2 text-sm font-medium text-text-secondary">
@@ -201,7 +198,7 @@ export default function WorkLogsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary/70" />
-                    {format(parseLocal(log.start_time), "HH:mm")}–
+                    {format(parseLocal(log.start_time), "HH:mm")}-
                     {log.end_time ? format(parseLocal(log.end_time), "HH:mm") : "..."}
                   </div>
                 </div>
@@ -238,7 +235,7 @@ export default function WorkLogsPage() {
           {!isFormOpen && !editing && <AddButton onClick={() => setIsFormOpen(true)} />}
         </div>
         <div className="flex items-center justify-center">
-          <div className="card flex w-fit items-center justify-between p-1 shadow-sm sm:flex-none">
+          <div className="card flex w-fit items-center justify-between p-1 sm:flex-none">
             <button
               onClick={onPrev}
               type="button"

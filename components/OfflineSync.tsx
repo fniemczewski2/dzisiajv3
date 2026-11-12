@@ -33,8 +33,8 @@ export default function OfflineSync() {
         if (dropped > 0) {
           toast.error(
             dropped === 1
-              ? "Jednego zapisu wykonanego bez sieci nie udało się zapisać – dodaj go ponownie."
-              : `Nie udało się zapisać ${dropped} zapisów wykonanych bez sieci – dodaj je ponownie.`
+              ? "Jednego zapisu wykonanego bez sieci nie udało się zapisać, dodaj go ponownie."
+              : `Nie udało się zapisać ${dropped} zapisów wykonanych bez sieci, dodaj je ponownie.`
           );
         }
       } finally {

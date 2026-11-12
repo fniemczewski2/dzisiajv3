@@ -43,7 +43,7 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
 
       <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         {categories.map((cat) => (
-          <div key={cat.title} className="card flex h-full flex-col p-4 shadow-sm sm:p-5">
+          <div key={cat.title} className="card flex h-full flex-col p-4 sm:p-5">
             <h3 className="mb-2 border-b border-line pb-2 text-lg font-bold text-text">{cat.title}</h3>
             <ul className="flex-1">
               {cat.items.map((item) => {

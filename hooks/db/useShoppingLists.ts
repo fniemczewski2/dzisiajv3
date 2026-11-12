@@ -21,7 +21,7 @@ function deleteQuestion(isOwner: boolean, isShared: boolean): string {
     return "Czy chcesz wypisać się z tej listy? Zniknie z Twoich list, a właściciel zachowa ją u siebie.";
   }
   return isShared
-    ? "Czy chcesz usunąć listę zakupów? Lista jest udostępniona – zniknie także u drugiej osoby."
+    ? "Czy chcesz usunąć listę zakupów? Lista jest udostępniona, zniknie także u drugiej osoby."
     : "Czy chcesz usunąć listę zakupów?";
 }
 

@@ -5,6 +5,7 @@ import formidable from "formidable";
 import fs from "node:fs/promises";
 import os from "node:os";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { ensurePdfCanvasGlobals } from "@/lib/server/pdfCanvasGlobals";
 import { TICKET_UPLOAD_MAX_BYTES, TICKET_ALLOWED_MIME } from "@/config/limits";
 
@@ -258,6 +259,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
+  if (!(await enforceRateLimit(res, "parseTicket", user.id))) return;
 
   const form = formidable({
     multiples: false,

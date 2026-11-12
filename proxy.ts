@@ -11,7 +11,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeRedirectPath } from "@/lib/redirect";
 
-const PUBLIC_PATHS = new Set(["/start", "/privacy", "/guide", "/demo"]);
+const PUBLIC_PATHS = new Set(["/start", "/privacy", "/terms", "/thanks", "/guide", "/demo"]);
 const PUBLIC_PREFIXES = ["/v/", "/meet/", "/.well-known/"];
 
 function isPublic(path: string): boolean {
@@ -31,6 +31,7 @@ export default async function proxy(request: NextRequest) {
   if (!connection) return response;
 
   const supabase = createServerClient(connection.url, connection.key, {
+    cookieOptions: publicEnv.sessionCookieOptions,
     cookies: {
       getAll() {
         return request.cookies.getAll();

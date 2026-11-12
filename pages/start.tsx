@@ -59,10 +59,9 @@ export default function StartPage() {
   return (
     <>
       <Seo
-        title="Dzisiaj.Fun – zadania, kalendarz, budżet i notatki"
+        title="Dzisiaj.Fun | zadania, kalendarz, budżet i notatki"
         description="Zadania, kalendarz, poczta, rachunki, budżet, notatki i listy zakupów w jednej aplikacji. Synchronizacja z Kalendarzem Google i Outlookiem."
         canonical="https://www.dzisiaj.fun/start"
-        keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />
       <div className="mx-auto max-w-6xl px-1 sm:px-2">
         <section className="py-8 text-center sm:py-14">
@@ -78,7 +77,7 @@ export default function StartPage() {
               onClick={handleGoogleLogin}
               type="button"
               disabled={isLoggingIn}
-              className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-secondary px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-secondary-hover disabled:opacity-60"
+              className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-secondary px-6 py-3 font-semibold text-white transition-colors hover:bg-secondary-hover disabled:opacity-60"
             >
               Zaloguj przez Google
             </button>
@@ -95,7 +94,7 @@ export default function StartPage() {
         {changed.length > 0 && (
           <section
             aria-labelledby="whats-new-heading"
-            className="mb-12 rounded-card border border-line bg-card p-5 shadow-sm sm:p-7"
+            className="mb-12 rounded-card border border-line bg-card p-5 sm:p-7"
           >
             <h2 id="whats-new-heading" className="mb-1 font-display text-2xl font-bold text-text">
               Co nowego
@@ -125,7 +124,7 @@ export default function StartPage() {
 
         <section className="pb-8" aria-labelledby="features-heading">
           <h2 id="features-heading" className="mb-2 text-center font-display text-3xl font-bold text-text">
-            Wszystko w jednym miejscu
+            Funkcje aplikacji
           </h2>
           <p className="mb-10 text-center text-text-muted">Sześć obszarów, tak jak w menu aplikacji.</p>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -133,7 +132,7 @@ export default function StartPage() {
               <section
                 key={group.category}
                 aria-labelledby={`cat-${group.category}`}
-                className="flex flex-col overflow-hidden rounded-card border border-line bg-card shadow-sm"
+                className="flex flex-col overflow-hidden rounded-card border border-line bg-card"
               >
                 <header className="border-b border-line px-5 pt-5 pb-3">
                   <h3 id={`cat-${group.category}`} className="font-display text-xl font-bold text-text">

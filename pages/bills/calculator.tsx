@@ -195,9 +195,8 @@ export default function BillCalculator() {
     <>
       <Seo
         title="Kalkulator kosztów"
-        description="Podziel wspólne koszty mieszkania między dwie osoby proporcjonalnie do dochodów netto – z uwzględnieniem ZUS, zaliczki na PIT i kursu EUR/PLN."
+        description="Podziel wspólne koszty mieszkania między dwie osoby proporcjonalnie do dochodów netto, z uwzględnieniem ZUS, zaliczki na PIT i kursu EUR/PLN."
         canonical="https://www.dzisiaj.fun/bills/calculator"
-        keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
       />
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="mb-6 flex items-center justify-between gap-3">
@@ -206,7 +205,7 @@ export default function BillCalculator() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            <section className="card p-5 shadow-sm sm:p-6">
+            <section className="card p-5 sm:p-6">
               <h2 className="section-title mb-5 flex items-center gap-2 border-b border-line pb-3">
                 Miesięczne Opłaty
               </h2>
@@ -240,7 +239,7 @@ export default function BillCalculator() {
               </div>
             </section>
 
-            <section className="card p-5 shadow-sm sm:p-6">
+            <section className="card p-5 sm:p-6">
               <h2 className="section-title mb-4 flex items-center gap-2 border-b border-line pb-3">
                 Dochody i Podatki
               </h2>
@@ -270,7 +269,7 @@ export default function BillCalculator() {
                   <div className="flex items-center justify-between border-b border-line pb-2">
                     <h3 className="font-bold text-text">Osoba 1</h3>
                     <select
-                      aria-label="Waluta – osoba 1"
+                      aria-label="Waluta, osoba 1"
                       value={currency1}
                       onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
                       className="card px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
@@ -329,7 +328,7 @@ export default function BillCalculator() {
                   <div className="flex items-center justify-between border-b border-line pb-2">
                     <h3 className="font-medium text-text">Osoba 2</h3>
                     <select
-                      aria-label="Waluta – osoba 2"
+                      aria-label="Waluta, osoba 2"
                       value={currency2}
                       onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
                       className="card px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
@@ -387,7 +386,7 @@ export default function BillCalculator() {
             </section>
           </div>
           <div className="lg:col-span-1">
-            <section className="card sticky top-6 p-5 shadow-sm sm:p-6">
+            <section className="card sticky top-6 p-5 sm:p-6">
               <h2 className="section-title mb-6 border-b border-line pb-3 text-center">Podsumowanie</h2>
 
               <div className="space-y-4">

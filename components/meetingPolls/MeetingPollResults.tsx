@@ -9,18 +9,7 @@ import {
 } from "@/hooks/useMeetingPollStats";
 import { useOrigin } from "@/hooks/useIsClient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  CalendarCheck2,
-  Calendar,
-  Clock,
-  Hourglass,
-  Sparkles,
-  Timer,
-  Trash2,
-  Users,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarCheck2, Calendar, Clock, Hourglass, Timer, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -168,7 +157,7 @@ function PersonSummary({
                         key={range.start}
                         className="rounded-lg bg-success-soft px-2 py-0.5 text-xs font-semibold text-success tabular-nums"
                       >
-                        {range.start}–{range.end}
+                        {range.start}-{range.end}
                       </span>
                     ))}
                   </span>
@@ -202,7 +191,7 @@ function BestRangesCard({
       className="rounded-card border border-primary/30 bg-primary/5 p-4 sm:p-5"
     >
       <h2 id="best-ranges-heading" className="section-title flex items-center gap-2">
-        <Sparkles aria-hidden="true" className="h-5 w-5 text-primary" />
+        <CalendarCheck2 aria-hidden="true" className="h-5 w-5 text-primary" />
         Najlepsze terminy
       </h2>
       <p className="mt-0.5 text-sm text-text-secondary">
@@ -219,7 +208,7 @@ function BestRangesCard({
                 onClick={() => onPick(range)}
                 className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line-strong bg-card px-3 py-1.5 text-sm font-semibold text-text tabular-nums transition-colors hover:border-primary hover:bg-surface"
               >
-                {weekday} {day} · {range.start}–{range.end}
+                {weekday} {day} · {range.start}-{range.end}
                 <span className="text-xs font-normal text-text-muted">
                   {formatDurationMinutes(range.slots * slotDurationMinutes)}
                 </span>
@@ -281,7 +270,7 @@ function PollResultsHeader({
           {data.dates.length} {data.dates.length === 1 ? "dzień" : "dni"}
         </MetaChip>
         <MetaChip icon={Clock}>
-          {data.poll.time_start.slice(0, 5)}–{data.poll.time_end.slice(0, 5)}
+          {data.poll.time_start.slice(0, 5)}-{data.poll.time_end.slice(0, 5)}
         </MetaChip>
         <MetaChip icon={Timer}>{data.poll.slot_duration_minutes} min / slot</MetaChip>
         {isOpen && data.poll.closes_at && (
@@ -545,7 +534,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
               Wybrany termin
             </h2>
             <p className="text-sm text-text-secondary tabular-nums">
-              {selectionDay.weekday} {selectionDay.day} · {times[selection.startIndex]}–
+              {selectionDay.weekday} {selectionDay.day} · {times[selection.startIndex]}-
               {slotEndTime(times[selection.endIndex], duration)} ·{" "}
               {formatDurationMinutes((selection.endIndex - selection.startIndex + 1) * duration)}
             </p>
@@ -607,7 +596,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                 onChange={(e) => setSlotCalendar(e.target.value)}
                 className="input-field"
               >
-                <option value="local">Aplikacja – kalendarz domyślny</option>
+                <option value="local">Aplikacja, kalendarz domyślny</option>
                 {calendarOptions.map((cal) => (
                   <option key={cal.id} value={cal.id}>
                     {cal.provider === "google" ? "Google: " : "Outlook: "}
@@ -639,7 +628,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             {pendingSlots.map((s, i) => (
               <li key={`${s.date}-${s.start_time}`} className="flex items-center justify-between gap-2 text-sm">
                 <span className="min-w-0">
-                  <span className="font-semibold text-text">{s.title}</span> – {s.date}, {s.start_time}–{s.end_time}
+                  <span className="font-semibold text-text">{s.title}</span>, {s.date}, {s.start_time}-{s.end_time}
                   <span className="text-text-muted"> • {calendarLabel(s.calendarChoice)}</span>
                 </span>
                 <IconActionButton
@@ -667,7 +656,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
           <ul className="space-y-1 text-sm">
             {finalizedResults.map((r) => (
               <li key={`${r.date}-${r.start_time}`}>
-                {r.date}, {r.start_time}–{r.end_time} – zaproszono {r.invitedParticipants} zalogowanych uczestników.
+                {r.date}, {r.start_time}-{r.end_time}, zaproszono {r.invitedParticipants} zalogowanych uczestników.
               </li>
             ))}
           </ul>

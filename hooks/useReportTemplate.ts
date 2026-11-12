@@ -181,7 +181,7 @@ export function useReportTemplates() {
       try {
         return await loadReportTemplate(supabase, template);
       } catch {
-        toast.error("Nie udało się wczytać szablonu – PDF ma wygląd domyślny.");
+        toast.error("Nie udało się wczytać szablonu, PDF ma wygląd domyślny.");
         return undefined;
       }
     },

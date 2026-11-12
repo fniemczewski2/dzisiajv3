@@ -43,7 +43,6 @@ export default function TrainingPage() {
         title="Trening interwałowy"
         description="Stoper do treningów interwałowych, np. HIIT i Tabata. Ustaw czas pracy, przerwy i liczbę rund."
         canonical="https://www.dzisiaj.fun/training"
-        keywords="trening, interwały, stoper, hiit, tabata, fitness"
       />
       <div className="space-y-6">
         <h1 className="page-title mb-6 w-full">Trening</h1>
@@ -59,7 +58,7 @@ export default function TrainingPage() {
           />
 
           {!running && !paused && (
-            <div className="card mx-auto mt-8 max-w-sm p-6 shadow-sm transition-colors">
+            <div className="card mx-auto mt-8 max-w-sm p-6 transition-colors">
               <div className="mb-5 flex items-center gap-2 border-b border-line pb-3">
                 <Settings2 className="h-5 w-5 text-text-muted" />
                 <h3 className="text-sm font-bold text-text">Konfiguracja interwałów</h3>

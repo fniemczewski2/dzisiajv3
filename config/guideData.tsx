@@ -57,8 +57,8 @@ export const guideSections: GuideSection[] = [
     iconColorClass: "text-primary",
     listItems: [
       <>
-        <K>Centrum dowodzenia.</K> Widok główny zbiera w jednym miejscu wszystko, co istotne na dziś: plan dnia, listę
-        zadań, wydarzenia z kalendarza, widgety nawyków, wody i nastroju oraz kamienie milowe z celów.
+        <K>Widok główny.</K> Zbiera to, co istotne na dziś: plan dnia, listę zadań, wydarzenia z kalendarza, widgety
+        nawyków, wody i nastroju oraz kamienie milowe z celów.
       </>,
       <>
         <K>Oś czasu 06:00-23:00.</K> Lewa kolumna to interaktywny harmonogram dnia podzielony na godziny. Wyświetla
@@ -78,19 +78,19 @@ export const guideSections: GuideSection[] = [
         <ul>
           <li>
             {" "}
-            <em>trening</em> – Trening,
+            <em>trening</em>: Trening,
           </li>
           <li>
             {" "}
-            <em>zakupy</em> – Listy zakupów,
+            <em>zakupy</em>: Listy zakupów,
           </li>
           <li>
             {" "}
-            <em>spotkanie</em> – Protokoły,
+            <em>spotkanie</em>: Protokoły,
           </li>
           <li>
             {" "}
-            <em>film</em> – Filmy.
+            <em>film</em>: Filmy.
           </li>
         </ul>
       </>,
@@ -121,7 +121,7 @@ export const guideSections: GuideSection[] = [
         kilku schematów, wyświetlony zostanie pierwszy pasujący.
       </>,
       <>
-        <K>Różnica między schematem a zadaniem. </K> Schematy to stałe rutyny – nie mają statusu &quot;wykonane&quot; i
+        <K>Różnica między schematem a zadaniem. </K> Schematy to stałe rutyny, nie mają statusu &quot;wykonane&quot; i
         wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
       </>,
     ],
@@ -142,11 +142,11 @@ export const guideSections: GuideSection[] = [
         dniu. Możesz wracać do poprzednich dat i uzupełniać zaległe wpisy.
       </>,
       <>
-        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki – ikona zniknie z kokpitu. Nie powoduje
-        to usunięcia historycznych danych.
+        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki, ikona zniknie z kokpitu. Nie powoduje to
+        usunięcia historycznych danych.
       </>,
       <>
-        <K>Reset.</K> Reset następuje automatycznie o północy – każdy dzień zaczyna się od zera.
+        <K>Reset.</K> Reset następuje automatycznie o północy, każdy dzień zaczyna się od zera.
       </>,
     ],
   },
@@ -184,7 +184,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Widoczność w kalendarzu.</K> Każdy dzień z zapisanym nastrojem jest oznaczony kolorową kropką w komórce
-        kalendarza miesięcznego – na komputerze w rogu, na telefonie jako mały wskaźnik.
+        kalendarza miesięcznego, na komputerze w rogu, na telefonie jako mały wskaźnik.
       </>,
       <>
         <K>Konfiguracja.</K> W Ustawieniach możesz zmieniać etykiety, kolory (6 gotowych presetów + dowolny color
@@ -205,7 +205,7 @@ export const guideSections: GuideSection[] = [
     listItems: [
       <>
         <K>Priorytety 1-5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz
-        sortować zadania według priorytetu, daty lub alfabetycznie – wybierz w Ustawieniach.
+        sortować zadania według priorytetu, daty lub alfabetycznie, wybierz w Ustawieniach.
       </>,
       <>
         <K>Filtry czasowe.</K> Pasek filtrów nad listą pozwala wyświetlić zadania z: wczoraj, dzisiaj, jutra, pojutrze
@@ -238,7 +238,7 @@ export const guideSections: GuideSection[] = [
     listItems: [
       <>
         <K>Powtarzanie.</K> W formularzu zadania wybierz w polu <em>Powtarzaj</em> częstotliwość (codziennie, co
-        tydzień, co miesiąc, co roku), w polu <em>Co ile</em> odstęp, a dla tygodni – dni tygodnia. W sekcji{" "}
+        tydzień, co miesiąc, co roku), w polu <em>Co ile</em> odstęp, a dla tygodni, dni tygodnia. W sekcji{" "}
         <em>Koniec</em> ustawisz datę końcową albo liczbę powtórzeń.
       </>,
       <>
@@ -246,7 +246,7 @@ export const guideSections: GuideSection[] = [
         najbliższych 14 dni.
       </>,
       <>
-        <K>Przypomnienia.</K> Do zadania z terminem dodasz przypomnienia push – gotowe propozycje (np. dzień wcześniej)
+        <K>Przypomnienia.</K> Do zadania z terminem dodasz przypomnienia push, gotowe propozycje (np. dzień wcześniej)
         albo własną datę i godzinę. Wymagają włączenia powiadomień w Ustawieniach.
       </>,
       <>
@@ -322,12 +322,12 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Automatyzacja przez Skróty (Shortcuts).</K> Dedykowany, zabezpieczony osobnym sekretem endpoint pozwala
-        rozpocząć i zakończyć wpis automatycznie – np. skrótem uruchamianym po dotarciu do biura (geofencing) lub jednym
+        rozpocząć i zakończyć wpis automatycznie, np. skrótem uruchamianym po dotarciu do biura (geofencing) lub jednym
         dotknięciem na ekranie głównym telefonu, bez otwierania aplikacji.
       </>,
       <>
         <K>Ochrona przed duplikatami.</K> Aplikacja nie pozwoli rozpocząć nowego wpisu, dopóki poprzedni pozostaje
-        otwarty (brak zapisanego czasu zakończenia) – także przy wpisach dodanych automatycznie.
+        otwarty (brak zapisanego czasu zakończenia), także przy wpisach dodanych automatycznie.
       </>,
     ],
   },
@@ -347,7 +347,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Konta Gmail i Outlook.</K> Podłącz do pięciu kont. Aplikacja pokazuje ostatnie wiadomości z folderu
-        odbiorczego, a treść pobiera dopiero po otwarciu wiadomości – nie zapisuje jej w bazie.
+        odbiorczego, a treść pobiera dopiero po otwarciu wiadomości, nie zapisuje jej w bazie.
       </>,
       <>
         <K>Odpowiedź po potwierdzeniu.</K> Napisz odpowiedź, sprawdź podgląd i potwierdź wysłanie. Bez potwierdzenia
@@ -372,7 +372,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Format listowy.</K> Notatki to listy punktowane – każda linia to osobny element. Ułatwia to edycję,
+        <K>Format listowy.</K> Notatki to listy punktowane, każda linia to osobny element. Ułatwia to edycję,
         przeglądanie na telefonie i późniejsze rozwijanie treści.
       </>,
       <>
@@ -385,7 +385,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Przypinanie i archiwizacja.</K> Przypięte notatki wyświetlają się zawsze na górze listy. Zarchiwizowane są
-        ukryte (nie usunięte) – przywrócisz je przyciskiem <em>Pokaż</em>.
+        ukryte (nie usunięte), przywrócisz je przyciskiem <em>Pokaż</em>.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie po dacie aktualizacji (domyślnie) lub alfabetycznie.
@@ -420,9 +420,9 @@ export const guideSections: GuideSection[] = [
         dostępu (szyfrowane) i skróty treści potrzebne do wykrywania zmian.
       </>,
       <>
-        <K>Co jest synchronizowane.</K> Notatki (z folderami jako podfolderami), przepisy, osoby i protokoły – każdy
-        wpis to plik Markdown z nagłówkiem YAML (m.in. <em>dzisiaj_id</em>). Synchronizacja działa w obie strony: zmiana
-        w aplikacji aktualizuje plik, zmiana pliku aktualizuje aplikację.
+        <K>Co jest synchronizowane.</K> Notatki (z folderami jako podfolderami), przepisy, osoby i protokoły, każdy wpis
+        to plik Markdown z nagłówkiem YAML (m.in. <em>dzisiaj_id</em>). Synchronizacja działa w obie strony: zmiana w
+        aplikacji aktualizuje plik, zmiana pliku aktualizuje aplikację.
       </>,
       <>
         <K>Nowe pliki z Obsidiana.</K> Plik utworzony w Obsidianie w folderze <em>Notatki</em>, <em>Przepisy</em>,{" "}
@@ -433,10 +433,10 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Konflikty.</K> Gdy ten sam wpis zmienisz po obu stronach, w pliku zostaje wersja z aplikacji, a Twoja wersja
-        z vaultu trafia do osobnego pliku z dopiskiem <em>(konflikt data)</em> – nic nie ginie.
+        z vaultu trafia do osobnego pliku z dopiskiem <em>(konflikt data)</em>, nic nie ginie.
       </>,
       <>
-        <K>Kiedy to działa.</K> Synchronizację uruchamiasz przyciskiem w Ustawieniach – nie działa w tle. Odłączenie
+        <K>Kiedy to działa.</K> Synchronizację uruchamiasz przyciskiem w Ustawieniach, nie działa w tle. Odłączenie
         usuwa tokeny i stan synchronizacji, a pliki w Twojej chmurze zostają.
       </>,
     ],
@@ -481,7 +481,7 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Kategorie i terminy odpowiedzi.</K> Dostępne kategorie: UDIP, wniosek, skarga, wykroczenie drogowe,
         wykroczenie, przestępstwo oraz własna. Aplikacja podpowiada termin odpowiedzi na podstawie kategorii (np. 14 dni
-        dla UDIP, 31 dla wniosku lub skargi) – pole pozostaje edytowalne.
+        dla UDIP, 31 dla wniosku lub skargi), pole pozostaje edytowalne.
       </>,
       <>
         <K>Dane zdarzenia.</K> Dla zgłoszeń wykroczeń możesz dodać numer rejestracyjny pojazdu oraz datę i miejsce
@@ -505,7 +505,7 @@ export const guideSections: GuideSection[] = [
         rozciągają się na kilka komórek. W komórkach widoczna jest liczba nadmiarowych wydarzeń (+N).
       </>,
       <>
-        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome – Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są
+        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome, Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są
         automatycznie obliczane i oznaczane czerwonym kolorem w kalendarzu oraz w nagłówku aplikacji.
       </>,
       <>
@@ -524,7 +524,7 @@ export const guideSections: GuideSection[] = [
         <K>Eksport .ics.</K> Każde wydarzenie możesz pobrać jako plik .ics i dodać do dowolnego kalendarza zewnętrznego.
       </>,
       <>
-        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych – wydarzenie
+        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych, wydarzenie
         pojawi się w jego kalendarzu.
       </>,
       <>
@@ -544,7 +544,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu – aplikacja
+        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu, aplikacja
         zbuduje z tego siatkę dostępności. Przycisk <em>Najbliższe 5 dni robocze</em> dodaje dni jednym kliknięciem.
       </>,
       <>
@@ -553,7 +553,7 @@ export const guideSections: GuideSection[] = [
         imię, opcjonalnie e-mail oraz zgodę na przetwarzanie danych. W widoku ankiety widzisz zapisy pogrupowane według
         terminów, możesz usunąć zapis (zwalnia miejsce) i pobrać listę jako plik CSV. Uczestnik wybiera wolne terminy
         (do ustawionego limitu), podaje imię, opcjonalnie e-mail i zgodę na przetwarzanie danych; zajęte terminy są
-        wyłączone, a zapis jest atomowy – ostatnie miejsce dostaje dokładnie jedna osoba. Jedna osoba jest rozpoznawana
+        wyłączone, a zapis jest atomowy, ostatnie miejsce dostaje dokładnie jedna osoba. Jedna osoba jest rozpoznawana
         po e-mailu, a bez niego po imieniu.
       </>,
       <>
@@ -561,7 +561,7 @@ export const guideSections: GuideSection[] = [
         dni i termin zamknięcia. Zamkniętą ankietę możesz otworzyć ponownie.
       </>,
       <>
-        <K>Publiczny link.</K> Każda ankieta ma link <em>/meet/…</em>, który możesz wysłać uczestnikom – odpowiadają bez
+        <K>Publiczny link.</K> Każda ankieta ma link <em>/meet/…</em>, który możesz wysłać uczestnikom, odpowiadają bez
         zakładania konta, podając tylko imię (e-mail opcjonalnie).
       </>,
       <>
@@ -569,7 +569,7 @@ export const guideSections: GuideSection[] = [
         poprawić.
       </>,
       <>
-        <K>Wyniki.</K> Widok wyników to mapa cieplna – im ciemniejsze pole, tym więcej osób jest dostępnych w danym
+        <K>Wyniki.</K> Widok wyników to mapa cieplna, im ciemniejsze pole, tym więcej osób jest dostępnych w danym
         slocie.
       </>,
       <>
@@ -578,7 +578,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Dostępność jednej osoby.</K> Nad siatką wybierz uczestnika (albo kliknij <em>Zobacz dostępność</em> na liście
-        uczestników) – siatka pokaże wyłącznie terminy, które ta osoba zaznaczyła, a nad nią zobaczysz jej łączną
+        uczestników), siatka pokaże wyłącznie terminy, które ta osoba zaznaczyła, a nad nią zobaczysz jej łączną
         dostępność i przedziały godzin w każdym dniu. Przycisk <em>Wszyscy</em> albo <em>Pokaż wszystkich</em> wraca do
         widoku całego zespołu.
       </>,
@@ -587,11 +587,11 @@ export const guideSections: GuideSection[] = [
         dostępnych jest najwięcej osób. Kliknij propozycję, aby od razu ją wybrać.
       </>,
       <>
-        <K>Kto jest wolny w danym terminie.</K> Kliknij pole siatki – pod nią pojawi się imienna lista osób dostępnych i
+        <K>Kto jest wolny w danym terminie.</K> Kliknij pole siatki, pod nią pojawi się imienna lista osób dostępnych i
         niedostępnych w wybranym przedziale.
       </>,
       <>
-        <K>Wybór dłuższego terminu.</K> Kliknij godzinę początkową, a następnie końcową w tej samej kolumnie – zaznaczy
+        <K>Wybór dłuższego terminu.</K> Kliknij godzinę początkową, a następnie końcową w tej samej kolumnie, zaznaczy
         się cały zakres. Siatka obsługuje też klawiaturę (Tab i Enter).
       </>,
       <>
@@ -617,7 +617,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Udostępnij.</K> Kliknij <em>Wyślij</em> przy rachunku, by skopiować lub wysłać gotową wiadomość z kwotą i
-        opisem – przydatne do żądania zwrotów.
+        opisem, przydatne do żądania zwrotów.
       </>,
       <>
         <K>Grupowanie po miesiącach.</K> Rachunki automatycznie grupowane są według miesięcy, posortowane
@@ -678,7 +678,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Algorytm hybrydowy.</K> Każda osoba płaci połowę kwoty stałej (50/50) plus dodatkową część proporcjonalną do
-        swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej – uczciwie, nie po równo.
+        swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej, uczciwie, nie po równo.
       </>,
       <>
         <K>Obsługa walut.</K> Dochód każdej osoby można wpisać w PLN lub EUR. Kurs EUR/PLN pobierany jest automatycznie
@@ -705,7 +705,7 @@ export const guideSections: GuideSection[] = [
         na liście (możesz odkliknąć), dzięki czemu lista jest wielokrotnego użytku.
       </>,
       <>
-        <K>Udostępnianie na żywo.</K> Udostępnij listę innemu użytkownikowi – dodanie, odhaczenie i edycja pozycji
+        <K>Udostępnianie na żywo.</K> Udostępnij listę innemu użytkownikowi, dodanie, odhaczenie i edycja pozycji
         pojawiają się u drugiej osoby po chwili, bez ręcznego odświeżania. Usunięcie całej listy przez właściciela
         zobaczysz po ponownym wejściu na stronę.
       </>,
@@ -787,12 +787,12 @@ export const guideSections: GuideSection[] = [
         np. <em>Dworcowa</em> w Poznaniu i w Luboniu, są rozróżniane i podpisane nazwą miejscowości.
       </>,
       <>
-        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku – aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać
-        do ulubionych.
+        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku, aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do
+        ulubionych.
       </>,
       <>
         <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach.
-        Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare – rozkładowe.
+        Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare, rozkładowe.
       </>,
     ],
   },
@@ -812,7 +812,7 @@ export const guideSections: GuideSection[] = [
         automatycznie, a których nie. Uzupełnij brakujące i sprawdź resztę przed zapisem.
       </>,
       <>
-        <K>Status na żywo.</K> Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK – od 3
+        <K>Status na żywo.</K> Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK, od 3
         godzin przed planowym odjazdem do 3 godzin po planowym przyjeździe. Poza tym czasem aplikacja nie pyta PKP PLK o
         pociąg (także w <em>Planie dnia</em>). Lista pokazuje pociągi bieżące, nadchodzące i odbyte.
       </>,
@@ -835,7 +835,7 @@ export const guideSections: GuideSection[] = [
     listItems: [
       <>
         <K>Czym są postępy.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie
-        wymaga codziennego odhaczania – automatycznie przelicza dni od daty startu.
+        wymaga codziennego odhaczania, automatycznie przelicza dni od daty startu.
       </>,
       <>
         <K>Kamienie milowe.</K> Algorytm gratuluje Ci: pierwszego tygodnia (7 dni), okrągłych liczb dni (100, 200...),
@@ -890,7 +890,7 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach
-        aktywuje Wake Lock – ekran nie będzie gasł podczas treningu.
+        aktywuje Wake Lock, ekran nie będzie gasł podczas treningu.
       </>,
       <>
         <K>Konfiguracja.</K> Panel ustawień jest dostępny. Można w nim dowolnie modyfikować długość ćwiczeń, przerw, a
@@ -915,12 +915,12 @@ export const guideSections: GuideSection[] = [
         anulowany). Na karcie serialu śledzisz postęp: aktualny sezon i ostatni obejrzany odcinek.
       </>,
       <>
-        <K>Odświeżanie.</K> Przycisk <em>Odśwież</em> na karcie pobiera aktualne dane z TMDB – np. nowy sezon albo
-        zmianę platformy. Twoje notatki i postęp zostają bez zmian.
+        <K>Odświeżanie.</K> Przycisk <em>Odśwież</em> na karcie pobiera aktualne dane z TMDB, np. nowy sezon albo zmianę
+        platformy. Twoje notatki i postęp zostają bez zmian.
       </>,
       <>
         <K>Dostępność streamingowa.</K> Aplikacja sprawdza, na których platformach (Netflix, HBO Max, Disney+, Apple
-        TV+, SkyShowtime, Player, Canal+...) tytuł jest dostępny w Polsce w abonamencie, a gdy go brak – do wypożyczenia
+        TV+, SkyShowtime, Player, Canal+...) tytuł jest dostępny w Polsce w abonamencie, a gdy go brak, do wypożyczenia
         lub kupienia.
       </>,
       <>
@@ -977,15 +977,15 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Priorytet przypominania.</K> Każdej osobie przypisujesz priorytet 0-5, który decyduje, jak często aplikacja
-        przypomni Ci o kontakcie: 1 – co 2 tygodnie, 2 – raz w miesiącu, 3 – co ok. 2 miesiące, 4 – raz w roku.
-        Priorytety 0 i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
+        przypomni Ci o kontakcie: 1, co 2 tygodnie, 2, raz w miesiącu, 3, co ok. 2 miesiące, 4, raz w roku. Priorytety 0
+        i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
       </>,
       <>
         <K>Zaloguj kontakt.</K> Przycisk przy karcie osoby zapisuje bieżącą datę jako <em>ostatni kontakt</em> i odlicza
         od niej termin kolejnego przypomnienia.
       </>,
       <>
-        <K>QR i vCard.</K> Każda karta ma kod QR generowany z danych kontaktowych – zeskanowany telefonem od razu
+        <K>QR i vCard.</K> Każda karta ma kod QR generowany z danych kontaktowych, zeskanowany telefonem od razu
         proponuje zapis kontaktu (standard vCard).
       </>,
       <>
@@ -1005,19 +1005,19 @@ export const guideSections: GuideSection[] = [
     iconColorClass: "text-deco-cyan",
     listItems: [
       <>
-        <K>Wiele wizytówek.</K> Stwórz osobne profile na różne okazje, np. <em>Służbowa</em> i <em>Prywatna</em> – każdy
+        <K>Wiele wizytówek.</K> Stwórz osobne profile na różne okazje, np. <em>Służbowa</em> i <em>Prywatna</em>, każdy
         z własnym imieniem, organizacją, telefonami, e-mailami, adresami i linkami do social mediów.
       </>,
       <>
-        <K>Dane firmowe.</K> Opcjonalna sekcja z NIP-em, numerem KRS i numerem konta bankowego – przydatna przy
-        wizytówce firmowej.
+        <K>Dane firmowe.</K> Opcjonalna sekcja z NIP-em, numerem KRS i numerem konta bankowego, przydatna przy wizytówce
+        firmowej.
       </>,
       <>
         <K>Własne kolory.</K> Wybierz kolor tła wizytówki osobno dla trybu jasnego i ciemnego.
       </>,
       <>
         <K>Publiczny link.</K> Włącz przełącznik <em>Publiczna</em>, a wizytówka będzie dostępna pod adresem{" "}
-        <em>dzisiaj.fun/v/twoj-link</em> – możesz nim swobodnie się dzielić, także z osobami bez konta w aplikacji.
+        <em>dzisiaj.fun/v/twoj-link</em>, możesz nim swobodnie się dzielić, także z osobami bez konta w aplikacji.
         Wyłączona wizytówka jest widoczna tylko dla Ciebie.
       </>,
       <>
@@ -1071,17 +1071,17 @@ export const guideSections: GuideSection[] = [
         usuwa żadnych danych użytkownika.
       </>,
       <>
-        <K>Kopia moich danych.</K> W sekcji <em>Użytkownik</em> pobierzesz wszystkie swoje dane w jednym pliku JSON –
+        <K>Kopia moich danych.</K> W sekcji <em>Użytkownik</em> pobierzesz wszystkie swoje dane w jednym pliku JSON -
         zadania, notatki, finanse, zdrowie, pisma, ankiety (także zapisy uczestników i ich odpowiedzi w cudzych
         ankietach), listę plików w chmurze aplikacji. Plik nie zawiera haseł, tokenów OAuth ani kluczy push.
       </>,
       <>
         <K>Usunięcie konta.</K> Na dole sekcji <em>Użytkownik</em> znajdziesz opcję trwałego usunięcia konta. Kasuje ona
-        wszystkie Twoje dane – zadania, wydarzenia, notatki, pisma, finanse, nawyki, załączniki oraz połączenia z
+        wszystkie Twoje dane, zadania, wydarzenia, notatki, pisma, finanse, nawyki, załączniki oraz połączenia z
         kalendarzami i Slackiem. Wymaga wpisania frazy potwierdzającej i jest nieodwracalna.
       </>,
       <>
-        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia –
+        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia -
         pobierane na żywo z GitHub.
       </>,
     ],

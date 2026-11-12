@@ -67,13 +67,12 @@ export default function BudgetPage() {
         title="Budżet"
         description="Zaplanuj budżet w kategoriach i porównuj go z wydatkami w ujęciu miesięcznym i rocznym."
         canonical="https://www.dzisiaj.fun/bills/budget"
-        keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
       />
       <div className="mb-6 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h1 className="page-title sr-only mx-auto text-center first-letter:uppercase sm:not-sr-only">Budżet</h1>
 
-          <div className="card flex items-center p-1 shadow-sm">
+          <div className="card flex items-center p-1">
             <button
               onClick={handlePrevMonth}
               className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"

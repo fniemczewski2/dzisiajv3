@@ -162,9 +162,8 @@ export default function TransportPage() {
     <>
       <Seo
         title="Komunikacja miejska"
-        description="Odjazdy na żywo z ulubionych przystanków i przystanków w pobliżu – autobusy i tramwaje w Poznaniu i Szczecinie."
+        description="Odjazdy na żywo z ulubionych przystanków i przystanków w pobliżu, autobusy i tramwaje w Poznaniu i Szczecinie."
         canonical="https://www.dzisiaj.fun/transport"
-        keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
       />
       <div className="mb-4 flex items-center">
         <h1 className="page-title">Komunikacja miejska</h1>
