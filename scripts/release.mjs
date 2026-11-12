@@ -52,21 +52,30 @@ const run = (command, { cwd, quiet = true, env = {} } = {}) => {
 
 /** Wersja asynchroniczna: kontrole są długie, więc co HEARTBEAT_MS wypisujemy czas trwania zamiast milczeć. */
 const HEARTBEAT_MS = 5000;
-const runAsync = (command, { cwd, env = {} } = {}) =>
+const runAsync = (command, { cwd, env = {}, onLine = null, heartbeat = true } = {}) =>
   new Promise((resolve) => {
     const started = Date.now();
     const child = spawn(command, { shell: true, cwd, env: { ...process.env, ...env } });
     let output = "";
+    let pending = "";
     const collect = (chunk) => {
       output += chunk;
+      if (!onLine) return;
+      // Dzielimy strumień na pełne linie (fragment bez końca linii czeka na kolejną porcję).
+      const lines = (pending + chunk).split("\n");
+      pending = lines.pop() ?? "";
+      for (const line of lines) onLine(line.replace(ANSI_COLOR, ""));
     };
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", collect);
     child.stderr.on("data", collect);
-    const timer = setInterval(() => say(`      … trwa ${Math.round((Date.now() - started) / 1000)} s`), HEARTBEAT_MS);
+    const timer = heartbeat
+      ? setInterval(() => say(`      … trwa ${Math.round((Date.now() - started) / 1000)} s`), HEARTBEAT_MS)
+      : null;
     const finish = (code, text) => {
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
+      if (onLine && pending) onLine(pending.replace(ANSI_COLOR, ""));
       resolve({ code, output: text.replace(ANSI_COLOR, ""), ms: Date.now() - started });
     };
     child.on("error", (error) => finish(1, String(error)));
@@ -191,6 +200,58 @@ function edgeFunctionEntryPoints() {
   return entries.sort();
 }
 
+// ---------------------------------------------------------------- postęp testów
+
+const TEST_TOTAL_FILE = ".git/RELEASE_TEST_TOTAL";
+const TEST_PROGRESS_INTERVAL_MS = 2000;
+// Linia wyniku jednego testu w reporterze verbose: „✓ plik > opis 12ms” (× = nieudany, ↓ = pominięty).
+const TEST_RESULT_LINE = /^\s*(✓|×|↓)\s+\S.*\s>\s/;
+
+/**
+ * Łączna liczba testów do wykonania. Źródło: liczba z poprzedniego udanego wydania (dokładna, dopóki zestaw się nie
+ * zmieni), a bez niej `vitest list` (zaniża wynik dla testów parametryzowanych, więc to tylko oszacowanie).
+ */
+function readTestTotalEstimate() {
+  if (existsSync(TEST_TOTAL_FILE)) {
+    const saved = Number(readFileSync(TEST_TOTAL_FILE, "utf8").trim());
+    if (Number.isInteger(saved) && saved > 0) return { total: saved, source: "z poprzedniego wydania" };
+  }
+  const listed = run("npx vitest list")
+    .output.split("\n")
+    .filter((line) => line.includes(" > ")).length;
+  return { total: listed, source: "vitest list" };
+}
+
+function saveTestTotal(total) {
+  writeFileSync(TEST_TOTAL_FILE, `${total}\n`);
+}
+
+/** Licznik na żywo: wykonane, nieudane i pozostałe testy, wypisywany najwyżej co TEST_PROGRESS_INTERVAL_MS. */
+function createTestProgress(total) {
+  let done = 0;
+  let failed = 0;
+  let lastPrint = 0;
+  const print = () => {
+    // Szacunek z `vitest list` pomija testy parametryzowane; po jego przekroczeniu liczba pozostałych jest nieznana.
+    const left = done > total ? "nieznane (więcej niż szacowano)" : `~${total - done}`;
+    const of = done > total ? "" : `/${total}`;
+    say(`      testy: wykonano ${done}${of}, pozostało ${left}, nieudanych ${failed}`);
+    lastPrint = Date.now();
+  };
+  return {
+    onLine(line) {
+      const match = TEST_RESULT_LINE.exec(line);
+      if (!match) return;
+      done += 1;
+      if (match[1] === "×") failed += 1;
+      if (Date.now() - lastPrint >= TEST_PROGRESS_INTERVAL_MS) print();
+    },
+    finish() {
+      print();
+    },
+  };
+}
+
 // ---------------------------------------------------------------- kontrole
 
 const checks = [
@@ -236,15 +297,24 @@ const checks = [
     name: "test",
     label: "testy (vitest)",
     run: async () => {
-      const r = await runAsync("npx vitest run");
-      const tests = /Tests\s+(?:(\d+) failed \| )?(\d+) passed/.exec(r.output);
+      const estimate = readTestTotalEstimate();
+      say(`      łącznie testów (${estimate.source}): ~${estimate.total}`);
+      const progress = createTestProgress(estimate.total);
+      const r = await runAsync("npx vitest run --reporter=verbose", {
+        onLine: (line) => progress.onLine(line),
+        heartbeat: false,
+      });
+      progress.finish();
+      const tests = /Tests\s+(?:(\d+) failed \| )?(\d+) passed(?: \| (\d+) skipped)?(?: \((\d+)\))?/.exec(r.output);
       const files = /Test Files\s+(?:(\d+) failed \| )?(\d+) passed/.exec(r.output);
       const failed = Number(tests?.[1] ?? 0);
       const summary = tests
         ? `${tests[2]} testów przeszło (${failed} nieudanych), ${files?.[2] ?? "?"} plików`
         : "brak wyniku";
+      const ok = r.code === 0 && failed === 0 && Boolean(tests);
+      if (ok && tests?.[4]) saveTestTotal(Number(tests[4]));
       return {
-        ok: r.code === 0 && failed === 0 && Boolean(tests),
+        ok,
         summary,
         ms: r.ms,
         detail:
@@ -424,6 +494,7 @@ async function runChecks() {
       continue;
     }
     say(`${step} ${check.label} … start`);
+    // NOSONAR: kontrole muszą działać kolejno (współdzielą pliki, porty i pamięć podręczną), więc await w pętli jest celowy.
     const r = await check.run();
     if (check.name === "test" && r.tests) testSummary = r.tests;
     results.push({ ...check, ...r });

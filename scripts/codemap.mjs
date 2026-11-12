@@ -13,13 +13,14 @@ const SKIP = [/^__tests__\//, /^public\//, /^docs\//, /\.d\.ts$/, /^next-env\.d\
 const MAX_DESC = 160;
 const MAX_EXPORTS = 8;
 
+// NOSONAR: git jest celowo wywoływany z PATH (narzędzie deweloperskie uruchamiane lokalnie i w CI).
 const files = execFileSync("git", ["ls-files"], { encoding: "utf8" })
   .split("\n")
   .filter((f) => f && SRC.test(f) && !SKIP.some((r) => r.test(f)))
   .sort((a, b) => a.localeCompare(b));
 
 const clip = (s) => {
-  const t = s.replace(/\s+/g, " ").replace(/`/g, "'").trim();
+  const t = s.replace(/\s+/g, " ").replaceAll("`", "'").trim();
   if (t.length <= MAX_DESC) return t;
   const cut = t.slice(0, MAX_DESC);
   const dot = cut.lastIndexOf(". ");
@@ -40,15 +41,22 @@ function headerDescription(src, path) {
   }
   if (out.length) return out.join(" ");
   // Fallback: JSDoc bezpośrednio nad pierwszym eksportem (nie opisy propsów ani pól).
-  const m = /\/\*\*((?:(?!\*\/)[\s\S])*?)\*\/\s*\n\s*export\s/.exec(src);
-  if (m) {
-    return m[1]
-      .split("\n")
-      .map((l) => l.replace(/^\s*\*\s?/, "").trim())
-      .filter((l) => l && !l.startsWith("@"))
-      .join(" ");
+  const body = jsDocAboveFirstExport(src);
+  if (body === null) return "";
+  return body
+    .split("\n")
+    .map((l) => l.replace(/^\s*\*\s?/, "").trim())
+    .filter((l) => l && !l.startsWith("@"))
+    .join(" ");
+}
+
+/** Treść pierwszego komentarza JSDoc stojącego bezpośrednio nad „export” (bez regexu z cofaniem); null, gdy brak. */
+function jsDocAboveFirstExport(src) {
+  for (const end of src.matchAll(/\*\/[ \t]*\n[ \t]*export\s/g)) {
+    const start = src.lastIndexOf("/**", end.index);
+    if (start !== -1) return src.slice(start + 3, end.index);
   }
-  return "";
+  return null;
 }
 
 function exportsOf(src) {
@@ -60,7 +68,7 @@ function exportsOf(src) {
     for (const part of m[1].split(",")) {
       const n = part
         .trim()
-        .split(/\s+as\s+/)
+        .split(" as ")
         .pop()
         ?.replace(/^type\s+/, "");
       if (n) names.add(n);
@@ -75,14 +83,29 @@ const tablesOf = (src) => uniq([...src.matchAll(/\.from\(\s*["'`]([a-z0-9_]+)["'
 const rpcOf = (src) => uniq([...src.matchAll(/\.rpc\(\s*["'`]([a-z0-9_]+)["'`]/g)].map((m) => m[1]));
 const methodsOf = (src) =>
   uniq([...src.matchAll(/method\s*(?:===|!==|==)\s*["'`](GET|POST|PUT|PATCH|DELETE)["'`]/g)].map((m) => m[1]));
+// Nazwę obiektu czytamy w drugim kroku (po słowie kluczowym), żeby wyrażenia były krótkie i bez nakładających się grup.
+const SQL_CREATE = /create\s+(?:or\s+replace\s+)?(?:table|function|view|policy|trigger)\s+/gi;
+const SQL_OBJECT_NAME = /^(?:if\s+not\s+exists\s+)?(?:public\.)?"?([a-z0-9_]+)/i;
 const sqlObjectsOf = (src) =>
   uniq(
-    [
-      ...src.matchAll(
-        /create\s+(?:or\s+replace\s+)?(?:table|function|view|policy|trigger)\s+(?:if\s+not\s+exists\s+)?(?:public\.)?"?([a-z0-9_]+)/gi
-      ),
-    ].map((m) => m[1])
+    [...src.matchAll(SQL_CREATE)]
+      .map((m) => SQL_OBJECT_NAME.exec(src.slice(m.index + m[0].length))?.[1])
+      .filter(Boolean)
   ).slice(0, 10);
+
+/** Fragment „exp: …” opisu pliku (pusty, gdy jedyny eksport ma nazwę pliku albo go nie ma). */
+function exportSummary(path, src) {
+  const base = path
+    .split("/")
+    .pop()
+    .replace(/\.\w+$/, "");
+  let ex = exportsOf(src);
+  // Endpointy: „handler” i „config” są w każdym pliku.
+  if (path.startsWith("pages/api/")) ex = ex.filter((n) => n !== "handler" && n !== "config");
+  // Pojedynczy eksport o nazwie pliku (komponent, hook) nic nie wnosi.
+  const trivial = ex.length === 1 && (ex[0] === base || ex[0] === "default");
+  return ex.length && !trivial ? `exp: ${ex.join(", ")}` : "";
+}
 
 function describe(path) {
   const src = readFileSync(path, "utf8");
@@ -93,16 +116,8 @@ function describe(path) {
     const objs = sqlObjectsOf(src);
     if (objs.length) parts.push(`obj: ${objs.join(", ")}`);
   } else {
-    const base = path
-      .split("/")
-      .pop()
-      .replace(/\.\w+$/, "");
-    let ex = exportsOf(src);
-    // Endpointy: „handler” i „config” są w każdym pliku.
-    if (path.startsWith("pages/api/")) ex = ex.filter((n) => n !== "handler" && n !== "config");
-    // Pojedynczy eksport o nazwie pliku (komponent, hook) nic nie wnosi.
-    const trivial = ex.length === 1 && (ex[0] === base || ex[0] === "default");
-    if (ex.length && !trivial) parts.push(`exp: ${ex.join(", ")}`);
+    const summary = exportSummary(path, src);
+    if (summary) parts.push(summary);
   }
   if (path.startsWith("pages/api/")) {
     const m = methodsOf(src);
@@ -134,6 +149,7 @@ for (const f of files) {
   groups.get(g).push(f);
 }
 
+// NOSONAR: j.w., git z PATH.
 const testCount = execFileSync("git", ["ls-files", "__tests__"], { encoding: "utf8" })
   .split("\n")
   .filter(Boolean).length;

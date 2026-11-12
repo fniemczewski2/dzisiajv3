@@ -25,7 +25,23 @@ const STATUS_LABELS: Record<string, string> = {
   Q: "Cz. odwołany",
 };
 
-/** Limit czasu jednego zapytania do API PKP PLK – bez niego zawieszone API trzymało ładowanie. */
+class PkpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = "PkpError";
+  }
+}
+
+/** GET do API PKP PLK z limitem czasu (bez niego zawieszone API trzymało ładowanie); błąd HTTP to PkpError. */
+async function pkpGet<T>(url: string, headers: Record<string, string>): Promise<T> {
+  const response = await fetch(url, { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) });
+  if (response.status === 429) throw new PkpError(429, "Spróbuj ponownie później");
+  if (!response.ok) throw new PkpError(500, "Wystąpił błąd PKP PLK");
+  return (await response.json()) as T;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<StationBoardResponse | ApiError>) {
   const { stationName } = req.query;
@@ -50,15 +66,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       Accept: "application/json",
     };
 
-    const stationsRes = await fetch(
+    const stationsData = await pkpGet<StationsDictionaryResponse>(
       `https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(stationName)}&pageSize=10`,
-      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) }
+      headers
     );
-    if (stationsRes.status === 429) {
-      return res.status(429).json({ error: "Spróbuj ponownie później" });
-    }
-    if (!stationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
-    const stationsData: StationsDictionaryResponse = await stationsRes.json();
 
     const normalizedInput = stationName.toLowerCase().replaceAll("gł.", "główny");
     const station =
@@ -75,27 +86,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const nowPl = getAppDateTime();
     const date = `${nowPl.getFullYear()}-${String(nowPl.getMonth() + 1).padStart(2, "0")}-${String(nowPl.getDate()).padStart(2, "0")}`;
 
-    const schedulesRes = await fetch(
+    const schedulesData = await pkpGet<SchedulesResponse>(
       `https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`,
-      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) }
+      headers
     );
-    if (schedulesRes.status === 429) {
-      return res.status(429).json({ error: "Spróbuj ponownie później" });
-    }
-    if (!schedulesRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
 
-    const schedulesData: SchedulesResponse = await schedulesRes.json();
-
-    const operationsRes = await fetch(
+    const operationsData = await pkpGet<OperationsResponse>(
       `https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`,
-      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) }
+      headers
     );
-    if (operationsRes.status === 429) {
-      return res.status(429).json({ error: "Spróbuj ponownie później" });
-    }
-
-    if (!operationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
-    const operationsData: OperationsResponse = await operationsRes.json();
     const stationsDict = operationsData.stations || {};
 
     const getStationName = (id: string) => stationsDict[id];
@@ -178,6 +177,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       items: finalItems,
     });
   } catch (err) {
+    if (err instanceof PkpError) return res.status(err.status).json({ error: err.message });
     if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
       return res.status(504).json({ error: "PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę." });
     }

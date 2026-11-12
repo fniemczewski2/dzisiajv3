@@ -89,6 +89,7 @@ Deno.test("sentDataKeys: jedno zapytanie na porcję, klucze użytkownik|wartoś�
           ids = v;
           return q;
         },
+        // NOSONAR: konstruktor zapytań PostgREST jest thenable, a test odwzorowuje to zachowanie.
         then: (resolve: (r: unknown) => unknown) => {
           calls.push(filters);
           return Promise.resolve({ data: rows.filter((r) => ids.includes(r.user_id)), error: null }).then(resolve);

@@ -51,6 +51,7 @@ export function contentHash(text: string): string {
   let h1 = 0xdeadbeef;
   let h2 = 0x41c6ce57;
   for (let i = 0; i < s.length; i++) {
+    // NOSONAR: charCodeAt celowo (jednostki UTF-16); codePointAt zmieniłby skróty znaków spoza BMP zapisane w bazie.
     const ch = s.charCodeAt(i);
     h1 = Math.imul(h1 ^ ch, 2654435761);
     h2 = Math.imul(h2 ^ ch, 1597334677);

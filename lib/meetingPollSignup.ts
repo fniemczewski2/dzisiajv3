@@ -172,7 +172,7 @@ export function groupBookings(rows: readonly MeetingPollBooking[], durationMinut
  * formuły w arkuszu organizatora (CSV injection).
  */
 export function csvCell(value: string | null | undefined): string {
-  const text = value === null || value === undefined ? "" : value;
+  const text = value ?? "";
   const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
   return /[";\n\r]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
 }

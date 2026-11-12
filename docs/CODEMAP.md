@@ -236,11 +236,13 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `Modal.tsx` – Native <dialog>-based modal. Replaces the previous pattern of a '<div role="dialog">' overlay with a manual onClick-outside-to-close handler - that pattern…
 - `ModuleGate.tsx`
 - `NoResultsState.tsx`
+- `QrCode.tsx` – Kod QR ładowany dopiero przy pierwszym wyświetleniu (qrcode.react nie trafia do głównego pakietu).
 - `RecurrenceEditor.tsx` – Edytor powtarzania dla wydarzeń i zadań. Na górze zwykły wybór (nie / codziennie / co tydzień / co miesiąc / co rok); szczegóły (co ile, dni tygodnia, wariant…
 - `SearchBar.tsx`
 - `SEO.tsx` – exp: Seo
 - `Skeleton.tsx` – exp: SkeletonLine, SkeletonCard, SkeletonSlotGrid, SkeletonRow, SkeletonShoppingList, SkeletonCalendar, SkeletonTaskList, SkeletonBudgetTable, +7
 - `Timer.tsx` – exp: UniversalTimer
+- `TurnstileWidget.tsx` – Widżet Cloudflare Turnstile w formularzach publicznych. Bez NEXT_PUBLIC_TURNSTILE_SITE_KEY nic nie renderuje, a formularz nie wymaga tokenu (zob. · exp: TURNSTILE_ENABLED, TurnstileWidget
 
 ## components/widgets
 
@@ -255,7 +257,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## config
 
-- `constants.ts` – exp: DESCRIPTION_MAPPINGS, BOILERPLATE_REGEXES, REQUIRED_CATEGORIES, HEART_RATE_LIMITS
+- `constants.ts` – Skrypt widżetu Cloudflare Turnstile (źródło dopuszczone w CSP w next.config.mjs). · exp: TURNSTILE_SCRIPT_URL, DESCRIPTION_MAPPINGS, BOILERPLATE_REGEXES, REQUIRED_CATEGORIES, HEART_RATE_LIMITS
 - `defaults.ts` – Wartości domyślne: ustawienia nowego konta, nastroje, kalkulator rachunków, formularze. Limity – config/limits.ts, czasy – config/timing.ts. · exp: DEFAULT_MOODS, DEFAULT_SETTINGS, BILLS_CALCULATOR_DEFAULTS, DEFAULT_EVENT_DURATION_MIN, DEFAULT_OTHER_DAY_START_HOUR, MEETING_POLL_QUICK_WORKING_DAYS, RECURRING_PREVIEW_DAYS, DEFAULT_REPORT_LOGO_WIDTH, +10
 - `env.ts` – Jedyne miejsce, w którym aplikacja czyta zmienne środowiskowe. - 'publicEnv' – zmienne NEXT_PUBLIC_*, wstawiane do kodu klienta podczas builda. · exp: publicEnv, serverEnv
 - `features.ts` – exp: FEATURE_STATUS_LABEL, FEATURE_GROUPS, getFeaturesWithStatus
@@ -267,7 +269,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `packing.ts` – exp: BACKPACK, SAFETY, SUITCASE
 - `priority.ts` – exp: getPriorityColors
 - `rssSources.ts` – exp: RSS_SOURCES, RSS_GROUPS, MAX_CUSTOM_FEEDS, defaultEnabledSources, resolveEnabledSources, normalizeCustomFeeds
-- `server.ts` – Stałe wyłącznie serwerowe: limity zapytań, timeouty integracji, paginacja i nagłówki cache. Limity widoczne dla użytkownika są w config/limits.ts. · exp: RATE_LIMITS, RATE_LIMIT_REDIS_TIMEOUT_MS, RATE_LIMIT_MEMORY_MAX_KEYS, POLL_EDIT_TOKEN_HEADER, CACHE_CONTROL, TIMEOUTS_MS, SERVER_TTL_MS, EXPORT_INLINE_MAX_BYTES, +27
+- `server.ts` – Stałe wyłącznie serwerowe: limity zapytań, timeouty integracji, paginacja i nagłówki cache. Limity widoczne dla użytkownika są w config/limits.ts. · exp: RATE_LIMITS, RATE_LIMIT_REDIS_TIMEOUT_MS, RATE_LIMIT_MEMORY_MAX_KEYS, POLL_EDIT_TOKEN_HEADER, TURNSTILE, CACHE_CONTROL, TIMEOUTS_MS, SERVER_TTL_MS, +28
 - `slack.ts` – Dawna kategoria systemowa zadań ze Slacka. Od 1.40 o synchronizacji decyduje powiązanie zadania z listą (slack_task_links / slack_task_targets), a zadania z… · exp: SLACK_API_BASE, SLACK_AUTHORIZE_URL, SLACK_STATE_COOKIE, SLACK_STATE_TTL_SECONDS, SLACK_USER_SCOPES, SLACK_REQUEST_TIMEOUT_MS, SLACK_ITEMS_PAGE_SIZE, SLACK_RATE_LIMIT_RETRIES, +16
 - `storage.ts` – Wszystko, co aplikacja zapisuje w przeglądarce. Lista jest źródłem dla polityki prywatności (sekcja „Pliki cookie i pamięć przeglądarki”) i dla czyszczenia… · exp: OFFLINE_CACHE_DB, OFFLINE_CACHE_STORE, OFFLINE_CACHE_DB_VERSION, OFFLINE_QUEUE_DB, OFFLINE_QUEUE_STORE, OFFLINE_QUEUE_DB_VERSION, USER_LOCAL_STORAGE_KEYS, DEVICE_LOCAL_STORAGE_KEYS, +4
 - `tasks.ts` – Kategoria zadań utworzonych z poczty (kategoria systemowa – zawsze dostępna). · exp: TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, MEETING_POLL_TASK_CATEGORY, MAIL_TASK_CATEGORY, MEETING_POLL_TASK_TITLE, MEETING_POLL_TASK_PRIORITY
@@ -279,7 +281,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `useAbortController.ts`
 - `useAppStreak.ts` – db: app_usage_days
-- `useDashboardDnd.ts`
+- `useDashboardDnd.ts` – exp: MOVE_CONFIRM_OPTIONS, useDashboardDnd
 - `useDataExport.ts` – Pobranie kopii wszystkich danych konta (/api/account/export) jako pliku JSON.
 - `useDragAutoscroll.ts` – Extracted from DayView.tsx: while any drag is active, scrolls the window when the pointer nears the top/bottom edge so long day plans stay reachable during…
 - `useDragSelectGrid.ts` – Zaznaczanie komórek siatki przeciąganiem – myszą, palcem i rysikiem. Na telefonie nie działało z trzech powodów: 1. · exp: dragCellStyle, useDragSelectGrid
@@ -370,6 +372,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `eventTimes.ts` – exp: LOCAL_DATE_FORMAT, QUICK_EVENT_DURATIONS, addMinutesToLocal, durationBetween, defaultTimedStart
 - `eventUtils.ts` – Reguła wydarzenia: nowe pole 'recurrence', a przy starszych wpisach – 'repeat'. · exp: eventRule, expandRepeatingEvents, getEventsForDay
 - `finance.ts` – Logika finansów bez dostępu do bazy (łatwa do testowania): - terminy rachunków stałych (ten sam silnik reguł co zadania i wydarzenia), - prognoza rachunków na… · exp: billOccurrences, nextBillDue, monthRange, nextMonthKey, forecastMonth, billMonthStatus, merchantKey, suggestBillLink, +6
+- `fonts.ts` – Jedyny krój aplikacji. Klasa 'variable' trafia na <html> (pages/_document.tsx), więc zmienna --font-atkinson jest dostępna w całym dokumencie, także w oknach i… · exp: atkinson
 - `habits.ts` – Własne nawyki: do 8, każdy z nazwą i ikoną. Dawne 8 stałych nawyków (kolumny pills…duolingo i przełączniki habit_*) to teraz po prostu domyślna lista – ich… · exp: HABIT_ICON_NAMES, LEGACY_HABITS, isLegacyHabitId, normalizeHabits, resolveHabits, isHabitDone, newHabitId
 - `holidays.ts` – exp: getPolishHolidays
 - `icsGenerator.ts` – Eksport pojedynczego wydarzenia do pliku .ics. · exp: buildSingleEventICS, generateSingleEventICS
@@ -519,6 +522,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `slackSync/types.ts`
 - `supabaseAdmin.ts` – Klient Supabase z kluczem service_role – omija RLS, więc wolno go używać wyłącznie po stronie serwera i tylko po własnym sprawdzeniu, czy zasób należy do…
 - `tokenCrypto.ts` – exp: encryptToken, decryptToken
+- `turnstile.ts` – Weryfikacja tokenu Cloudflare Turnstile po stronie serwera (publiczne formularze ankiet). · exp: enforceTurnstile
 - `vaultConnection.ts` – Połączenie z vaultem (OAuth OneDrive / Google Drive), ważny token i repozytorium danych dla runVaultSync. · exp: startVaultOAuth, handleVaultCallback, vaultStorageFor, supabaseVaultRepo · db: vault_connections, vault_sync_state, notes
 
 ## lib/supabase
@@ -530,6 +534,8 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `_app.tsx` – exp: MyApp
 - `_document.tsx` – exp: Document
+- `404.tsx` – Własna strona „nie znaleziono”: statyczna, bez zapytań do bazy. · exp: NotFoundPage
+- `500.tsx` – Własna strona błędu serwera: statyczna, bez zapytań do bazy. · exp: ServerErrorPage
 - `calendar.tsx` – exp: CalendarPage
 - `demo.tsx` – exp: DemoPage
 - `guide.tsx` – exp: GuidePage
@@ -544,8 +550,10 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `sitemap.xml.ts` – exp: getServerSideProps, SiteMap
 - `start.tsx` – exp: StartPage
 - `streaks.tsx` – exp: StreaksPage
+- `terms.tsx` – exp: TermsPage
+- `thanks.tsx` – Strona podziękowania po czynnościach kończących sesję. Komunikat wybiera parametr 'z' z zamkniętej listy (nieznana wartość daje komunikat domyślny). · exp: ThanksPage
 - `training.tsx` – exp: TrainingPage
-- `trains.tsx` – Ile odbytych podróży pokazujemy naraz. · exp: TrainsPage
+- `trains.tsx` – exp: TrainsPage
 - `transport.tsx` – exp: TransportPage
 - `weather.tsx` – exp: WeatherPage
 - `worklogs.tsx` – exp: WorkLogsPage
@@ -634,7 +642,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `locality.ts` – exp: parseCoord, pickLocality · http: GET
 - `parse-ticket.ts` – exp: extractStationNames, extractRoute, parseTicketData · http: POST
-- `station-board.ts` – Limit czasu jednego zapytania do API PKP PLK – bez niego zawieszone API trzymało ładowanie. · http: GET
+- `station-board.ts` – http: GET
 - `train-status.ts` – http: GET
 
 ## pages/api/worklogs
@@ -757,6 +765,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-04_sleep_sessions.sql` – Sen: odcinki są unikalne po czasie, nie po dobie. Skrót mógł wysłać ten sam odcinek z różnymi datami (np.
 - `2026-11-05_fk_indexes.sql` – Indeksy kluczy obcych wskazane przez introspekcję (fk_without_index): szybsze usuwanie konta (ON DELETE CASCADE) i zapytania po tych kolumnach.
 - `2026-11-05_poll_signups.sql` – Ankiety w trybie zapisów: terminy z ograniczoną liczbą miejsc (pojemność slotu) i limitem terminów na osobę. · obj: meeting_poll_bookings, meeting_poll_bookings_select_own, meeting_poll_bookings_delete_own, _meeting_poll_fail, _meeting_poll_slot_rows, _meeting_poll_slot_json, book_meeting_poll_slots
+- `2026-11-12_rls_initplan.sql` – Polityki RLS w schemacie public: 'auth.uid()' w warunku jest wyliczane dla każdego wiersza.
 
 ## supabase/tests
 

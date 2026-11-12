@@ -36,7 +36,7 @@ export default function TermsPage() {
             <a href="https://www.dzisiaj.fun" className="text-primary hover:underline">
               dzisiaj.fun
             </a>
-            ). Usługodawcą jest <strong>Franciszek Niemczewski - Usługi IT</strong> z siedzibą w Baranówku, NIP:
+            {")."} Usługodawcą jest <strong>Franciszek Niemczewski - Usługi IT</strong> z siedzibą w Baranówku, NIP:
             7773460003.
           </p>
           <p>
@@ -44,11 +44,11 @@ export default function TermsPage() {
             <a href="mailto:f.niemczewski@dzisiaj.fun" className="text-primary hover:underline">
               f.niemczewski@dzisiaj.fun
             </a>
-            . Zasady przetwarzania danych osobowych opisuje{" "}
+            {"."} Zasady przetwarzania danych osobowych opisuje{" "}
             <Link href="/privacy" className="text-primary hover:underline">
               Polityka Prywatności
             </Link>
-            .
+            {"."}
           </p>
         </Section>
 
@@ -59,7 +59,7 @@ export default function TermsPage() {
             <Link href="/guide" className="text-primary hover:underline">
               przewodnik
             </Link>
-            . Funkcje mogą się zmieniać, w tym być dodawane, wyłączane albo ograniczane limitami.
+            {"."} Funkcje mogą się zmieniać, w tym być dodawane, wyłączane albo ograniczane limitami.
           </p>
         </Section>
 

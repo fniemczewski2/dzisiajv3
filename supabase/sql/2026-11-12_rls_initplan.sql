@@ -12,6 +12,8 @@
 
 do $$
 declare
+  -- Wywołanie auth.uid() nieopakowane w SELECT (lookbehind: już opakowane są pomijane).
+  unwrapped_uid constant text := '(?<!SELECT )auth\.uid\(\)';
   p record;
   new_qual text;
   new_check text;
@@ -21,12 +23,12 @@ begin
     select schemaname, tablename, policyname, qual, with_check
       from pg_policies
      where schemaname = 'public'
-       and (coalesce(qual, '') || ' ' || coalesce(with_check, '')) ~ '(?<!SELECT )auth\.uid\(\)'
+       and (coalesce(qual, '') || ' ' || coalesce(with_check, '')) ~ unwrapped_uid
   loop
     new_qual := case when p.qual is null then null
-      else regexp_replace(p.qual, '(?<!SELECT )auth\.uid\(\)', '(select auth.uid())', 'g') end;
+      else regexp_replace(p.qual, unwrapped_uid, '(select auth.uid())', 'g') end;
     new_check := case when p.with_check is null then null
-      else regexp_replace(p.with_check, '(?<!SELECT )auth\.uid\(\)', '(select auth.uid())', 'g') end;
+      else regexp_replace(p.with_check, unwrapped_uid, '(select auth.uid())', 'g') end;
 
     stmt := format('alter policy %I on %I.%I', p.policyname, p.schemaname, p.tablename)
       || case when new_qual is not null then format(' using (%s)', new_qual) else '' end
