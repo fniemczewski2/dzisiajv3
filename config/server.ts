@@ -87,6 +87,8 @@ export const CACHE_CONTROL = {
 export const TIMEOUTS_MS = {
   default: 15_000,
   pkp: 10_000,
+  /** Pobranie `operations` PKP PLK (duża stacja potrafi odpowiadać ok. 30 s); poniżej maxDuration endpointu. */
+  pkpOperations: 85_000,
   rss: 8_000,
 } as const;
 

@@ -24,21 +24,18 @@ const NO_DATA_STATUSES = new Set([
 export function describeTrainPunctuality(input: {
   status: string | null | undefined;
   delay: number;
-  /** false, gdy status nie jest jeszcze pobierany (za wcześnie przed odjazdem). */
   tracked?: boolean;
 }): TrainPunctuality {
-  if (input.tracked === false) return { kind: "notTracked", label: "Status pojawi się przed odjazdem" };
+  if (input.tracked === false) return { kind: "notTracked", label: "Wkrótce..." };
   const status = (input.status ?? "").trim();
   const lower = status.toLowerCase();
-  if (lower.includes("odwołany")) {
-    return { kind: "cancelled", label: lower.startsWith("cz") ? "Częściowo odwołany" : "Odwołany" };
-  }
-  if (input.delay > 0) return { kind: "delayed", label: `Opóźnienie ${input.delay} min` };
+  if (lower.includes("odwołany")) return { kind: "cancelled", label: "Odwołany" };
+  if (input.delay > 0) return { kind: "delayed", label: `+ ${input.delay} min` };
   if (NO_DATA_STATUSES.has(status)) {
     return {
       kind: "noData",
-      label: status === "Zbyt wiele zapytań" ? "Brak danych (limit zapytań PKP PLK)" : "Brak danych o punktualności",
+      label: status === "Zbyt wiele zapytań" ? "B/d (limit)" : "B/d",
     };
   }
-  return { kind: "onTime", label: lower.includes("w trasie") ? "W trasie, bez opóźnienia" : "Bez opóźnienia" };
+  return { kind: "onTime", label: lower.includes("w trasie") ? "W trasie" : "Na czas" };
 }

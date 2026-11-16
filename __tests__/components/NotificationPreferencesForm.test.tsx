@@ -43,7 +43,8 @@ describe("przełączniki powiadomień", () => {
       const [key, value] = Object.entries(patch)[0];
       expect(value).toBe(key === "notif_bills");
     }
-  });
+    // Kilkanaście kliknięć userEvent: przy obciążonej maszynie (np. równolegle z build) 5 s domyślnego limitu nie wystarcza.
+  }, 20_000);
 
   it("każdy handler process-notifications ma przełącznik w ustawieniach", () => {
     const source = read("supabase/functions/process-notifications/index.ts");

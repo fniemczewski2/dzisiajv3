@@ -14,7 +14,7 @@ import type {
   TrainOperation,
   TrainStatusResponse,
 } from "@/types/pkpplk";
-import { SERVER_TTL_MS } from "@/config/server";
+import { SERVER_TTL_MS, TIMEOUTS_MS } from "@/config/server";
 import { resolveRouteStations } from "@/lib/trainRoute";
 import { buildStationDetails } from "@/lib/trainStatusDetails";
 import { parsePlkTime } from "@/lib/trainPlan";
@@ -70,7 +70,7 @@ function getOperations(fromStationId: string, headers: Record<string, string>): 
   const promise = (async () => {
     const res = await fetch(
       `https://pdp-api.plk-sa.pl/api/v1/operations?stations=${fromStationId}&withPlanned=true&fullRoutes=true&pageSize=10000`,
-      { headers }
+      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkpOperations) }
     );
     if (!res.ok) return null;
     const data: OperationsResponse = await res.json();
@@ -260,6 +260,10 @@ async function computeStatus(
     ...details,
   });
 }
+
+// Odpowiedź `operations` dla dużej stacji trwa ok. 30 s; limit musi być literałem (Next czyta go statycznie)
+// i wyższy niż TIMEOUTS_MS.pkpOperations w config/server.ts.
+export const config = { maxDuration: 90 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<TrainStatusResponse | ApiError>) {
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
