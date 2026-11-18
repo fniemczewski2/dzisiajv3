@@ -107,6 +107,20 @@ To najważniejsza część tego dokumentu.
 - Funkcja Edge `notify-shared` wyznacza odbiorcę z bazy (druga osoba listy), potwierdza zmiany stanem listy (dodana
   pozycja musi być na liście, usunięta nie może), sprawdza ustawienie odbiorcy i zapisuje powiadomienie oraz push.
 
+### Ceny produktów (katalog cen i import paragonów)
+
+- Ustawienia → Ceny produktów (`components/settings/ProductPricesSection.tsx`). Tabele `product_prices` (średnia cena za
+  jednostkę i liczba wystąpień), `receipt_aliases` (zapamiętane dopasowania nazw z paragonu) i `imported_receipts`
+  (skrót SHA-256 paragonu, tylko do blokady ponownego importu); RLS po `user_id`. Pliki paragonów nie są zapisywane.
+- Odczyt paragonu działa w przeglądarce (`lib/prices/ocr.ts`: tesseract.js, model angielski; PDF rysowany przez
+  `pdfjs-dist` w `lib/prices/pdfPages.ts`). Silnik i model ładują się z jsDelivr (wersje przypięte w
+  `config/constants.ts`, źródło dopuszczone w CSP).
+- `lib/prices/receiptParser.ts` składa pozycje (Lidl, Biedronka), sprawdza `ilość × cena = wartość` i sumę paragonu,
+  naprawia typowe błędy OCR; `lib/prices/importPlan.ts` buduje wiersze do weryfikacji (jednostka istniejącego produktu
+  ma pierwszeństwo) i zmiany w katalogu; `lib/prices/catalog.ts` liczy średnią ważoną (zmiana powyżej 20% wymaga
+  decyzji, domyślnie „nie aktualizuj”).
+- Lista zakupów: `lib/prices/lookup.ts` dopasowuje cenę do pozycji i podpowiada nazwy (przepisy + katalog).
+
 ### Wspólny widok poczty
 
 - `pages/mail.tsx`: widok „Wszystkie” składa listy ze wszystkich kont (`useMailMessagesOfAccounts`, wspólny cache z widokiem

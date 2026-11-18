@@ -13,6 +13,7 @@ import {
   Dumbbell,
   HeartPulse,
   ShoppingCart,
+  Tag,
   Clapperboard,
   Pen,
   Backpack,
@@ -719,6 +720,64 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub
         alfabetycznie.
+      </>,
+      <>
+        <K>Podpowiedzi nazw.</K> Pole <em>Nowy produkt</em> podpowiada nazwy składników z Twoich przepisów oraz
+        produktów z katalogu cen (<em>Ustawienia, Ceny produktów</em>). Wybierasz z listy albo wpisujesz własną nazwę.
+      </>,
+      <>
+        <K>Sugerowana cena.</K> Przy pozycji, która pasuje do produktu z katalogu cen, widać średnią cenę za jednostkę,
+        np. <em>ok. 5,99 zł / kg</em>, niezależnie od tego, ile produktu jest na liście. To cena orientacyjna (średnia
+        po rabatach z Twoich importów), a nie suma do zapłaty.
+      </>,
+    ],
+  },
+
+  {
+    id: "prices",
+    title: "Ceny produktów",
+    mainIcon: <Tag className="h-6 w-6" />,
+    iconColorClass: "text-warning",
+    listItems: [
+      <>
+        <K>Gdzie to jest.</K> W Ustawieniach, w sekcji <em>Ceny produktów</em>. Katalog jest domyślnie zwinięty, a w
+        nagłówku widać liczbę produktów; kliknij nagłówek, by wyszukać, dodać lub zmienić produkt.
+      </>,
+      <>
+        <K>Import z paragonu.</K> Wczytaj zdjęcie (zrzut ekranu) albo PDF paragonu z Lidla lub Biedronki, do 5 plików po
+        maks. 10 MB. Tekst jest odczytywany w Twojej przeglądarce (przy pierwszym użyciu pobiera się silnik
+        rozpoznawania, kilka MB); plik nie jest wysyłany ani zapisywany.
+      </>,
+      <>
+        <K>Weryfikacja przed zapisem.</K> Każda pozycja trafia do tabeli, w której poprawiasz nazwę, jednostkę i cenę
+        albo odznaczasz pozycję. Cena to zawsze zł za jedną jednostkę (kg, litr, szt., opak., m), po rabatach i
+        promocjach. Odczyt może pomylić cyfry, dlatego pozycje są sprawdzane arytmetycznie, a gdy suma pozycji nie
+        zgadza się z sumą paragonu, zapis wymaga Twojego potwierdzenia.
+      </>,
+      <>
+        <K>Jednostka.</K> Jeśli produkt jest już w katalogu, zawsze obowiązuje jego jednostka. Dla nowego produktu
+        jednostkę ustala się z paragonu (pozycja ważona to kg), a gdy się nie da, zostaje pusta do Twojej decyzji. Gdy z
+        paragonu nie wynika cena za wybraną jednostkę, wpisujesz ją sam.
+      </>,
+      <>
+        <K>Średnia ważona.</K> Katalog nie przechowuje paragonów, tylko średnią cenę i liczbę wystąpień. Nowa cena
+        zmienia średnią proporcjonalnie do liczby wystąpień. Jeśli różni się od średniej o więcej niż 20%, wybierasz:{" "}
+        <em>Nie aktualizuj</em> (domyślnie), <em>Uśrednij</em> albo <em>Nadpisz nową ceną</em>.
+      </>,
+      <>
+        <K>Nazwy z paragonu.</K> Nazwy na paragonach są skrócone (np. <em>Pomidory malin.PL500</em>). Aplikacja
+        zapamiętuje, do którego produktu je przypisałeś, więc przy kolejnych paragonach dopasuje je sama. Odczyt nie
+        zawiera polskich znaków, więc nowe nazwy możesz poprawić w tabeli.
+      </>,
+      <>
+        <K>Ten sam paragon dwa razy.</K> Przy zatwierdzeniu zapisujemy jednokierunkowy skrót paragonu (bez nazw i kwot),
+        żeby ponowny import tego samego paragonu nie zawyżył średnich.
+      </>,
+      <>
+        <K>Import z CSV.</K> Plik o stałym formacie: kolumny <em>nazwa, jednostka, cena</em> (np.{" "}
+        <em>Ananas, kg, 7,99zł</em>). Jednostki są ujednolicane (<em>opak</em> na <em>opak.</em>), ceny czytane w
+        złotych. Wiersz bez jednostki wymaga wyboru jednostki w tabeli weryfikacji, a wiersz z jednostką inną niż w
+        katalogu jest pomijany. Każdy wiersz liczy się jako jedno wystąpienie.
       </>,
     ],
   },

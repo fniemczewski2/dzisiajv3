@@ -3,7 +3,7 @@
 # Mapa kodu Dzisiaj.Fun
 
 Format wpisu: `ścieżka` – opis z nagłówka · exp: eksporty · http: metody · db: tabele Supabase · rpc: funkcje.
-Testy (242 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
+Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
 
 ## (root)
 

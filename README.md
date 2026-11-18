@@ -55,7 +55,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Rachunki** i **Budżet roczny** - kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
 - **Kalkulator rachunków** - sprawiedliwy podział kosztów wg dochodów (algorytm hybrydowy)
 - **Listy zakupów** (współdzielone, zmiany na żywo przez Supabase Realtime; dodanie i usunięcie pozycji powiadamia drugą osobę zbiorczo - kolejne akcje scalane w jedno powiadomienie) i **Przepisy** (filtrowanie po składnikach)
-- **Ceny produktów** (Ustawienia): katalog średnich cen za jednostkę (kg, litr, szt., opak., m) po rabatach, budowany z paragonów Lidl i Biedronki (zdjęcie lub PDF, tekst rozpoznawany w przeglądarce przez tesseract.js) oraz z plików CSV (nazwa, jednostka, cena); weryfikacja i edycja przed zapisem, średnia ważona liczbą wystąpień, przy zmianie ceny o ponad 20% wybór: nie aktualizuj, uśrednij lub nadpisz. Ceny są podpowiadane przy pozycjach list zakupów, a nazwy w polu nowego produktu pochodzą z przepisów i katalogu.
+- **Ceny produktów** (Ustawienia): katalog średnich cen za jednostkę (kg, litr, szt., opak., m) po rabatach, budowany z paragonów Lidl i Biedronki (zdjęcie lub PDF, tekst rozpoznawany w przeglądarce przez tesseract.js) oraz z plików CSV (nazwa, jednostka, cena); katalog jest domyślnie zwinięty (kliknij nagłówek, by go rozwinąć); weryfikacja i edycja przed zapisem, średnia ważona liczbą wystąpień, przy zmianie ceny o ponad 20% wybór: nie aktualizuj, uśrednij lub nadpisz. Ceny są podpowiadane przy pozycjach list zakupów, a nazwy w polu nowego produktu pochodzą z przepisów i katalogu.
 
 ### Styl życia
 

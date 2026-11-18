@@ -31,6 +31,7 @@ export const DEMO_QUICK_START: readonly string[] = [
   "W module Poczta podłącz konto Gmail lub Outlook.",
   "W Terminach zespołowych utwórz ankietę terminu albo zapisy na terminy.",
   "Dodaj listę zakupów i udostępnij jej zawartość drugiej osobie.",
+  "W Ustawieniach, w sekcji Ceny produktów, wczytaj paragon lub plik CSV, aby lista zakupów podpowiadała ceny.",
   "Skonfuguruj integrację z Apple Zdrowie w Ustawieniach, aby zobaczyć sen, tętno i aktywność w aplikacji.",
 ];
 
