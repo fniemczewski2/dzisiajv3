@@ -145,3 +145,17 @@ export const HEALTH_LIST_PAGE_SIZE = 100;
 /** Wiersze pobierane jednym zapytaniem; baza zwraca zwykle najwyżej 1000. */
 export const HEALTH_QUERY_PAGE_SIZE = 1000;
 export const HEALTH_QUERY_MAX_PAGES = 10;
+
+// Ceny produktów (ustawienia → Ceny produktów).
+/** Maksymalna liczba produktów w katalogu cen użytkownika. */
+export const MAX_PRODUCT_PRICES = 1000;
+/** Maksymalna liczba wierszy jednego importu (CSV lub paragon). */
+export const MAX_PRICE_IMPORT_ROWS = 500;
+/** Maksymalna liczba plików paragonów wczytywanych naraz. */
+export const MAX_RECEIPT_FILES = 5;
+/** Maksymalny rozmiar pliku paragonu (obraz lub PDF) i pliku CSV. */
+export const RECEIPT_FILE_MAX_BYTES = 10 * 1024 * 1024;
+export const PRICE_CSV_MAX_BYTES = 1024 * 1024;
+export const PRODUCT_NAME_MAX_LENGTH = 80;
+/** Zmiana ceny względem średniej powyżej tego progu wymaga decyzji użytkownika (domyślnie: nie aktualizuj). */
+export const PRICE_CHANGE_THRESHOLD = 0.2;

@@ -1,10 +1,14 @@
 // components/shopping/ShoppingListView.tsx
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useId, useState, useRef, useEffect, useMemo } from "react";
 import { User } from "lucide-react";
 import { ShoppingElement, ShoppingList } from "@/types/shopping";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
+import { useProductPrices } from "@/hooks/db/useProductPrices";
+import { useRecipes } from "@/hooks/db/useRecipes";
+import { lookupPrice, suggestionNames } from "@/lib/prices/lookup";
+import { formatUnitPrice } from "@/lib/prices/text";
 import { EditButton, DeleteButton, FormButtons, SaveButton } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 
@@ -26,6 +30,10 @@ export default function ShoppingListView({
 }: Readonly<ShoppingListViewProps>) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
+  const { prices } = useProductPrices();
+  const { products: recipeProducts } = useRecipes();
+  // Podpowiedzi nazw: produkty z przepisów i z katalogu cen (Ustawienia → Ceny produktów).
+  const suggestions = useMemo(() => suggestionNames(prices, recipeProducts), [prices, recipeProducts]);
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editedList, setEditedList] = useState<ShoppingList | null>(null);
   const [sharedEmail, setSharedEmail] = useState("");
@@ -205,7 +213,10 @@ export default function ShoppingListView({
                       onChange={() => toggleElement(list, el.id)}
                       className="card h-5 w-5 shrink-0 cursor-pointer text-primary accent-primary transition-colors focus:ring-primary"
                     />
-                    <span className="flex-1 truncate font-medium">{el.text}</span>
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate font-medium">{el.text}</span>
+                      <SuggestedPrice price={lookupPrice(prices, el.text)} />
+                    </span>
                   </div>
                   <DeleteButton onClick={() => removeElement(list, el.id)} small ariaLabel={`Usuń ${el.text}`} />
                 </li>
@@ -217,7 +228,7 @@ export default function ShoppingListView({
               )}
             </ul>
             <div className="mt-auto">
-              <AddElementForm onAdd={(text) => addElement(list, text)} />
+              <AddElementForm onAdd={(text) => addElement(list, text)} suggestions={suggestions} />
             </div>
           </li>
         );
@@ -231,8 +242,20 @@ export default function ShoppingListView({
   );
 }
 
-function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) {
+/** Sugerowana cena za jednostkę z katalogu cen (po rabatach, średnia z importów). */
+function SuggestedPrice({ price }: Readonly<{ price: ReturnType<typeof lookupPrice> }>) {
+  if (!price) return null;
+  return (
+    <span className="text-xs font-normal text-text-secondary">ok. {formatUnitPrice(price.avg_price, price.unit)}</span>
+  );
+}
+
+function AddElementForm({
+  onAdd,
+  suggestions,
+}: Readonly<{ onAdd: (text: string) => void; suggestions: readonly string[] }>) {
   const [text, setText] = useState("");
+  const listId = useId();
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (text.trim()) {
@@ -246,10 +269,17 @@ function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) 
         type="text"
         aria-label="Nowy produkt"
         placeholder="Nowy produkt…"
+        list={listId}
+        autoComplete="off"
         value={text}
         onChange={(e) => setText(e.target.value)}
         className="input-field min-w-0 grow py-2"
       />
+      <datalist id={listId}>
+        {suggestions.map((name) => (
+          <option key={name} value={name} aria-label={name} />
+        ))}
+      </datalist>
       <SaveButton small ariaLabel="Dodaj produkt" />
     </form>
   );

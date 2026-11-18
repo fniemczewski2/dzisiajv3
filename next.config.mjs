@@ -22,12 +22,16 @@ const isDev = process.env.NODE_ENV !== "production";
 // Cloudflare Turnstile (publiczne formularze ankiet): skrypt, ramka z wyzwaniem i weryfikacja.
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
+// Rozpoznawanie paragonów w przeglądarce (tesseract.js, Ustawienia → Ceny produktów): silnik i model ładują się
+// z jsDelivr (wersje przypięte w config/constants.ts), a kompilacja WebAssembly wymaga 'wasm-unsafe-eval'.
+const OCR_CDN_ORIGIN = "https://cdn.jsdelivr.net";
+
 const csp = [
   "default-src 'self'",
   // Produkcja: tylko własne pliki i skrypt motywu (skrót). Tryb dev potrzebuje inline i eval (HMR).
   isDev
-    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${TURNSTILE_ORIGIN}`
-    : `script-src 'self' ${themeScriptHash(THEME_PROVIDER_PROPS)} ${TURNSTILE_ORIGIN}`,
+    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' ${TURNSTILE_ORIGIN} ${OCR_CDN_ORIGIN}`
+    : `script-src 'self' 'wasm-unsafe-eval' ${themeScriptHash(THEME_PROVIDER_PROPS)} ${TURNSTILE_ORIGIN} ${OCR_CDN_ORIGIN}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: https://image.tmdb.org ${supabaseOrigins[0] ?? ""}`.trim(),
   "font-src 'self' data:",
@@ -38,6 +42,7 @@ const csp = [
     "https://air-quality-api.open-meteo.com",
     "https://api.nbp.pl",
     TURNSTILE_ORIGIN,
+    OCR_CDN_ORIGIN,
     ...(isDev ? ["ws:"] : []),
   ].join(" "),
   `frame-src ${TURNSTILE_ORIGIN}`,

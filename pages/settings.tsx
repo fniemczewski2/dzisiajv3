@@ -23,9 +23,11 @@ import DataExportSection from "@/components/settings/DataExportSection";
 import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
 import HealthConsentSection from "@/components/settings/HealthConsentSection";
 import ObsidianSection from "@/components/settings/ObsidianSection";
+import ProductPricesSection from "@/components/settings/ProductPricesSection";
 
 const OTHER_SECTIONS = [
   { id: "raporty", title: "Raporty PDF" },
+  { id: "ceny", title: "Ceny produktów" },
   { id: "slack", title: "Slack" },
   { id: "api", title: "API Skróty" },
   { id: "powiadomienia", title: "Powiadomienia" },
@@ -96,6 +98,7 @@ export default function SettingsPage() {
           <ShortcutTokenSection />
           <HealthConsentSection />
           <ObsidianSection />
+          <ProductPricesSection />
           <PushNotificationManager userId={user?.id} />
           <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
           <UserSection email={user?.email} onSignOut={handleSignOut} />

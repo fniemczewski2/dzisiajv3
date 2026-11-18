@@ -25,8 +25,18 @@ async function productionCsp(): Promise<string> {
 describe("Content-Security-Policy", () => {
   it("nie zawiera 'unsafe-inline' ani 'unsafe-eval' w script-src", async () => {
     const scriptSrc = (await productionCsp()).split("; ").find((d) => d.startsWith("script-src")) ?? "";
-    expect(scriptSrc).not.toContain("unsafe-inline");
-    expect(scriptSrc).not.toContain("unsafe-eval");
+    const tokens = scriptSrc.split(" ");
+    expect(tokens).not.toContain("'unsafe-inline'");
+    expect(tokens).not.toContain("'unsafe-eval'");
+  });
+
+  it("dopuszcza kompilację WebAssembly i silnik OCR tylko z jsDelivr (Ceny produktów)", async () => {
+    const directives = (await productionCsp()).split("; ");
+    const scriptSrc = directives.find((d) => d.startsWith("script-src")) ?? "";
+    const connectSrc = directives.find((d) => d.startsWith("connect-src")) ?? "";
+    expect(scriptSrc.split(" ")).toContain("'wasm-unsafe-eval'");
+    expect(scriptSrc).toContain("https://cdn.jsdelivr.net");
+    expect(connectSrc).toContain("https://cdn.jsdelivr.net");
   });
 
   it("dopuszcza dokładnie ten skrypt motywu, który renderuje _app", async () => {

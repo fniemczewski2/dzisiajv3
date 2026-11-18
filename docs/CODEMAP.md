@@ -3,7 +3,7 @@
 # Mapa kodu Dzisiaj.Fun
 
 Format wpisu: `ścieżka` – opis z nagłówka · exp: eksporty · http: metody · db: tabele Supabase · rpc: funkcje.
-Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
+Testy (242 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
 
 ## (root)
 
@@ -175,6 +175,9 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `ModulesEditor.tsx` – Włączanie i wyłączanie modułów. Wyłączony moduł znika z menu i wyszukiwarki; jego dane zostają w bazie i wracają po ponownym włączeniu.
 - `NotificationPreferencesForm.tsx` – exp: NotificationPreferences
 - `ObsidianSection.tsx` – Vault Obsidiana w OneDrive lub Google Drive: połączenie, synchronizacja na żądanie, odłączenie.
+- `PriceImportReview.tsx` – Tabela weryfikacji importu (paragon albo CSV): użytkownik poprawia nazwę, jednostkę i cenę, wybiera, co zrobić przy zmianie ceny o więcej niż próg, i…
+- `ProductPriceCatalog.tsx` – Katalog cen: wyszukiwanie, ręczne dodawanie, zmiana jednostki i ceny oraz usuwanie produktów.
+- `ProductPricesSection.tsx` – Ceny produktów: import z CSV (nazwa, jednostka, cena) i z paragonów Lidl oraz Biedronki (zdjęcie lub PDF), weryfikacja przed zapisem i ręczna edycja katalogu.
 - `PushNotificationManager.tsx`
 - `SettingsForm.tsx` – Ustawienia podzielone na sekcje tematyczne. Każda sekcja ma własną kopię roboczą i własny przycisk „Zapisz” – zapisuje tylko swoje pola. · exp: SETTINGS_SECTIONS, SettingsForm
 - `SettingsSection.tsx` – Sekcja ustawień z własnym zapisem. Trzyma kopię roboczą tylko swoich pól, więc „Zapisz” w jednej sekcji nie rusza niezapisanych zmian w innej.
@@ -257,13 +260,13 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## config
 
-- `constants.ts` – Skrypt widżetu Cloudflare Turnstile (źródło dopuszczone w CSP w next.config.mjs). · exp: TURNSTILE_SCRIPT_URL, DESCRIPTION_MAPPINGS, BOILERPLATE_REGEXES, REQUIRED_CATEGORIES, HEART_RATE_LIMITS
+- `constants.ts` – Skrypt widżetu Cloudflare Turnstile (źródło dopuszczone w CSP w next.config.mjs). · exp: TURNSTILE_SCRIPT_URL, DESCRIPTION_MAPPINGS, BOILERPLATE_REGEXES, REQUIRED_CATEGORIES, HEART_RATE_LIMITS, PRICE_OCR
 - `defaults.ts` – Wartości domyślne: ustawienia nowego konta, nastroje, kalkulator rachunków, formularze. Limity – config/limits.ts, czasy – config/timing.ts. · exp: DEFAULT_MOODS, DEFAULT_SETTINGS, BILLS_CALCULATOR_DEFAULTS, DEFAULT_EVENT_DURATION_MIN, DEFAULT_OTHER_DAY_START_HOUR, MEETING_POLL_QUICK_WORKING_DAYS, RECURRING_PREVIEW_DAYS, DEFAULT_REPORT_LOGO_WIDTH, +10
 - `env.ts` – Jedyne miejsce, w którym aplikacja czyta zmienne środowiskowe. - 'publicEnv' – zmienne NEXT_PUBLIC_*, wstawiane do kodu klienta podczas builda. · exp: publicEnv, serverEnv
 - `features.ts` – exp: FEATURE_STATUS_LABEL, FEATURE_GROUPS, getFeaturesWithStatus
 - `globalSearch.ts` – exp: GLOBAL_SEARCH_MIN_CHARS, GLOBAL_SEARCH_LIMIT, GLOBAL_SEARCH_SOURCES
 - `guideData.tsx` – exp: guideSections
-- `limits.ts` – Limity danych i interfejsu widoczne dla użytkownika (ile czegoś można mieć, jak duży może być plik, ile pozycji pokazać). · exp: MAX_SHOPPING_LISTS, MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS, MAX_MOODS, MAX_CATEGORIES, MAX_RECIPE_PRODUCTS, MAX_HABITS, MAX_VCARD_PROFILES, +54
+- `limits.ts` – Limity danych i interfejsu widoczne dla użytkownika (ile czegoś można mieć, jak duży może być plik, ile pozycji pokazać). · exp: MAX_SHOPPING_LISTS, MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS, MAX_MOODS, MAX_CATEGORIES, MAX_RECIPE_PRODUCTS, MAX_HABITS, MAX_VCARD_PROFILES, +61
 - `modules.ts` – Menu aplikacji: kolejność grup (NAV_GROUPS) i pozycji. Test __tests__/config/navigation.test.ts pilnuje, żeby każdy widok był w menu, a grupy były spójne i w… · exp: NAVIGATION_BUTTONS, moduleForPath, isPathEnabled, normalizeDisabledModules, TOGGLEABLE_MODULES, BOTTOM_BAR, menuItemsFor, menuRowSizes
 - `noteColors.ts` – Kolory tła notatek. Klucze to wartości kolumny 'notes.bg_color' w bazie (historyczne nazwy klas Tailwinda) – nie zmieniaj ich. · exp: NOTE_COLORS, DEFAULT_NOTE_COLOR, noteColorClass
 - `packing.ts` – exp: BACKPACK, SAFETY, SUITCASE
@@ -331,6 +334,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `useMovies.ts`
 - `useNotes.ts`
 - `usePeople.ts`
+- `useProductPrices.ts` – Katalog cen produktów użytkownika, zapamiętane dopasowania nazw z paragonów i zapis zatwierdzonego importu. · db: product_prices, receipt_aliases, imported_receipts
 - `useProfiles.ts` – Wizytówki (vcard_profiles) – na wspólnym useCrudResource: optymistyczne zmiany, ponowienia i kopia offline jak w pozostałych modułach.
 - `usePushNotifications.ts` – db: push_subscriptions
 - `useQuickNotes.ts` – Szybkie notatki użytkownika. Notatki dodane Skrótem pojawiają się po powrocie do aplikacji: odświeżamy listę, gdy karta znów staje się widoczna. · db: quick_notes
@@ -485,6 +489,18 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `runSync.ts` – Wykonanie synchronizacji: dane aplikacji → Markdown → plan (syncPlan) → zapis w vaulcie i w aplikacji. · exp: runVaultSync
 - `storage.ts` – Dostęp do vaultu w chmurze za wspólnym interfejsem. Fetch wstrzykiwany (testy bez sieci). · exp: VaultStorageError, createOneDriveVault, createGoogleDriveVault
 - `syncPlan.ts` – Plan synchronizacji dwukierunkowej aplikacja ↔ vault (OneDrive / Google Drive). Czysta logika. · exp: contentHash, planSync
+
+## lib/prices
+
+- `catalog.ts` – Łączenie nowych cen z katalogiem. Katalog nie przechowuje pojedynczych paragonów, tylko średnią i liczbę wystąpień; nowa cena wchodzi do średniej ważonej,… · exp: relativeChange, needsDecision, mergePrice
+- `csv.ts` – Import cen z pliku CSV o stałym formacie: nazwa, jednostka, cena (np. 'Ananas,kg,"7,99zł"'). Nagłówek (pierwsza kolumna zaczyna się od „Nazwa”) jest pomijany. · exp: splitCsv, parsePriceCsv
+- `fingerprint.ts` – Jednokierunkowy skrót paragonu (SHA-256) wyłącznie do wykrywania ponownego importu tego samego paragonu. · exp: receiptFingerprint
+- `importPlan.ts` – Plan importu: z odczytanego paragonu albo CSV powstaje lista wierszy do weryfikacji (nazwa, jednostka, cena), a po zatwierdzeniu lista zmian w katalogu i… · exp: priceForUnit, suggestProductName, buildReceiptRows, buildCsvRows, rowIssues, rowChange, rowNeedsDecision, buildChanges
+- `lookup.ts` – Szukanie ceny dla pozycji listy zakupów i podpowiedzi nazw (przepisy + katalog cen). · exp: lookupPrice, suggestionNames
+- `ocr.ts` – Rozpoznawanie tekstu paragonów w przeglądarce (tesseract.js): plik nie opuszcza urządzenia, na serwer trafiają dopiero zatwierdzone pozycje i ceny. · exp: recognizeReceipts
+- `pdfPages.ts` – Renderowanie stron PDF na płótna (canvas) do rozpoznawania tekstu. Paragony w PDF (np. Biedronka) są obrazami bez warstwy tekstowej, więc trzeba je narysować. · exp: renderPdfPages
+- `receiptParser.ts` – Parser tekstu paragonów Lidl i Biedronki rozpoznanego przez OCR (model angielski, bo najlepiej czyta cyfry). · exp: displayNameOf, parseReceiptText
+- `text.ts` – Wspólne funkcje na nazwach, jednostkach i cenach (CSV, paragony, lista zakupów). · exp: nameKey, normalizeUnit, parsePrice, roundTo, formatPln, formatUnitPrice, packSizeFromName, comparePolish
 
 ## lib/server
 
@@ -766,6 +782,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-05_fk_indexes.sql` – Indeksy kluczy obcych wskazane przez introspekcję (fk_without_index): szybsze usuwanie konta (ON DELETE CASCADE) i zapytania po tych kolumnach.
 - `2026-11-05_poll_signups.sql` – Ankiety w trybie zapisów: terminy z ograniczoną liczbą miejsc (pojemność slotu) i limitem terminów na osobę. · obj: meeting_poll_bookings, meeting_poll_bookings_select_own, meeting_poll_bookings_delete_own, _meeting_poll_fail, _meeting_poll_slot_rows, _meeting_poll_slot_json, book_meeting_poll_slots
 - `2026-11-12_rls_initplan.sql` – Polityki RLS w schemacie public: 'auth.uid()' w warunku jest wyliczane dla każdego wiersza.
+- `2026-11-19_product_prices.sql` – Katalog cen produktów (Ustawienia → Ceny produktów) i dane pomocnicze importu paragonów. · obj: product_prices, receipt_aliases, imported_receipts, product_prices_own, receipt_aliases_own, imported_receipts_own
 
 ## supabase/tests
 
@@ -788,6 +805,7 @@ Testy (221 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `outlookCalendar.ts`
 - `people.ts`
 - `pkpplk.ts`
+- `prices.ts` – Katalog cen produktów: średnia cena za jednostkę (zł) liczona ze wszystkich importów (średnia ważona liczbą wystąpień). · exp: PRICE_UNITS, RECEIPT_STORES, STORE_LABELS
 - `profiles.ts`
 - `recipes.ts` – Jedyne źródło prawdy dla kategorii przepisów. Wartości muszą być zgodne z enumem 'public.recipe_category' w bazie (patrz migracja… · exp: RECIPE_CATEGORIES, DEFAULT_RECIPE_CATEGORY, isRecipeCategory
 - `reports.ts` – Rola czcionki w szablonie protokołu.

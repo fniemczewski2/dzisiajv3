@@ -118,6 +118,16 @@ export default function PrivacyPage() {
               </span>
             </Li>
             <Li>
+              <strong>Ceny produktów:</strong>{" "}
+              <span>
+                Katalog cen (nazwa produktu, jednostka, średnia cena po rabatach i liczba wystąpień), który tworzysz
+                ręcznie albo z paragonów i plików CSV. Zdjęcie lub PDF paragonu jest odczytywane w Twojej przeglądarce i
+                nie jest wysyłane ani zapisywane; do bazy trafiają tylko zatwierdzone pozycje, zapamiętane dopasowania
+                nazw z paragonu do produktów oraz jednokierunkowy skrót paragonu, który służy wyłącznie do wykrycia
+                ponownego importu tego samego paragonu.
+              </span>
+            </Li>
+            <Li>
               <strong>Nastrój (opcjonalny):</strong>{" "}
               <span>
                 Wpisy w module nastroju mogą ujawniać informacje o Twoim samopoczuciu, czyli dane o zdrowiu (art. 9
@@ -277,6 +287,11 @@ export default function PrivacyPage() {
             <Li>
               <strong>Cloudflare, Inc.</strong> (USA), przekierowania poczty na adres aplikacji (tylko jeśli z nich
               korzystasz).
+            </Li>
+            <Li>
+              <strong>jsDelivr</strong> (cdn.jsdelivr.net, sieć dostarczania treści), pliki silnika rozpoznawania tekstu
+              i modelu językowego pobierane do przeglądarki przy pierwszym wczytaniu paragonu; dostawca widzi adres IP i
+              dane techniczne przeglądarki, ale nie widzi paragonu.
             </Li>
             <Li>
               <strong>Upstash Inc.</strong> (USA), krótkotrwałe liczniki żądań (adres IP lub identyfikator konta) do

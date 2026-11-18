@@ -105,3 +105,20 @@ export const REQUIRED_CATEGORIES = [
 ];
 
 export const HEART_RATE_LIMITS = [60, 100];
+
+/**
+ * Rozpoznawanie paragonów w przeglądarce (tesseract.js). Pliki silnika i modelu ładują się z jsDelivr
+ * (źródło dopuszczone w CSP w next.config.mjs); wersje są przypięte. Model angielski czyta cyfry dokładniej niż
+ * polski (na próbkach paragonów 98% zgodnych pozycji wobec 84%), więc nazwy wracają bez polskich znaków.
+ */
+export const PRICE_OCR = {
+  cdnOrigin: "https://cdn.jsdelivr.net",
+  workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/worker.min.js",
+  corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@7.0.0",
+  // Model „fast” z repozytorium tesseract-ocr (tag 4.1.0, plik nieskompresowany, 4 MB). Modele z pakietu
+  // @tesseract.js-data/eng gubiły wiersze paragonów, a „best” nie działa w silniku WASM.
+  langPath: "https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@4.1.0",
+  language: "eng",
+  /** Skala renderowania stron PDF (72 dpi × skala); 4 daje ok. 290 dpi. */
+  pdfScale: 4,
+} as const;
