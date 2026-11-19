@@ -63,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   daily_spending_categories: null,
   notif_bills: false,
   main_view: "calendar",
+  dashboard_layout: "day",
   sort_people: "alphabetical",
   hide_priority_5: false,
   sort_bills: "month",

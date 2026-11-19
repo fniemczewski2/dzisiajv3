@@ -2,6 +2,7 @@
 
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import { json, preflight, withCors } from "../_shared/auth.ts";
+import { getSecretKey, getPublishableKey } from "../_shared/keys.ts";
 
 const LOVE_LIMIT = 5;
 const LOVE_WINDOW_MINUTES = 10;
@@ -68,14 +69,14 @@ Deno.serve(
     if (req.method !== "POST") return respond({ error: "Metoda niedozwolona." }, 405);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const secretKey = getSecretKey();
+    const publishableKey = getPublishableKey();
 
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) return respond({ error: "Brak autoryzacji." }, 401);
     const jwt = authHeader.slice("Bearer ".length);
 
-    const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+    const admin = createClient(supabaseUrl, secretKey, { auth: { persistSession: false } });
 
     try {
       const {
@@ -89,7 +90,7 @@ Deno.serve(
         return respond({ success: false, message: "Za dużo serduszek naraz – spróbuj za kilka minut." }, 429);
       }
 
-      const asSender = createClient(supabaseUrl, anonKey, {
+      const asSender = createClient(supabaseUrl, publishableKey, {
         auth: { persistSession: false },
         global: { headers: { Authorization: `Bearer ${jwt}` } },
       });
@@ -120,7 +121,7 @@ Deno.serve(
       const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${serviceRoleKey}`,
+          apikey: secretKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

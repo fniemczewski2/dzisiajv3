@@ -1,6 +1,7 @@
 // supabase/functions/process-reminders/index.ts
 
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
+import { getSecretKey } from "../_shared/keys.ts";
 import { verifyCronSecret, jsonHeaders, preflight, unauthorized } from "../_shared/auth.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
@@ -146,7 +147,7 @@ Deno.serve(async (req) => {
   if (!verifyCronSecret(req)) return unauthorized();
 
   try {
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, getSecretKey());
 
     const { data, error } = await supabase
       .from("tasks")

@@ -1,13 +1,17 @@
 // hooks/useDashboardDnd.ts
+//
+// Przeciąganie na planie dnia: zadanie lub wydarzenie upuszczone na slot godzinowy dostaje nową godzinę
+// (pytanie i „Cofnij” – useConfirmedMove). usePlanSensors – czujniki wspólne z widokiem tygodnia.
 
 import { useState, useCallback } from "react";
-import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
+import { PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { Task } from "@/types/tasks";
 import { Event } from "@/types/events";
 import { dateToTimestamp, parseEventDate } from "@/lib/dateUtils";
 import { useToast } from "@/providers/ToastProvider";
-import { UNDO_WINDOW_MS } from "@/config/timing";
 import { useLatestRef } from "@/hooks/useLatestRef";
+import { useConfirmedMove } from "@/hooks/useConfirmedMove";
 
 type EditOptions = { silent?: boolean };
 
@@ -50,10 +54,17 @@ const isEventDrag = (dragId: string) => dragId.startsWith("plan-event-") || drag
 const taskIdOf = (dragId: string) => dragId.replace("plan-task-", "").replace("task-", "");
 const eventIdOf = (dragId: string) => dragId.replace("plan-event-", "").replace("side-event-", "");
 
-export const MOVE_CONFIRM_OPTIONS = { confirmLabel: "Przenieś", cancelLabel: "Anuluj" } as const;
+/** Czujniki przeciągania planu (dzień i tydzień): mysz po 8 px, dotyk po przytrzymaniu 200 ms. */
+export function usePlanSensors() {
+  return useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+  );
+}
 
 export function useDashboardDnd({ tasks, events, userId, date, editTask, editEvent }: Readonly<UseDashboardDndProps>) {
   const { toast } = useToast();
+  const confirmMove = useConfirmedMove();
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
 
@@ -85,32 +96,21 @@ export function useDashboardDnd({ tasks, events, userId, date, editTask, editEve
       // Upuszczenie w tym samym slocie godzinowym = brak zmiany.
       if (currentTask.scheduled_time && hourOf(currentTask.scheduled_time) === slot.hours) return;
 
-      const ok = await toast.confirm(`Przenieść „${currentTask.title}” na ${slot.label}?`, MOVE_CONFIRM_OPTIONS);
-      if (!ok) return;
-
       const previousTime = currentTask.scheduled_time ?? null;
       const scheduledDateTime = new Date(date);
       scheduledDateTime.setHours(slot.hours, slot.minutes, 0, 0);
 
-      const saved = await editTask(
-        { ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) },
-        { silent: true }
-      );
-      if (!saved) return;
-      toast.success(`Przeniesiono „${currentTask.title}” na ${slot.label}`, {
-        durationMs: UNDO_WINDOW_MS,
-        action: {
-          label: "Cofnij",
-          onClick: () => {
-            const latest = tasksRef.current.find((t) => String(t.id) === rawId) ?? currentTask;
-            void editTask({ ...latest, scheduled_time: previousTime }, { silent: true }).then((undone) => {
-              if (undone) toast.success("Cofnięto przeniesienie");
-            });
-          },
+      await confirmMove({
+        title: currentTask.title,
+        targetLabel: slot.label,
+        apply: () => editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) }, { silent: true }),
+        revert: () => {
+          const latest = tasksRef.current.find((t) => String(t.id) === rawId) ?? currentTask;
+          return editTask({ ...latest, scheduled_time: previousTime }, { silent: true });
         },
       });
     },
-    [tasks, date, editTask, toast, tasksRef]
+    [tasks, date, editTask, confirmMove, tasksRef]
   );
 
   const moveEvent = useCallback(
@@ -129,37 +129,26 @@ export function useDashboardDnd({ tasks, events, userId, date, editTask, editEve
         return;
       }
 
-      const ok = await toast.confirm(`Przenieść „${currentEvent.title}” na ${slot.label}?`, MOVE_CONFIRM_OPTIONS);
-      if (!ok) return;
-
       const previous = { start_time: currentEvent.start_time, end_time: currentEvent.end_time };
       const newStart = new Date(date);
       newStart.setHours(slot.hours, slot.minutes, 0, 0);
       const newEnd = new Date(newStart.getTime() + durationMs);
 
-      const saved = await editEvent(
-        {
-          ...currentEvent,
-          start_time: dateToTimestamp(newStart),
-          end_time: dateToTimestamp(newEnd),
-        },
-        { silent: true }
-      );
-      if (!saved) return;
-      toast.success(`Przeniesiono „${currentEvent.title}” na ${slot.label}`, {
-        durationMs: UNDO_WINDOW_MS,
-        action: {
-          label: "Cofnij",
-          onClick: () => {
-            const latest = eventsRef.current.find((e) => String(e.id) === eventId) ?? currentEvent;
-            void editEvent({ ...latest, ...previous }, { silent: true }).then((undone) => {
-              if (undone) toast.success("Cofnięto przeniesienie");
-            });
-          },
+      await confirmMove({
+        title: currentEvent.title,
+        targetLabel: slot.label,
+        apply: () =>
+          editEvent(
+            { ...currentEvent, start_time: dateToTimestamp(newStart), end_time: dateToTimestamp(newEnd) },
+            { silent: true }
+          ),
+        revert: () => {
+          const latest = eventsRef.current.find((e) => String(e.id) === eventId) ?? currentEvent;
+          return editEvent({ ...latest, ...previous }, { silent: true });
         },
       });
     },
-    [events, date, editEvent, toast, eventsRef]
+    [events, date, editEvent, toast, confirmMove, eventsRef]
   );
 
   const handleDragEnd = useCallback(

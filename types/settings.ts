@@ -1,4 +1,6 @@
 // types/settings.ts
+//
+// Ustawienia użytkownika (tabela settings): kolumny w lib/db/columns.ts, wartości domyślne w config/defaults.ts.
 
 import type { FavoriteStop } from "@/shared/stopGrouping";
 import { MoodOption } from "./moods";
@@ -65,6 +67,8 @@ export interface Settings {
   /** Push w dniu terminu płatności rachunku stałego. */
   notif_bills?: boolean;
   main_view: string;
+  /** Układ planu na ekranie głównym (main_view = "day_view"): jeden dzień albo tydzień. */
+  dashboard_layout?: DashboardLayout;
 
   sort_people: string;
   hide_priority_5: boolean;
@@ -89,6 +93,9 @@ export interface Settings {
 }
 
 export type BriefEveningMode = "summary" | "tomorrow" | "both";
+
+/** „week” – wczoraj, dzień widoku i 5 kolejnych dni (components/dashboard/WeekView.tsx). */
+export type DashboardLayout = "day" | "week";
 
 export interface EmailByIdRow {
   id: string;

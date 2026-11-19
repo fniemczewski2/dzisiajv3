@@ -1,6 +1,6 @@
 // __tests__/fixtures/dbSchema.ts
 //
-// Zamrożona migawka schematu bazy (supabase/introspect_schema.sql, 2026-11-03; uzupełniona o migracje 2026-11-05_poll_signups i 2026-11-20_brief_feed_tickets): nazwy wszystkich tabel schematu public,
+// Zamrożona migawka schematu bazy (supabase/introspect_schema.sql, 2026-11-03; uzupełniona o migracje 2026-11-05_poll_signups, 2026-11-20_brief_feed_tickets i 2026-11-22_dashboard_layout): nazwy wszystkich tabel schematu public,
 // kubełki Storage i kolumny tabel czytanych przez aplikację. Po zmianie schematu uruchom introspekcję ponownie
 // i zaktualizuj ten plik – testy w __tests__/config pilnują wtedy listy kolumn, eksportu i usuwania konta.
 
@@ -312,6 +312,7 @@ export const DB_COLUMNS: Record<string, readonly string[]> = {
     "brief_dismissed_morning",
     "brief_dismissed_evening",
     "letter_mail_accounts",
+    "dashboard_layout",
   ],
   shopping_lists: ["id", "name", "elements", "inserted_at", "updated_at", "user_id", "shared_with_id"],
   slack_lists: [

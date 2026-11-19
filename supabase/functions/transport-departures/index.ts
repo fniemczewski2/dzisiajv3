@@ -2,6 +2,7 @@
 
 import { MAX_FAVORITE_STOPS, MAX_MINUTES_AHEAD, MAX_NEARBY_GROUPS } from "../_shared/config.ts";
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
+import { getSecretKey, getPublishableKey } from "../_shared/keys.ts";
 import {
   ambiguousNames,
   clusterStops,
@@ -334,7 +335,7 @@ Deno.serve(
   withCors(async (req) => {
     if (req.method === "OPTIONS") return preflight();
 
-    const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL")!, getPublishableKey());
     const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     const {
       data: { user },
@@ -356,7 +357,7 @@ Deno.serve(
         });
       }
 
-      const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const supabase = createClient(Deno.env.get("SUPABASE_URL")!, getSecretKey());
 
       if (stopNames && Array.isArray(stopNames)) {
         const userPos = typeof lat === "number" && typeof lon === "number" ? { lat, lon } : null;

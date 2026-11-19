@@ -145,6 +145,7 @@ describe("runVaultSync", () => {
       conflicts: 0,
       skippedImports: 0,
       pendingDuplicates: 0,
+      remaining: 0,
     });
   });
 
@@ -301,5 +302,16 @@ describe("runVaultSync", () => {
     const after = vault.files.get(id)!.content;
     expect(after).toContain('author: ["F.Niemczewski"]');
     expect(after).toContain("Gotować 20 minut.");
+  });
+
+  it("limit czasu: przerwany przebieg zapisuje stan i zwraca remaining; kolejny kończy pracę bez duplikatów", async () => {
+    const vault = memoryVault();
+    const { repo, getState } = memoryRepo(data());
+    const first = await runVaultSync(repo, vault, { ...OPTS, deadline: Date.now() - 1 });
+    expect(first).toMatchObject({ uploaded: 0, remaining: 4 });
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ uploaded: 4, remaining: 0 });
+    expect(getState()).toHaveLength(4);
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ uploaded: 0, remaining: 0 });
+    expect(vault.files.size).toBe(4);
   });
 });

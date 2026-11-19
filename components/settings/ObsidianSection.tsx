@@ -25,12 +25,15 @@ interface Summary {
   conflicts: number;
   skippedImports: number;
   pendingDuplicates: number;
+  remaining: number;
 }
 
 const PROVIDER_NAME = { onedrive: "OneDrive", gdrive: "Google Drive" } as const;
 const VAULT_LOCATION = { onedrive: "Aplikacje/dzisiaj.fun", gdrive: "Mój dysk/dzisiaj.fun" } as const;
 /** Folder vaultu synchronizowanego przez Remotely Save (wersja bezpłatna, OneDrive App Folder). */
 const SUGGESTED_ROOT = "Apps/remotely-save/Zeszyt";
+/** Najwyżej tyle kolejnych wywołań synchronizacji po jednym kliknięciu (każde do ~60 s). */
+const MAX_SYNC_ROUNDS = 10;
 const ERRORS: Record<string, string> = {
   denied: "Anulowano łączenie.",
   invalid_state: "Sesja łączenia wygasła. Spróbuj ponownie.",
@@ -100,8 +103,31 @@ export default function ObsidianSection() {
 
   const sync = () =>
     run(async () => {
-      const { summary } = await api<{ summary: Summary }>("/api/obsidian/sync", { method: "POST" });
-      toast.success(describeSummary(summary));
+      // Duża pierwsza synchronizacja dzieli się na kilka wywołań (limit czasu funkcji) – sumujemy wyniki.
+      const total: Summary = {
+        uploaded: 0,
+        updatedInApp: 0,
+        imported: 0,
+        conflicts: 0,
+        skippedImports: 0,
+        pendingDuplicates: 0,
+        remaining: 0,
+      };
+      for (let round = 0; round < MAX_SYNC_ROUNDS; round++) {
+        const { summary } = await api<{ summary: Summary }>("/api/obsidian/sync", { method: "POST" });
+        total.uploaded += summary.uploaded;
+        total.updatedInApp += summary.updatedInApp;
+        total.imported += summary.imported;
+        total.conflicts += summary.conflicts;
+        total.skippedImports += summary.skippedImports;
+        total.pendingDuplicates = summary.pendingDuplicates;
+        total.remaining = summary.remaining;
+        if (summary.remaining === 0) break;
+        toast.info(`Synchronizacja trwa: pozostało ${summary.remaining} plików…`);
+      }
+      if (total.remaining > 0)
+        toast.info(`Pozostało ${total.remaining} plików – kliknij „Synchronizuj teraz” ponownie.`);
+      toast.success(describeSummary(total));
       await queryClient.invalidateQueries({ queryKey: ["vault-connection"] });
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
       await queryClient.invalidateQueries({ queryKey: ["vault-duplicates"] });

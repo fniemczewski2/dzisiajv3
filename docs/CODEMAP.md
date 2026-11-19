@@ -3,7 +3,7 @@
 # Mapa kodu Dzisiaj.Fun
 
 Format wpisu: `ścieżka` – opis z nagłówka · exp: eksporty · http: metody · db: tabele Supabase · rpc: funkcje.
-Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
+Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
 
 ## (root)
 
@@ -54,6 +54,10 @@ Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `PlanItem.tsx`
 - `QuickNotes.tsx`
 - `TrainPlanItem.tsx`
+- `WeekDayColumn.tsx` – Kolumna dnia w widoku tygodnia: strefa upuszczenia (id 'day-yyyy-MM-dd'), nagłówek z dniem i świętem, przyciski dodania zadania i wydarzenia na ten dzień,…
+- `WeekItem.tsx` – Zwarte karty widoku tygodnia (wąska kolumna dnia): zadanie z priorytetem, godziną, kategorią i przyciskiem „Zrobione”; wydarzenie z godzinami i znacznikiem… · exp: WeekTaskItem, WeekEventItem
+- `WeekOverdue.tsx` – Rząd „Zaległe” nad kolumnami widoku tygodnia: niewykonane zadania z terminem przed pierwszym dniem zakresu.
+- `WeekView.tsx` – Widok tygodnia na ekranie głównym (ustawienie dashboard_layout = "week"): wczoraj, dzień widoku i 5 kolejnych dni.
 
 ## components/daySchema
 
@@ -291,7 +295,8 @@ Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `useAbortController.ts`
 - `useAppStreak.ts` – db: app_usage_days
-- `useDashboardDnd.ts` – exp: MOVE_CONFIRM_OPTIONS, useDashboardDnd
+- `useConfirmedMove.ts` – Wspólny przebieg przeniesienia na planie dnia i w widoku tygodnia: pytanie „Przenieść…?”, zapis bez własnego toastu (hook edycji pokazuje tylko błąd),…
+- `useDashboardDnd.ts` – Przeciąganie na planie dnia: zadanie lub wydarzenie upuszczone na slot godzinowy dostaje nową godzinę (pytanie i „Cofnij” – useConfirmedMove). · exp: usePlanSensors, useDashboardDnd
 - `useDataExport.ts` – Pobranie kopii wszystkich danych konta (/api/account/export) jako pliku JSON.
 - `useDragAutoscroll.ts` – Extracted from DayView.tsx: while any drag is active, scrolls the window when the pointer nears the top/bottom edge so long day plans stay reachable during…
 - `useDragSelectGrid.ts` – Zaznaczanie komórek siatki przeciąganiem – myszą, palcem i rysikiem. Na telefonie nie działało z trzech powodów: 1. · exp: dragCellStyle, useDragSelectGrid
@@ -321,6 +326,7 @@ Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `useTaskCategories.ts` – Kategorie zadań i ich kolory – z ustawień użytkownika (SettingsProvider), więc zmiana w Ustawieniach jest od razu widoczna w formularzach i na liście. · exp: useTaskCategories, useCategoryColors, applyTaskCategoryRenames · db: tasks, events
 - `useTimer.ts` – exp: engineReducer, useTimerEngine
 - `useWeather.ts` – Prognoza i jakość powietrza (Open-Meteo) dla bieżącej lokalizacji.
+- `useWeekDnd.ts` – Przeciąganie w widoku tygodnia: zadanie lub wydarzenie upuszczone na kolumnę innego dnia dostaje nowy termin (godzina i czas trwania bez zmian,… · exp: weekTaskDragId, weekEventDragId, useWeekDnd
 
 ## hooks/db
 
@@ -446,6 +452,7 @@ Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `travelTickets.ts` – Przypomnienie o zakupie biletów przed podróżą: dla wydarzenia z kategorią podróżną tworzymy zadanie „Kup bilety: …” na 30 dni przed wyjazdem (PKP Intercity… · exp: TICKET_REMINDER_DAYS_BEFORE, isTravelCategory, ticketTaskDay, createTicketReminderTask · db: tasks
 - `urlBase64ToUint8Array.tsx`
 - `vcard.ts` – Jedno miejsce generowania plików vCard 3.0 (RFC 2426): publiczna wizytówka (/api/vcard), podgląd wizytówki i kontakt z modułu Osoby. · exp: escVCardValue, sanitizeTypeToken, vcardType, safeFileName, structuredName, buildVCard, vcardContentDisposition
+- `weekPlan.ts` – Widok tygodnia na ekranie głównym: zakres dni (wczoraj względem dnia widoku i 5 kolejnych), podział zadań na zaległe i dni zakresu, wydarzenia po dniach oraz… · exp: parseDay, weekDays, dayDropId, parseDayDropId, splitWeekTasks, groupEventsByDay, isMovableEvent, moveTaskToDay, +2
 - `workLogTime.ts` – Konwersje czasu wpisów pracy: wartość z pola datetime-local (czas lokalny bez strefy) ↔ ISO z przesunięciem strefy, które zapisujemy w bazie. · exp: toIsoWithLocalOffset, toLocalInputValue, nowLocalInputValue, validateWorkLogRange
 - `zjazdyParser.ts` – Wyszukuje terminy zjazdów w tekście skopiowanym ze strony uczelni (tabela, lista, akapit). Rozpoznaje m.in.: 11-12.10.2025 · 11–12.10.2025 r. · exp: findDateMatches, parseStudyDates
 
@@ -822,6 +829,7 @@ Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-20_brief_feed_tickets.sql` – Wydanie 1.45.0: briefing dnia, kanał .ics (WebCal), płatności ze Skrótów (Apple Pay), bilety z poczty, skrzynki do wyszukiwania potwierdzeń ePUAP / e-Doręczeń. · obj: calendar_feed_tokens, calendar_feed_tokens_select_own, user_trains_update_own
 - `2026-11-21_ticket_buffer.sql` – Wydanie 1.45.0 (uzupełnienie): adres biletów przyjmuje wiadomości bez biletu do bufora Poczty tylko do chwili potwierdzenia przekazywania (mail weryfikacyjny…
 - `2026-11-21_vault_root_and_import_decisions.sql` – Vault Obsidiana w folderze wskazanym przez użytkownika (np. „Apps/remotely-save/Zeszyt” – Remotely Save) oraz decyzje o duplikatach przy imporcie osób z vaultu… · obj: vault_import_decisions, vault_import_decisions_own
+- `2026-11-22_dashboard_layout.sql` – Układ planu na ekranie głównym: jeden dzień albo tydzień (wczoraj, dzień widoku i 5 kolejnych dni). Skrypt idempotentny – można go uruchomić ponownie.
 
 ## supabase/tests
 
@@ -849,7 +857,7 @@ Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `recipes.ts` – Jedyne źródło prawdy dla kategorii przepisów. Wartości muszą być zgodne z enumem 'public.recipe_category' w bazie (patrz migracja… · exp: RECIPE_CATEGORIES, DEFAULT_RECIPE_CATEGORY, isRecipeCategory
 - `reports.ts` – Rola czcionki w szablonie protokołu.
 - `schemas.ts`
-- `settings.ts`
+- `settings.ts` – Ustawienia użytkownika (tabela settings): kolumny w lib/db/columns.ts, wartości domyślne w config/defaults.ts.
 - `shopping.ts`
 - `streaks.ts`
 - `tasks.ts`

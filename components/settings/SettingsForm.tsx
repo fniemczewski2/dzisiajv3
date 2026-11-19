@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import ThemeToggle from "./ThemeButton";
 import { DeleteButton, ToggleSwitch } from "../ui/CommonButtons";
 import { MoodOption } from "@/types/moods";
-import { Settings, type BriefEveningMode } from "@/types/settings";
+import { Settings, type BriefEveningMode, type DashboardLayout } from "@/types/settings";
 import SettingsSection, { type SetField } from "./SettingsSection";
 import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
 import CategoryColorPicker from "@/components/settings/CategoryColorPicker";
@@ -179,9 +179,9 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="ogolne"
         title="Ogólne"
         description="Ekran startowy, motyw i moduły widoczne w menu."
-        keys={["main_view", "disabled_modules"] as const}
+        keys={["main_view", "dashboard_layout", "disabled_modules"] as const}
       >
-        {(d, set: SetField<"main_view" | "disabled_modules">) => (
+        {(d, set: SetField<"main_view" | "dashboard_layout" | "disabled_modules">) => (
           <>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="min-w-48 flex-1">
@@ -199,6 +199,22 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                   <option value="day_view">Plan dnia</option>
                 </select>
               </div>
+              {d.main_view === "day_view" && (
+                <div className="min-w-48 flex-1">
+                  <label htmlFor="dashboard_layout" className="form-label">
+                    Układ planu:
+                  </label>
+                  <select
+                    id="dashboard_layout"
+                    value={d.dashboard_layout ?? "day"}
+                    onChange={(e) => set("dashboard_layout", e.target.value as DashboardLayout)}
+                    className="input-field"
+                  >
+                    <option value="day">Dzień</option>
+                    <option value="week">Tydzień (wczoraj, dziś i 5 dni)</option>
+                  </select>
+                </div>
+              )}
               <div className="flex min-h-11 items-center gap-2 text-sm text-text-secondary">
                 Motyw: <ThemeToggle />
               </div>

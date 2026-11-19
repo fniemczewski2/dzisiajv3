@@ -11,6 +11,7 @@ import {
   weekdayIndexPL,
 } from "../_shared/notificationTime.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
+import { getSecretKey } from "../_shared/keys.ts";
 import { usersNotifiedToday, rowsByUser, sentDataKeys, sentKey } from "./batch.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
 import { cols } from "../_shared/columns.ts";
@@ -1133,7 +1134,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const type = url.searchParams.get("type") || "daily_habits";
 
-    const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+    const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", getSecretKey());
 
     const realNow = new Date();
     const plNow = getPLTimeStrings(realNow);
@@ -1166,6 +1167,7 @@ Deno.serve(async (req) => {
         });
 
         const { error: pushError } = await supabase.functions.invoke("send-push", {
+          headers: { apikey: getSecretKey() },
           body: { userId, title, message, url: targetUrl, data: { type, ...dataObj } },
         });
 

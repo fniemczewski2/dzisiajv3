@@ -7,6 +7,7 @@
 
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import { json, preflight, withCors } from "../_shared/auth.ts";
+import { getSecretKey } from "../_shared/keys.ts";
 import {
   NOTIFICATION_TYPE_BY_KIND,
   PREFERENCE_BY_KIND,
@@ -91,11 +92,11 @@ function decideDelivery(
   return { send: planListDelivery({ recipientPref, summary }).send, summary };
 }
 
-/** Wysyłka push do odbiorcy przez funkcję send-push (wywołanie serwerowe kluczem service role). */
-async function pushToRecipient(supabaseUrl: string, serviceRoleKey: string, payload: unknown): Promise<void> {
+/** Wysyłka push do odbiorcy przez funkcję send-push (wywołanie serwerowe kluczem secret). */
+async function pushToRecipient(supabaseUrl: string, secretKey: string, payload: unknown): Promise<void> {
   const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+    headers: { apikey: secretKey, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   if (!pushRes.ok) console.error("[notify-shared] send-push failed:", await pushRes.text());
@@ -107,7 +108,7 @@ Deno.serve(
     if (req.method !== "POST") return json({ error: "Metoda niedozwolona." }, 405);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const secretKey = getSecretKey();
 
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) return json({ error: "Brak autoryzacji." }, 401);
@@ -116,7 +117,7 @@ Deno.serve(
     const body = parseBody(await req.json().catch(() => null));
     if (!body) return json({ error: "Nieprawidłowe dane." }, 400);
 
-    const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+    const admin = createClient(supabaseUrl, secretKey, { auth: { persistSession: false } });
 
     try {
       const {
@@ -170,7 +171,7 @@ Deno.serve(
       });
       if (insertError) throw insertError;
 
-      await pushToRecipient(supabaseUrl, serviceRoleKey, {
+      await pushToRecipient(supabaseUrl, secretKey, {
         userId: recipientId,
         title,
         message,

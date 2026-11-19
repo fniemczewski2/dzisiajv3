@@ -10,6 +10,7 @@ import { SkeletonTaskList, SkeletonCalendar, SkeletonRow } from "@/components/ui
 import { useRouter } from "next/router";
 import { getAppDateTime } from "@/lib/dateUtils";
 import Seo from "@/components/ui/SEO";
+import type { DashboardLayout } from "@/types/settings";
 
 function DayViewSkeleton() {
   return (
@@ -38,15 +39,20 @@ const CalendarPage = dynamic(() => import("./calendar"), {
 const DayView = dynamic(() => import("../components/dashboard/DayView"), {
   loading: () => <DayViewSkeleton />,
 });
+const WeekView = dynamic(() => import("../components/dashboard/WeekView"), {
+  loading: () => <DayViewSkeleton />,
+});
 
 interface MainViewProps {
   readonly view: string;
+  readonly layout: DashboardLayout | undefined;
   readonly viewDate: ReturnType<typeof getAppDateTime>;
   readonly onDateChange: React.Dispatch<React.SetStateAction<ReturnType<typeof getAppDateTime>>>;
 }
 
-function MainView({ view, viewDate, onDateChange }: MainViewProps) {
+function MainView({ view, layout, viewDate, onDateChange }: MainViewProps) {
   if (view === "tasks") return <TasksPage />;
+  if (view === "day_view" && layout === "week") return <WeekView date={viewDate} onDateChange={onDateChange} />;
   if (view === "day_view") return <DayView date={viewDate} onDateChange={onDateChange} />;
   return <CalendarPage />;
 }
@@ -77,7 +83,12 @@ export default function IndexPage() {
         canonical="https://www.dzisiaj.fun"
         noindex={true}
       />
-      <MainView view={settings.main_view} viewDate={viewDate} onDateChange={setViewDate} />
+      <MainView
+        view={settings.main_view}
+        layout={settings.dashboard_layout}
+        viewDate={viewDate}
+        onDateChange={setViewDate}
+      />
     </>
   );
 }

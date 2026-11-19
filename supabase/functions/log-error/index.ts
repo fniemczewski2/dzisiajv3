@@ -7,6 +7,7 @@
 import { MAX_ERROR_CONTEXT, MAX_ERROR_MESSAGE, MAX_ERROR_STACK } from "../_shared/config.ts";
 import { createClient } from "../_shared/supabase.ts";
 import { json, preflight, unauthorized, withCors } from "../_shared/auth.ts";
+import { getSecretKey } from "../_shared/keys.ts";
 
 const LOG_LIMIT = 20;
 const LOG_WINDOW_MINUTES = 10;
@@ -37,7 +38,7 @@ Deno.serve(
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) return unauthorized();
 
-    const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
+    const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", getSecretKey(), {
       auth: { persistSession: false },
     });
 

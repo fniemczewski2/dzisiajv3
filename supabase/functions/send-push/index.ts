@@ -3,6 +3,7 @@
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import webpush from "npm:web-push@3.6.6";
 import { safeEqual, jsonHeaders, preflight, unauthorized, withCors } from "../_shared/auth.ts";
+import { getSecretKey } from "../_shared/keys.ts";
 
 interface PushRequest {
   userId?: string;
@@ -25,17 +26,20 @@ interface SendResult {
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: jsonHeaders });
 
 /**
- * Adresat powiadomienia. Wywołanie wewnętrzne (cron, send-love) z kluczem
- * service_role wskazuje go w treści; zalogowany użytkownik (przycisk testu)
- * wysyła wyłącznie do siebie – userId bierzemy z tokenu.
+ * Adresat powiadomienia. Wywołanie wewnętrzne (cron, send-love, notify-shared)
+ * z kluczem secret wskazuje go w treści – klucz przychodzi w nagłówku
+ * `apikey` (nowy system kluczy, nigdy w `Authorization`, patrz _shared/keys.ts).
+ * Zalogowany użytkownik (przycisk testu) wysyła wyłącznie do siebie – userId
+ * bierzemy z tokenu sesji w `Authorization`.
  */
 async function resolveUserId(
   supabase: SupabaseClient,
   bearer: string,
-  serviceRoleKey: string,
+  apiKey: string,
+  secretKey: string,
   requestedUserId: string | undefined
 ): Promise<string | Response> {
-  if (bearer && serviceRoleKey && safeEqual(bearer, serviceRoleKey)) {
+  if (apiKey && secretKey && safeEqual(apiKey, secretKey)) {
     return requestedUserId ?? json({ error: "Brak parametru userId w żądaniu." }, 400);
   }
   const {
@@ -96,12 +100,13 @@ Deno.serve(
 
     try {
       const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-      const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceRoleKey);
+      const apiKey = req.headers.get("apikey") ?? "";
+      const secretKey = getSecretKey();
+      const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", secretKey);
 
       const { userId: requestedUserId, title, message, url, data } = (await req.json()) as PushRequest;
 
-      const userId = await resolveUserId(supabase, bearer, serviceRoleKey, requestedUserId);
+      const userId = await resolveUserId(supabase, bearer, apiKey, secretKey, requestedUserId);
       if (userId instanceof Response) return userId;
 
       const vapidProblem = configureVapid();

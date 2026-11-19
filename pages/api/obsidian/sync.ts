@@ -14,6 +14,11 @@ import { VaultStorageError } from "@/lib/obsidian/storage";
 
 /** Duże vaulty: więcej czasu niż domyślny limit funkcji. */
 export const config = { maxDuration: 60 };
+/**
+ * Budżet na działania (zapis/import) w jednym wywołaniu; reszta czasu na odczyt vaultu i zapis stanu.
+ * Pierwsza synchronizacja (setki plików) kończy się w kilku wywołaniach – klient powtarza, dopóki remaining > 0.
+ */
+const ACTION_BUDGET_MS = 40_000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (!allowMethods(req, res, ["POST"])) return;
@@ -37,10 +42,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(401).json({ error: "Połączenie wygasło. Połącz chmurę ponownie." });
     return;
   }
+  const startedAt = Date.now();
   try {
     const summary = await runVaultSync(supabaseVaultRepo(supabase, user.id), storage, {
       today: getAppDate(),
       maxFiles: MAX_VAULT_FILES,
+      deadline: startedAt + ACTION_BUDGET_MS,
     });
     await supabase
       .from("vault_connections")

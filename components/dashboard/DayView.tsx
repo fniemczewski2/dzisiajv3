@@ -5,15 +5,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { Calendar, ListTodo, SaveAll, Trophy } from "lucide-react";
-import {
-  DndContext,
-  useSensor,
-  useSensors,
-  PointerSensor,
-  TouchSensor,
-  DragOverlay,
-  defaultDropAnimationSideEffects,
-} from "@dnd-kit/core";
+import { DndContext, DragOverlay, defaultDropAnimationSideEffects } from "@dnd-kit/core";
 
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
@@ -21,9 +13,8 @@ import { useTasks } from "@/hooks/db/useTasks";
 import { useEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
-import { useDashboardDnd, MOVE_CONFIRM_OPTIONS } from "@/hooks/useDashboardDnd";
-import { useToast } from "@/providers/ToastProvider";
-import { UNDO_WINDOW_MS } from "@/config/timing";
+import { useDashboardDnd, usePlanSensors } from "@/hooks/useDashboardDnd";
+import { useConfirmedMove } from "@/hooks/useConfirmedMove";
 import { usePlanByHour } from "@/hooks/usePlanByHour";
 import { useDragAutoscroll } from "@/hooks/useDragAutoscroll";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
@@ -126,7 +117,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const isFirstLoadForDate = !loadedDates.has(dateStr);
 
   const { overrides, hideSchema, moveSchema, restoreSchema, fetchOverrides } = useDailyOverrides(dateStr);
-  const { toast } = useToast();
+  const confirmMove = useConfirmedMove();
   const {
     choice: schemaChoice,
     setChoice: setSchemaChoice,
@@ -147,10 +138,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     editEvent,
   });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
-  );
+  const sensors = usePlanSensors();
 
   useDragAutoscroll(Boolean(draggedTask || draggedEventTitle || draggedSchemaTitle));
 
@@ -225,22 +213,12 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       const title =
         planByHour[currentSlot ?? ""]?.find((i) => i.type === "schema" && i.id === schemaId)?.title ?? "rutynę";
 
-      const ok = await toast.confirm(`Przenieść „${title}” na ${newTime}?`, MOVE_CONFIRM_OPTIONS);
-      if (!ok) return;
-
       const previous = overrides.find((o) => o.schema_id === schemaId);
-      const saved = await moveSchema(schemaId, newTime);
-      if (!saved) return;
-      toast.success(`Przeniesiono „${title}” na ${newTime}`, {
-        durationMs: UNDO_WINDOW_MS,
-        action: {
-          label: "Cofnij",
-          onClick: () => {
-            void restoreSchema(schemaId, previous).then((undone) => {
-              if (undone) toast.success("Cofnięto przeniesienie");
-            });
-          },
-        },
+      await confirmMove({
+        title,
+        targetLabel: newTime,
+        apply: () => moveSchema(schemaId, newTime),
+        revert: () => restoreSchema(schemaId, previous),
       });
     } else {
       void handleDragEnd(event);

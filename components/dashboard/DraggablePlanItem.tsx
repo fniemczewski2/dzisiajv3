@@ -8,15 +8,17 @@ interface DraggablePlanItemProps {
   id: string;
   type: PlanItemType;
   children: React.ReactNode;
+  /** Dodatkowe dane przeciągania (np. dzień kolumny w widoku tygodnia). */
+  data?: Readonly<Record<string, unknown>>;
 }
 
-export function DraggablePlanItem({ id, type, children }: Readonly<DraggablePlanItemProps>) {
+export function DraggablePlanItem({ id, type, children, data }: Readonly<DraggablePlanItemProps>) {
   const isDraggable = type === "task" || type === "event" || type === "schema";
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: id,
     disabled: !isDraggable,
-    data: { type },
+    data: { ...data, type },
   });
 
   return (

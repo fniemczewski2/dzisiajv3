@@ -70,6 +70,8 @@ export interface SyncSummary {
   skippedImports: number;
   /** Pliki osób czekające na decyzję (duplikat istniejącej osoby). */
   pendingDuplicates: number;
+  /** Działania niewykonane w tym przebiegu (limit czasu) – klient wywołuje synchronizację ponownie. */
+  remaining: number;
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -154,6 +156,10 @@ function changesFromFile(item: Row, file: RemoteFile): { changes: Record<string,
 }
 
 const SYNCED_FOLDERS = new Set<string>(Object.values(VAULT_FOLDERS));
+/** Równoległe odczyty plików z chmury (Graph / Drive dobrze znoszą kilkanaście naraz). */
+const READ_CONCURRENCY = 12;
+/** Stan zapisywany co tyle działań – przerwanie funkcji (limit czasu) nie gubi wykonanej pracy. */
+const STATE_FLUSH_EVERY = 20;
 
 /**
  * Czytane są tylko pliki z folderów synchronizacji (Notatki, Przepisy, Osoby, Protokoły) oraz pliki znane
@@ -164,8 +170,8 @@ async function readAll(storage: VaultStorage, maxFiles: number, knownIds: Readon
     .filter((f) => SYNCED_FOLDERS.has(f.path.split("/")[0]) || knownIds.has(f.fileId))
     .slice(0, maxFiles);
   const out: RemoteFile[] = [];
-  for (let i = 0; i < listed.length; i += 5) {
-    const batch = listed.slice(i, i + 5);
+  for (let i = 0; i < listed.length; i += READ_CONCURRENCY) {
+    const batch = listed.slice(i, i + READ_CONCURRENCY);
     const contents = await Promise.all(batch.map((f) => storage.read(f.fileId)));
     batch.forEach((f, j) => out.push({ fileId: f.fileId, path: f.path, content: contents[j] }));
   }
@@ -233,7 +239,11 @@ async function importPerson(
 export async function runVaultSync(
   repo: VaultRepo,
   storage: VaultStorage,
-  options: { today: string; maxFiles: number }
+  options: {
+    today: string;
+    maxFiles: number;
+    /** Czas (ms od epoki), po którym nie zaczynamy nowych działań. */ deadline?: number;
+  }
 ): Promise<SyncSummary> {
   const data = await repo.loadData();
   const rows = new Map<string, Row>();
@@ -259,6 +269,7 @@ export async function runVaultSync(
     conflicts: 0,
     skippedImports: 0,
     pendingDuplicates: 0,
+    remaining: 0,
   };
   const newState: SyncStateRow[] = [];
   const record = (itemId: string, fileId: string, appText: string, remoteText: string) =>
@@ -275,7 +286,16 @@ export async function runVaultSync(
     return { fileId: await storage.write(path, text, fileId), text };
   };
 
-  for (const action of actions) {
+  const flush = async () => {
+    if (newState.length === 0) return;
+    await repo.saveState(newState.splice(0));
+  };
+  for (const [index, action] of actions.entries()) {
+    if (options.deadline !== undefined && Date.now() > options.deadline) {
+      summary.remaining = actions.length - index;
+      break;
+    }
+    if (newState.length >= STATE_FLUSH_EVERY) await flush();
     switch (action.kind) {
       case "upload": {
         if (handled.has(action.itemId)) break;
@@ -329,6 +349,6 @@ export async function runVaultSync(
       }
     }
   }
-  if (newState.length > 0) await repo.saveState(newState);
+  await flush();
   return summary;
 }

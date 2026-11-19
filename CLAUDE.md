@@ -50,6 +50,7 @@ czytać całość. Architektura i bezpieczeństwo: [docs/ARCHITECTURE.md](docs/A
 ## Ścieżki często zmieniane
 
 - Plan dnia: `components/dashboard/DayView.tsx` → `hooks/usePlanByHour.ts` (mapa godzin) → `DailyPlan.tsx` / `DraggablePlanItem.tsx` / `DroppableHourSlot.tsx`; przeciąganie: `hooks/useDashboardDnd.ts`; rutyny: `hooks/db/useDailyOverrides.ts` (tabela `daily_overrides`), schematy dnia: `hooks/db/useDaySchemas.ts`, `lib/daySchemas.ts`
+- Widok tygodnia (`settings.dashboard_layout = "week"`): `components/dashboard/WeekView.tsx` → `WeekDayColumn.tsx` / `WeekOverdue.tsx` / `WeekItem.tsx`; logika `lib/weekPlan.ts`, przeciąganie `hooks/useWeekDnd.ts`; pytanie i „Cofnij” przy przenoszeniu (dzień i tydzień): `hooks/useConfirmedMove.ts`
 - Zadania: `hooks/db/useTasks.ts`, `components/tasks/`, rekurencja `lib/taskRecurrence.ts`, `lib/taskOccurrences.ts`
 - Wydarzenia/kalendarz: `hooks/db/useEvents.ts`, `components/calendar/`, sync zewnętrzny `lib/calendarExport.ts`, `pages/api/calendar/sync-calendars.ts`, `pages/api/{google,outlook}-calendar/`
 - Poczta: `pages/api/mail/**`, `lib/mail/`, `lib/server/mail*.ts`, `hooks/useMail*.ts`

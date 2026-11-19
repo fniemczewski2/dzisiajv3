@@ -18,6 +18,8 @@ interface DayHeaderProps {
   handleAddDraft: (type: "task" | "event") => void;
   settings: Settings;
   loadingSettings: boolean;
+  /** Tytuł zamiast nazwy dnia (widok tygodnia: zakres dat); święta pokazują wtedy kolumny dni. */
+  rangeLabel?: string;
 }
 
 export default function DayHeader({
@@ -28,6 +30,7 @@ export default function DayHeader({
   handleAddDraft,
   settings,
   loadingSettings,
+  rangeLabel,
 }: Readonly<DayHeaderProps>) {
   const holiday = useMemo(() => {
     const map = getPolishHolidays(date.getFullYear());
@@ -52,9 +55,9 @@ export default function DayHeader({
 
           <div className="flex flex-1 flex-col items-center">
             <h1 className="page-title text-center text-lg first-letter:uppercase sm:text-2xl" aria-live="polite">
-              {format(date, "eeee, d\u00A0MMM", { locale: pl })}
+              {rangeLabel ?? format(date, "eeee, d\u00A0MMM", { locale: pl })}
             </h1>
-            {holiday && <span className="mt-1 text-xs font-medium text-warning">{holiday}</span>}
+            {holiday && !rangeLabel && <span className="mt-1 text-xs font-medium text-warning">{holiday}</span>}
           </div>
 
           <button
