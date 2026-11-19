@@ -3,7 +3,13 @@
 // Pełny przebieg synchronizacji w pamięci: repozytorium aplikacji i vault bez sieci.
 
 import { describe, it, expect } from "vitest";
-import { runVaultSync, type VaultData, type VaultNote, type VaultRepo } from "@/lib/obsidian/runSync";
+import {
+  runVaultSync,
+  type ImportDecision,
+  type VaultData,
+  type VaultNote,
+  type VaultRepo,
+} from "@/lib/obsidian/runSync";
 import type { VaultStorage } from "@/lib/obsidian/storage";
 import type { SyncStateRow } from "@/lib/obsidian/syncPlan";
 
@@ -28,6 +34,7 @@ function memoryVault(): VaultStorage & { files: Map<string, { path: string; cont
 
 function memoryRepo(data: VaultData) {
   let state: SyncStateRow[] = [];
+  const decisions = new Map<string, ImportDecision>();
   const updates: { type: string; id: string; changes: Record<string, unknown> }[] = [];
   const repo: VaultRepo = {
     async loadData() {
@@ -67,8 +74,23 @@ function memoryRepo(data: VaultData) {
       list.push(row);
       return row;
     },
+    async loadDecisions() {
+      return [...decisions.values()].map((d) => ({ ...d }));
+    },
+    async addDecision(d) {
+      decisions.set(d.fileId, {
+        fileId: d.fileId,
+        path: d.path,
+        status: "pending",
+        personId: null,
+        candidateIds: d.candidateIds,
+      });
+    },
+    async closeDecision(fileId) {
+      decisions.delete(fileId);
+    },
   };
-  return { repo, updates, getState: () => state };
+  return { repo, updates, decisions, getState: () => state };
 }
 
 const data = (): VaultData => ({
@@ -122,6 +144,7 @@ describe("runVaultSync", () => {
       imported: 0,
       conflicts: 0,
       skippedImports: 0,
+      pendingDuplicates: 0,
     });
   });
 
@@ -200,5 +223,83 @@ describe("runVaultSync", () => {
     const original = [...vault.files.values()].find((f) => f.path === "Notatki/Dom/Lista.md");
     expect(original?.content).toContain("- z aplikacji");
     expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ conflicts: 0, imported: 0, uploaded: 0 });
+  });
+
+  it("import osoby: duplikat czeka na decyzję i blokuje osobny plik osoby z aplikacji", async () => {
+    const vault = memoryVault();
+    const { repo, decisions } = memoryRepo(data());
+    vault.files.set("v1", {
+      path: "Osoby/Rodzina/Anna Nowak.md",
+      content: "---\ntags:\n  - Osoby/Rodzina\n---\nCiocia\n",
+    });
+    vault.files.set("v2", {
+      path: "Osoby/Jan Kowalski.md",
+      content: "---\nupdated: 2026-01-01T10:00:00\n---\nKolega\n",
+    });
+    const summary = await runVaultSync(repo, vault, OPTS);
+    expect(summary).toMatchObject({ pendingDuplicates: 1, imported: 1 });
+    expect(decisions.get("v1")).toMatchObject({ status: "pending", candidateIds: ["p1"] });
+    expect([...vault.files.values()].some((f) => f.path === "Osoby/Anna Nowak.md")).toBe(false);
+    // Nowa osoba z vaultu: priorytet 5; plik zachowuje pole updated.
+    const jan = vault.files.get("v2")?.content ?? "";
+    expect(jan).toContain("priority: 5");
+    expect(jan).toContain("updated:");
+    // Ponowna synchronizacja nie tworzy drugiej decyzji ani osoby.
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ pendingDuplicates: 1, imported: 0, uploaded: 0 });
+  });
+
+  it("decyzje: scal uzupełnia osobę i łączy plik, pomiń zostawia plik bez zmian", async () => {
+    const vault = memoryVault();
+    const d = data();
+    const { repo, decisions } = memoryRepo(d);
+    vault.files.set("v1", {
+      path: "Osoby/Rodzina/Anna Nowak.md",
+      content: '---\naliases:\n  - Ciocia Ania\ntags:\n  - Osoby/Rodzina\nphones: ["600100200"]\n---\nCiocia\n',
+    });
+    vault.files.set("v2", { path: "Osoby/Anna Nowak.md", content: "Kopia\n" });
+    await runVaultSync(repo, vault, OPTS);
+    expect(decisions.size).toBe(2);
+    decisions.set("v1", { ...decisions.get("v1")!, status: "merge", personId: "p1" });
+    decisions.set("v2", { ...decisions.get("v2")!, status: "skip" });
+    const summary = await runVaultSync(repo, vault, OPTS);
+    expect(summary).toMatchObject({ imported: 1, pendingDuplicates: 0, uploaded: 0 });
+    const anna = d.people.find((p) => p.id === "p1")!;
+    expect(anna.phones).toEqual(["600100200"]);
+    expect(anna.notes).toBe("Ciocia");
+    const merged = vault.files.get("v1")!.content;
+    expect(merged).toContain('dzisiaj_id: "p1"');
+    expect(merged).toContain('aliases: ["Ciocia Ania"]');
+    expect(merged).toContain('tags: ["Osoby/Rodzina"');
+    expect(vault.files.get("v2")!.content).toBe("Kopia\n");
+    expect(decisions.has("v1")).toBe(false);
+    expect(decisions.get("v2")?.status).toBe("skip");
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 0, uploaded: 0, conflicts: 0 });
+  });
+
+  it("dzisiaj_ignore i pliki spoza folderów synchronizacji nie są importowane ani czytane", async () => {
+    const vault = memoryVault();
+    const { repo } = memoryRepo({ notes: [], recipes: [], people: [], reports: [] });
+    vault.files.set("v1", { path: "Osoby/Urodziny.md", content: "---\ndzisiaj_ignore: true\n---\nlista\n" });
+    vault.files.set("v2", { path: "Zapłon/Cele.md", content: "SMART\n" });
+    let reads = 0;
+    const counting = { ...vault, read: async (id: string) => (reads++, vault.read(id)) };
+    expect(await runVaultSync(repo, counting, OPTS)).toMatchObject({ imported: 0, pendingDuplicates: 0 });
+    expect(reads).toBe(1);
+  });
+
+  it("zmiana w aplikacji nie usuwa pól dodanych w Obsidianie", async () => {
+    const vault = memoryVault();
+    const d = data();
+    const { repo } = memoryRepo(d);
+    await runVaultSync(repo, vault, OPTS);
+    const [id, file] = [...vault.files.entries()].find(([, f]) => f.path === "Przepisy/Zupa.md")!;
+    const withExtra = file.content.replace("---\n", "---\nauthor:\n  - F.Niemczewski\n");
+    vault.files.set(id, { ...file, content: withExtra });
+    await runVaultSync(repo, vault, OPTS);
+    d.recipes[0].description = "Gotować 20 minut.";
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ uploaded: 1, conflicts: 0 });
+    const after = vault.files.get(id)!.content;
+    expect(after).toContain('author: ["F.Niemczewski"]');
+    expect(after).toContain("Gotować 20 minut.");
   });
 });

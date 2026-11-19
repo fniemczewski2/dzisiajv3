@@ -1,7 +1,13 @@
 // __tests__/lib/obsidian/storage.test.ts
 
 import { describe, it, expect, vi } from "vitest";
-import { createGoogleDriveVault, createOneDriveVault, VaultStorageError } from "@/lib/obsidian/storage";
+import {
+  createGoogleDriveVault,
+  createOneDriveVault,
+  normalizeVaultRoot,
+  oneDriveFolderExists,
+  VaultStorageError,
+} from "@/lib/obsidian/storage";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
@@ -62,6 +68,41 @@ describe("OneDrive (folder aplikacji)", () => {
     const [url, init] = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
     expect(url).toContain("/items/abc/content");
     expect(init.method).toBe("PUT");
+  });
+
+  it("folder wskazany ścieżką: lista tylko z tego folderu (bez folderów o podobnej nazwie) i zapis po ścieżce", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith("/root:/Apps/remotely-save/Zeszyt:"))
+        return json({ id: "r", name: "Zeszyt", parentReference: { path: "/drive/root:/Apps/remotely-save" } });
+      if (url.endsWith("/root:/Apps/remotely-save/Zeszyt:/delta"))
+        return json({
+          value: [
+            {
+              id: "1",
+              name: "Jan.md",
+              file: {},
+              parentReference: { path: "/drive/root:/Apps/remotely-save/Zeszyt/Osoby" },
+            },
+            { id: "2", name: "X.md", file: {}, parentReference: { path: "/drive/root:/Apps/remotely-save/Zeszyt2" } },
+          ],
+        });
+      return json({ id: "nowy" });
+    });
+    const vault = createOneDriveVault("T", fetchMock, "Apps/remotely-save/Zeszyt");
+    expect(await vault.list()).toEqual([{ fileId: "1", path: "Osoby/Jan.md" }]);
+    await vault.write("Osoby/Anna Nowak.md", "x", null);
+    expect((fetchMock.mock.calls.at(-1) as unknown as [string])[0]).toContain(
+      "/root:/Apps/remotely-save/Zeszyt/Osoby/Anna%20Nowak.md:/content"
+    );
+  });
+
+  it("normalizeVaultRoot i oneDriveFolderExists", async () => {
+    expect(normalizeVaultRoot(" /Apps\\remotely-save/Zeszyt/ ")).toBe("Apps/remotely-save/Zeszyt");
+    expect(normalizeVaultRoot("")).toBeNull();
+    expect(normalizeVaultRoot("Apps/../x")).toBeNull();
+    expect(await oneDriveFolderExists("T", "A", async () => new Response("", { status: 404 }))).toBe(false);
+    expect(await oneDriveFolderExists("T", "A", async () => json({ folder: {} }))).toBe(true);
+    expect(await oneDriveFolderExists("T", "A", async () => json({ file: {} }))).toBe(false);
   });
 
   it("błąd HTTP: VaultStorageError z kodem", async () => {

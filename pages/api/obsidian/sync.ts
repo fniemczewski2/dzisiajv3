@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: conn } = await supabase
     .from("vault_connections")
-    .select("user_id, provider, access_token, refresh_token, expires_at")
+    .select("user_id, provider, access_token, refresh_token, expires_at, root_path")
     .eq("user_id", user.id)
     .maybeSingle();
   if (!conn) {

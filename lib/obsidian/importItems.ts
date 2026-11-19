@@ -9,6 +9,8 @@ import { personFromMarkdown, recipeFromMarkdown, reportFromMarkdown } from "@/li
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_RECIPE_CATEGORY = "danie główne";
+/** Osoba zaimportowana z vaultu bez pola priority – najniższy priorytet (5). */
+const DEFAULT_IMPORTED_PERSON_PRIORITY = 5;
 
 /** Typy plików importowane tą ścieżką (notatki: lib/obsidian/runSync.ts). */
 export type ImportableType = "recipe" | "person" | "report";
@@ -47,7 +49,10 @@ export function personValues(content: string, fileName: string): ImportValues {
     first_name: firstName,
     last_name: lastName,
     relationship: parsed.relationship ? clip(parsed.relationship, 100) : null,
-    priority: typeof parsed.priority === "number" ? Math.min(5, Math.max(0, Math.round(parsed.priority))) : 0,
+    priority:
+      typeof parsed.priority === "number"
+        ? Math.min(5, Math.max(0, Math.round(parsed.priority)))
+        : DEFAULT_IMPORTED_PERSON_PRIORITY,
     birthday: validDate(parsed.birthday),
     nameday: validDate(parsed.nameday),
     phones: parsed.phones ?? [],

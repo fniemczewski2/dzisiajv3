@@ -9,6 +9,7 @@
 import { vaultIdentity } from "@/lib/obsidian/markdown";
 import { typeFromPath, type VaultItemType } from "@/lib/obsidian/paths";
 import { stringifyFrontMatter, parseFrontMatter } from "@/lib/obsidian/frontMatter";
+import { mergeIntoExisting } from "@/lib/obsidian/merge";
 
 export interface AppEntry {
   id: string;
@@ -120,8 +121,9 @@ function decide(
   if (!file) return { kind: "upload", itemId: item.id, path: item.path, markdown: item.markdown, fileId: null };
   const appHash = contentHash(item.markdown);
   const remoteHash = contentHash(file.content);
+  // Bez stanu (np. ponowne połączenie): plik różniący się tylko polami dodanymi w Obsidianie to ten sam wpis.
   if (!st)
-    return appHash === remoteHash
+    return appHash === remoteHash || contentHash(mergeIntoExisting(item.markdown, file.content)) === remoteHash
       ? { kind: "link", itemId: item.id, fileId: file.fileId }
       : conflict(item, file, today);
   const appChanged = appHash !== st.appHash;

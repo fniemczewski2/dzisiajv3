@@ -20,6 +20,8 @@ export const RATE_LIMITS = {
   healthShortcut: { limit: 30, window: "60 s" },
   /** Płatności ze Skrótu iOS (automatyzacja Apple Pay), na adres IP. */
   financeShortcut: { limit: 30, window: "60 s" },
+  /** Zadania i plan dnia z Obsidiana (Templater / QuickAdd), na adres IP. */
+  obsidianTasks: { limit: 30, window: "60 s" },
   /** Pobranie kanału .ics przez aplikację kalendarza (na adres IP). */
   calendarFeed: { limit: 60, window: "60 s" },
   /** Wyszukiwanie potwierdzeń ePUAP / e-Doręczeń w skrzynkach (na użytkownika). */
@@ -179,7 +181,11 @@ export const OUTLOOK_MAIL_REDIRECT_PATH = "/api/mail/outlook/callback";
 
 // --- Obsidian: vault w OneDrive / Google Drive --------------------------------
 /** Folder aplikacji w OneDrive – dostęp tylko do niego (także do plików utworzonych przez Obsidiana). */
-export const VAULT_ONEDRIVE_SCOPES = ["offline_access", "User.Read", "Files.ReadWrite.AppFolder"] as const;
+/**
+ * Files.ReadWrite (zamiast Files.ReadWrite.AppFolder): vault może leżeć poza folderem aplikacji, np. w folderze
+ * Remotely Save („Apps/remotely-save/<vault>”), który synchronizuje Obsidian na Windows i iOS.
+ */
+export const VAULT_ONEDRIVE_SCOPES = ["offline_access", "User.Read", "Files.ReadWrite"] as const;
 /**
  * Pełny dostęp do Dysku (zakres „restricted”) – wymagany, żeby widzieć pliki utworzone w Obsidianie.
  * Przed udostępnieniem wszystkim użytkownikom wymaga weryfikacji Google.

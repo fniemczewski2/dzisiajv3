@@ -61,6 +61,7 @@ export const DB_TABLES = [
   "user_trains",
   "users",
   "vault_connections",
+  "vault_import_decisions",
   "vault_sync_state",
   "vcard_profiles",
   "work_logs",

@@ -36,7 +36,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Pomodoro** - konfigurowalny timer pracy/przerwy z Wake Lock i dźwiękiem
 - **Harmonogram dnia** - powtarzalne schematy dnia, które same pojawiają się w planie
 - **Czas pracy** - ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
-- **Obsidian** - synchronizacja dwukierunkowa notatek (z folderami), przepisów, osób i protokołów jako Markdown z vaultem w OneDrive (folder aplikacji) lub Google Drive Nowe pliki utworzone w Obsidianie (notatki z folderami, przepisy, osoby, protokoły) są importowane do aplikacji przy kolejnej synchronizacji.
+- **Obsidian** - synchronizacja dwukierunkowa notatek (z folderami), przepisów, osób i protokołów jako Markdown z vaultem w OneDrive (folder wskazany w ustawieniach, np. `Apps/remotely-save/Zeszyt` dla Remotely Save, albo folder aplikacji) lub Google Drive; pola dodane w Obsidianie (aliases, author, tagi) są zachowywane, osoby o tym samym imieniu i nazwisku czekają na decyzję (scal / utwórz / pomiń), pliki z `dzisiaj_ignore: true` nie są importowane, plan dnia i zadania przez `/api/obsidian/tasks` (token Skrótów) Nowe pliki utworzone w Obsidianie (notatki z folderami, przepisy, osoby, protokoły) są importowane do aplikacji przy kolejnej synchronizacji.
 - **Zdrowie** - sen z fazami i rejestr tętna z Apple Zdrowie (Skróty iOS): wartości dnia wyliczane w aplikacji, lista pomiarów; kroki i własne treningi w module Trening
 - **Poczta** - konta Gmail i Outlook (odczyt, wyszukiwanie, odpowiedź po potwierdzeniu, usuwanie z aplikacji lub do kosza) albo przekierowanie poczty bez dostępu do skrzynki; zadanie „Odpowiedz: temat” i wydarzenie z zaproszenia jednym przyciskiem Domyślny widok „Wszystkie” łączy wiadomości ze wszystkich kont i przekierowane w jednej liście.
 
@@ -145,7 +145,7 @@ Pełna lista z opisami jest w [`.env.example`](./.env.example); kod czyta zmienn
 | Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/outlook-calendar/callback`  | kalendarz                                                                                                                               |
 | Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/mail/outlook/callback`      | delegowane `Mail.ReadWrite` (odczyt i kosz), `Mail.Send`, `User.Read`, `offline_access`                                                 |
 | Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/obsidian/gdrive/callback`   | `drive` (vault Obsidiana; zakres „restricted”, wymaga weryfikacji Google), `userinfo.email`                                             |
-| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/obsidian/onedrive/callback` | delegowane `Files.ReadWrite.AppFolder`, `User.Read`, `offline_access`                                                                   |
+| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/obsidian/onedrive/callback` | delegowane `Files.ReadWrite` (vault w folderze wskazanym przez użytkownika, np. Remotely Save), `User.Read`, `offline_access`           |
 
 Edge Functions mają własne sekrety (Supabase → Edge Functions → Secrets): `CRON_SECRET`, `ALLOWED_ORIGIN` (adres aplikacji dla CORS, lokalnie `http://localhost:3000`), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 

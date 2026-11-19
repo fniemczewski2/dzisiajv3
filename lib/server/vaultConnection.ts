@@ -27,7 +27,7 @@ import { buildGoogleAuthUrl, normalizeEmail, parseTokenResponse, profileEmail } 
 import { graphProfileEmail } from "@/lib/mail/outlookAuth";
 import { resolveAccessToken } from "@/lib/mail/accessToken";
 import { createGoogleDriveVault, createOneDriveVault, type VaultStorage } from "@/lib/obsidian/storage";
-import type { VaultData, VaultNote, VaultRepo } from "@/lib/obsidian/runSync";
+import type { ImportDecision, VaultData, VaultNote, VaultRepo } from "@/lib/obsidian/runSync";
 import type { VaultItemType } from "@/lib/obsidian/paths";
 import { cols, type KnownTable } from "@/lib/db/columns";
 import type { SyncStateRow } from "@/lib/obsidian/syncPlan";
@@ -179,10 +179,12 @@ interface ConnectionRow {
   access_token: string;
   refresh_token: string;
   expires_at: string | null;
+  /** Folder vaultu w OneDrive („Apps/remotely-save/Zeszyt”); null – folder aplikacji. */
+  root_path?: string | null;
 }
 
-/** Klient vaultu z ważnym tokenem (z odświeżeniem); null – połączenie wymaga ponownego ustanowienia. */
-export async function vaultStorageFor(supabase: SupabaseClient, conn: ConnectionRow): Promise<VaultStorage | null> {
+/** Ważny token dostępu do chmury (z odświeżeniem); null – połączenie wymaga ponownego ustanowienia. */
+export async function vaultAccessToken(supabase: SupabaseClient, conn: ConnectionRow): Promise<string | null> {
   const refresh =
     conn.provider === "onedrive"
       ? async (refreshToken: string) => {
@@ -207,8 +209,16 @@ export async function vaultStorageFor(supabase: SupabaseClient, conn: Connection
         .eq("user_id", conn.user_id);
     },
   });
+  return token ?? null;
+}
+
+/** Klient vaultu z ważnym tokenem (z odświeżeniem); null – połączenie wymaga ponownego ustanowienia. */
+export async function vaultStorageFor(supabase: SupabaseClient, conn: ConnectionRow): Promise<VaultStorage | null> {
+  const token = await vaultAccessToken(supabase, conn);
   if (!token) return null;
-  return conn.provider === "onedrive" ? createOneDriveVault(token) : createGoogleDriveVault(token);
+  return conn.provider === "onedrive"
+    ? createOneDriveVault(token, fetch, conn.root_path ?? null)
+    : createGoogleDriveVault(token);
 }
 
 const TABLES: Record<VaultItemType, string> = { note: "notes", recipe: "recipes", person: "people", report: "reports" };
@@ -279,6 +289,44 @@ export function supabaseVaultRepo(supabase: SupabaseClient, userId: string): Vau
         .single();
       if (error || !data) throw error ?? new Error("Brak notatki po zapisie.");
       return data as VaultNote;
+    },
+    async loadDecisions(): Promise<ImportDecision[]> {
+      const data = await rows<{
+        file_id: string;
+        path: string;
+        status: ImportDecision["status"];
+        person_id: string | null;
+        candidate_ids: string[] | null;
+      }>("vault_import_decisions", "file_id, path, status, person_id, candidate_ids");
+      return data.map((d) => ({
+        fileId: d.file_id,
+        path: d.path,
+        status: d.status,
+        personId: d.person_id,
+        candidateIds: d.candidate_ids ?? [],
+      }));
+    },
+    async addDecision(d) {
+      const { error } = await supabase.from("vault_import_decisions").upsert(
+        {
+          user_id: userId,
+          file_id: d.fileId,
+          path: d.path,
+          status: "pending",
+          candidate_ids: d.candidateIds,
+          values: d.values,
+        },
+        { onConflict: "user_id,file_id" }
+      );
+      if (error) throw error;
+    },
+    async closeDecision(fileId) {
+      const { error } = await supabase
+        .from("vault_import_decisions")
+        .delete()
+        .eq("user_id", userId)
+        .eq("file_id", fileId);
+      if (error) throw error;
     },
     async insertItem(type, values) {
       const table = TABLES[type] as KnownTable;

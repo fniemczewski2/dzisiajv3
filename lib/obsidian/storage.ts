@@ -1,7 +1,8 @@
 // lib/obsidian/storage.ts
 //
 // Dostęp do vaultu w chmurze za wspólnym interfejsem. Fetch wstrzykiwany (testy bez sieci).
-// OneDrive: folder aplikacji (Files.ReadWrite.AppFolder) – widzi też pliki utworzone przez Obsidiana.
+// OneDrive: folder wskazany przez użytkownika (np. „Apps/remotely-save/Zeszyt” – vault synchronizowany przez
+// Remotely Save), zakres Files.ReadWrite; bez wskazania – folder aplikacji (special/approot, połączenia sprzed zmiany).
 // Google Drive: folder „dzisiaj.fun”; przy zakresie drive.file aplikacja widzi wyłącznie pliki, które sama utworzyła.
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
@@ -36,8 +37,36 @@ function ok(res: Response, what: string): Response {
 
 const encodePath = (path: string) => path.split("/").map(encodeURIComponent).join("/");
 
-// --- OneDrive (Microsoft Graph, folder aplikacji) ------------------------------------------------
+// --- OneDrive (Microsoft Graph) -------------------------------------------------------------------
 const GRAPH = "https://graph.microsoft.com/v1.0/me/drive";
+
+/** „/Apps\\remotely-save/Zeszyt/” → „Apps/remotely-save/Zeszyt”; pusty → null (folder aplikacji). */
+export function normalizeVaultRoot(value: string | null | undefined): string | null {
+  const cleaned = (value ?? "")
+    .replaceAll("\\", "/")
+    .split("/")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (cleaned.some((s) => s === "." || s === "..")) return null;
+  return cleaned.length > 0 ? cleaned.join("/") : null;
+}
+
+/** Adres elementu: folder aplikacji albo folder wskazany ścieżką od katalogu głównego OneDrive. */
+function oneDriveBase(rootPath: string | null): string {
+  return rootPath ? `${GRAPH}/root:/${encodePath(rootPath)}:` : `${GRAPH}/special/approot`;
+}
+
+/** Czy folder vaultu istnieje i jest folderem (sprawdzenie przed zapisaniem ustawienia). */
+export async function oneDriveFolderExists(
+  accessToken: string,
+  rootPath: string,
+  fetchImpl: FetchLike = fetch
+): Promise<boolean> {
+  const res = await fetchImpl(oneDriveBase(rootPath), { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (res.status === 404) return false;
+  const item = (await ok(res, "OneDrive").json()) as { folder?: unknown };
+  return Boolean(item.folder);
+}
 
 interface GraphItem {
   id: string;
@@ -47,17 +76,19 @@ interface GraphItem {
   parentReference?: { path?: string };
 }
 
-export function createOneDriveVault(accessToken: string, fetchImpl: FetchLike = fetch): VaultStorage {
+export function createOneDriveVault(
+  accessToken: string,
+  fetchImpl: FetchLike = fetch,
+  rootPath: string | null = null
+): VaultStorage {
   const auth = { Authorization: `Bearer ${accessToken}` };
+  const base = oneDriveBase(rootPath);
   return {
     async list() {
-      const root = (await ok(
-        await fetchImpl(`${GRAPH}/special/approot`, { headers: auth }),
-        "OneDrive"
-      ).json()) as GraphItem;
-      const rootPath = `${root.parentReference?.path ?? ""}/${root.name}`;
+      const root = (await ok(await fetchImpl(base, { headers: auth }), "OneDrive").json()) as GraphItem;
+      const basePath = `${root.parentReference?.path ?? ""}/${root.name}`;
       const files: VaultFile[] = [];
-      let url: string | undefined = `${GRAPH}/special/approot/delta`;
+      let url: string | undefined = `${base}/delta`;
       while (url) {
         const page = (await ok(await fetchImpl(url, { headers: auth }), "OneDrive").json()) as {
           value: GraphItem[];
@@ -66,8 +97,8 @@ export function createOneDriveVault(accessToken: string, fetchImpl: FetchLike = 
         for (const item of page.value) {
           if (!item.file || item.deleted || !item.name.toLowerCase().endsWith(".md")) continue;
           const parent = decodeURIComponent(item.parentReference?.path ?? "");
-          if (!parent.startsWith(rootPath)) continue;
-          const dir = parent.slice(rootPath.length).replace(/^\//, "");
+          if (parent !== basePath && !parent.startsWith(`${basePath}/`)) continue;
+          const dir = parent.slice(basePath.length).replace(/^\//, "");
           files.push({ fileId: item.id, path: dir ? `${dir}/${item.name}` : item.name });
         }
         url = page["@odata.nextLink"];
@@ -83,7 +114,9 @@ export function createOneDriveVault(accessToken: string, fetchImpl: FetchLike = 
     async write(path, content, fileId) {
       const url = fileId
         ? `${GRAPH}/items/${encodeURIComponent(fileId)}/content`
-        : `${GRAPH}/special/approot:/${encodePath(path)}:/content`;
+        : rootPath
+          ? `${GRAPH}/root:/${encodePath(`${rootPath}/${path}`)}:/content`
+          : `${GRAPH}/special/approot:/${encodePath(path)}:/content`;
       const res = ok(
         await fetchImpl(url, {
           method: "PUT",

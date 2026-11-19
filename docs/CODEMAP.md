@@ -3,7 +3,7 @@
 # Mapa kodu Dzisiaj.Fun
 
 Format wpisu: `ścieżka` – opis z nagłówka · exp: eksporty · http: metody · db: tabele Supabase · rpc: funkcje.
-Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
+Testy (257 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
 
 ## (root)
 
@@ -178,7 +178,7 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `LoveCat.tsx`
 - `ModulesEditor.tsx` – Włączanie i wyłączanie modułów. Wyłączony moduł znika z menu i wyszukiwarki; jego dane zostają w bazie i wracają po ponownym włączeniu.
 - `NotificationPreferencesForm.tsx` – exp: NotificationPreferences
-- `ObsidianSection.tsx` – Vault Obsidiana w OneDrive lub Google Drive: połączenie, synchronizacja na żądanie, odłączenie.
+- `ObsidianSection.tsx` – Vault Obsidiana w OneDrive lub Google Drive: połączenie, folder vaultu (OneDrive), synchronizacja na żądanie, duplikaty osób do decyzji, odłączenie.
 - `PriceImportReview.tsx` – Tabela weryfikacji importu (paragon albo CSV): użytkownik poprawia nazwę, jednostkę i cenę, wybiera, co zrobić przy zmianie ceny o więcej niż próg, i…
 - `ProductPriceCatalog.tsx` – Katalog cen: wyszukiwanie, ręczne dodawanie, zmiana jednostki i ceny oraz usuwanie produktów.
 - `ProductPricesSection.tsx` – Ceny produktów: import z CSV (nazwa, jednostka, cena) i z paragonów Lidl oraz Biedronki (zdjęcie lub PDF), weryfikacja przed zapisem i ręczna edycja katalogu.
@@ -193,6 +193,7 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `TicketForwardingSection.tsx` – Adres do przekierowania maili z biletami (b-<token>@…). Bilety PKP Intercity w PDF trafiają do „Pociągów” z oznaczeniem do sprawdzenia.
 - `TrustedUsersField.tsx` – Lista adresów e-mail zaufanych osób. Każdy wiersz ma stały identyfikator (nie indeks) – usunięcie środkowej osoby nie przenosi fokusu ani wpisanego tekstu do…
 - `UserSection.tsx`
+- `VaultDuplicates.tsx` – Duplikaty osób przy imporcie z vaultu Obsidiana: plik z folderu „Osoby” ma to samo imię i nazwisko co osoba w aplikacji.
 - `Version.tsx` – Wersja wdrożonej aplikacji. Numer pochodzi z package.json, a data i skrót commita z builda (next.config.mjs) – bez zapytań do GitHuba z przeglądarki. · exp: VersionInfo
 
 ## components/shopping
@@ -406,6 +407,7 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `noteFormatting.tsx` – 'mentions: false' – treść spoza aplikacji (poczta): znaki @/!/$ zostają zwykłym tekstem. · exp: renderNoteLineContent, parseNoteLine, groupNoteLines, linkifyText
 - `notesUtils.ts` – Normalizes one raw textarea line before it's stored as a note item: trims whitespace and adds an https:// scheme when the whole line is a bare domain (e.g. · exp: filterNotes, getNoteTitles, normalizeNoteLine
 - `objectUtils.ts` – Kopia obiektu bez wskazanych kluczy. Zastępuje destrukturyzację w stylu 'const { id: _id, ...rest } = obj', która zostawiała nieużywane zmienne. · exp: omit
+- `obsidianTasks.ts` – Zadania z Obsidiana (format wtyczki Tasks) → wiersze tabeli tasks, oraz plan dnia → Markdown dla notatki dziennej. · exp: parseTaskLine, readObsidianTasks, taskToLine, dayPlanMarkdown
 - `offlineCache.ts` – Ostatnio pobrane listy (zadania, notatki…) w IndexedDB, żeby aplikacja pokazywała dane bez sieci. · exp: readCache, writeCache, clearOfflineCache
 - `offlineQueue.ts` – Zapisy wykonane bez sieci. Każdy wpis pamięta właściciela (id użytkownika): wysyłamy wyłącznie wpisy zalogowanej osoby, w kolejności dodania, po odzyskaniu… · exp: isOffline, enqueueInsert, flushQueue, clearQueue
 - `pomodoro.ts` – Stan licznika Pomodoro: skupienie i przerwa na zmianę, każda faza uruchamiana ręcznie. Reducer zamiast kilku efektów reagujących na stan. · exp: pomodoroReducer
@@ -500,9 +502,11 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `frontMatter.ts` – Minimalny nagłówek YAML (front matter) dla Obsidiana. Zapisujemy wartości w składni zgodnej z JSON (cudzysłowy, listy w nawiasach) – to poprawny YAML. · exp: stringifyFrontMatter, parseFrontMatter
 - `importItems.ts` – Nowe pliki utworzone w Obsidianie → wiersze w aplikacji: przepisy, osoby i protokoły (notatki mają osobną ścieżkę). · exp: recipeValues, personValues, reportValues, importValues
 - `markdown.ts` – Notatki, przepisy, osoby i protokoły jako Markdown z nagłówkiem YAML (format Obsidiana) i z powrotem. · exp: noteToMarkdown, noteFromMarkdown, recipeToMarkdown, recipeFromMarkdown, personToMarkdown, personFromMarkdown, reportToMarkdown, reportFromMarkdown, +1
+- `merge.ts` – Zapis wersji z aplikacji do istniejącego pliku vaultu bez utraty pól dodanych w Obsidianie (aliases, author, własne tagi, cssclasses…). · exp: mergeIntoExisting, isIgnoredFile
 - `paths.ts` – Ścieżki plików w vaulcie. Tożsamość wpisu wyznacza dzisiaj_id w nagłówku, nie ścieżka – zmiana nazwy lub przeniesienie pliku w Obsidianie nie zrywa powiązania. · exp: VAULT_FOLDERS, safeSegment, noteFolderPath, vaultPath, typeFromPath, folderFromNotePath
+- `personMatch.ts` – Wykrywanie duplikatów przy imporcie osób z vaultu: to samo imię i nazwisko (bez wielkości liter, z normalizacją Unicode i odstępów). Dopasowanie niepewne (np. · exp: personKey, findPersonDuplicates, mergePersonChanges
 - `runSync.ts` – Wykonanie synchronizacji: dane aplikacji → Markdown → plan (syncPlan) → zapis w vaulcie i w aplikacji. · exp: runVaultSync
-- `storage.ts` – Dostęp do vaultu w chmurze za wspólnym interfejsem. Fetch wstrzykiwany (testy bez sieci). · exp: VaultStorageError, createOneDriveVault, createGoogleDriveVault
+- `storage.ts` – Dostęp do vaultu w chmurze za wspólnym interfejsem. Fetch wstrzykiwany (testy bez sieci). OneDrive: folder wskazany przez użytkownika (np. · exp: VaultStorageError, normalizeVaultRoot, oneDriveFolderExists, createOneDriveVault, createGoogleDriveVault
 - `syncPlan.ts` – Plan synchronizacji dwukierunkowej aplikacja ↔ vault (OneDrive / Google Drive). Czysta logika. · exp: contentHash, planSync
 
 ## lib/prices
@@ -557,7 +561,7 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `ticketPdf.ts` – Tekst z PDF biletu (pdf-parse). Tylko serwer: wymaga atrapy canvas (lib/server/pdfCanvasGlobals.ts). · exp: PdfReadError, extractPdfText
 - `tokenCrypto.ts` – exp: encryptToken, decryptToken
 - `turnstile.ts` – Weryfikacja tokenu Cloudflare Turnstile po stronie serwera (publiczne formularze ankiet). · exp: enforceTurnstile
-- `vaultConnection.ts` – Połączenie z vaultem (OAuth OneDrive / Google Drive), ważny token i repozytorium danych dla runVaultSync. · exp: startVaultOAuth, handleVaultCallback, vaultStorageFor, supabaseVaultRepo · db: vault_connections, vault_sync_state, notes
+- `vaultConnection.ts` – Połączenie z vaultem (OAuth OneDrive / Google Drive), ważny token i repozytorium danych dla runVaultSync. · exp: startVaultOAuth, handleVaultCallback, vaultAccessToken, vaultStorageFor, supabaseVaultRepo · db: vault_connections, vault_sync_state, notes, vault_import_decisions
 
 ## lib/supabase
 
@@ -665,12 +669,14 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## pages/api/obsidian
 
-- `connection.ts` – GET – stan połączenia z vaultem (bez tokenów); DELETE – odłączenie i usunięcie stanu synchronizacji. Pliki w chmurze i dane w aplikacji zostają bez zmian. · http: GET · db: vault_connections, vault_sync_state
+- `connection.ts` – GET – stan połączenia z vaultem (bez tokenów); PATCH { rootPath } – folder vaultu w OneDrive (sprawdzany w chmurze; zmiana folderu kasuje stan synchronizacji i… · http: GET,PATCH · db: vault_connections, vault_sync_state, vault_import_decisions
 - `gdrive/callback.ts`
 - `gdrive/index.ts`
+- `import-decisions.ts` – Duplikaty osób przy imporcie z vaultu Obsidiana. GET – pliki czekające na decyzję z kandydatami (osoby o tym samym imieniu i nazwisku). · http: GET · db: vault_import_decisions, people
 - `onedrive/callback.ts`
 - `onedrive/index.ts`
 - `sync.ts` – POST – synchronizacja z vaultem Obsidiana. Odpowiedź: liczba wysłanych, zaktualizowanych, zaimportowanych plików i konfliktów. · db: vault_connections
+- `tasks.ts` – Obsidian ↔ zadania, tokenem Skrótów (jak szybkie notatki). Bez sesji – wywołania z Templatera / QuickAdd. · http: GET · db: tasks, events
 
 ## pages/api/outlook-calendar
 
@@ -815,6 +821,7 @@ Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-19_product_prices.sql` – Katalog cen produktów (Ustawienia → Ceny produktów) i dane pomocnicze importu paragonów. · obj: product_prices, receipt_aliases, imported_receipts, product_prices_own, receipt_aliases_own, imported_receipts_own
 - `2026-11-20_brief_feed_tickets.sql` – Wydanie 1.45.0: briefing dnia, kanał .ics (WebCal), płatności ze Skrótów (Apple Pay), bilety z poczty, skrzynki do wyszukiwania potwierdzeń ePUAP / e-Doręczeń. · obj: calendar_feed_tokens, calendar_feed_tokens_select_own, user_trains_update_own
 - `2026-11-21_ticket_buffer.sql` – Wydanie 1.45.0 (uzupełnienie): adres biletów przyjmuje wiadomości bez biletu do bufora Poczty tylko do chwili potwierdzenia przekazywania (mail weryfikacyjny…
+- `2026-11-21_vault_root_and_import_decisions.sql` – Vault Obsidiana w folderze wskazanym przez użytkownika (np. „Apps/remotely-save/Zeszyt” – Remotely Save) oraz decyzje o duplikatach przy imporcie osób z vaultu… · obj: vault_import_decisions, vault_import_decisions_own
 
 ## supabase/tests
 

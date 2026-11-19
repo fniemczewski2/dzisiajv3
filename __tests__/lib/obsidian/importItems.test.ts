@@ -32,6 +32,11 @@ describe("personValues", () => {
     expect(personValues("", "Madonna")).toMatchObject({ first_name: "Madonna", last_name: "" });
   });
 
+  it("bez pola priority – priorytet 5 (osoba z vaultu)", () => {
+    expect(personValues("uwagi\n", "Jan Kowalski").priority).toBe(5);
+    expect(personValues("---\npriority: 0\n---\n", "Jan").priority).toBe(0);
+  });
+
   it("nagłówek ma pierwszeństwo; priorytet ograniczony do 0–5; niepoprawne daty → null", () => {
     const values = personValues(
       '---\nfirst_name: "Anna"\nlast_name: "Nowak"\npriority: 9\nbirthday: "31-12-1990"\nnameday: 2026-13-45\n---\n',

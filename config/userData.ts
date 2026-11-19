@@ -97,10 +97,16 @@ export const USER_TABLES: readonly UserTable[] = [
     label: "Połączenie z vaultem Obsidiana",
     owner: "user_id",
     // Bez tokenów (zaszyfrowane, wewnętrzne).
-    exportColumns: "provider, email, scope, last_synced_at, created_at",
+    exportColumns: "provider, email, scope, root_path, last_synced_at, created_at",
     stage: 1,
   },
   { table: "vault_sync_state", label: "Stan synchronizacji z Obsidianem", owner: "user_id", stage: 1 },
+  {
+    table: "vault_import_decisions",
+    label: "Decyzje o duplikatach osób z Obsidiana",
+    owner: "user_id",
+    stage: 1,
+  },
   {
     table: "mail_hidden_messages",
     label: "Wiadomości usunięte z aplikacji",
