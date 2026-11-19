@@ -10,7 +10,6 @@ import { useTrains } from "@/hooks/db/useTrains";
 import AddTrainForm from "@/components/transport/AddTrainWidget";
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
 import StationBoardWidget from "@/components/transport/StationBoard";
-import TicketForwardingSection from "@/components/transport/TicketForwardingSection";
 import type { TrackedTrain } from "@/types/transport";
 
 /** Ile odbytych podróży pokazujemy naraz. */
@@ -129,8 +128,6 @@ export default function TrainsPage() {
             </details>
           </section>
         )}
-
-        <TicketForwardingSection />
 
         <StationBoardWidget onTrainAdded={addTrain} />
       </div>

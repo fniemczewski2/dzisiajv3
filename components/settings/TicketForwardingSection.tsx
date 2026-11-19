@@ -1,4 +1,4 @@
-// components/transport/TicketForwardingSection.tsx
+// components/settings/TicketForwardingSection.tsx
 //
 // Adres do przekierowania maili z biletami (b-<token>@…). Bilety PKP Intercity w PDF trafiają do „Pociągów”
 // z oznaczeniem do sprawdzenia. Adres jest pokazywany jednorazowo po utworzeniu (w bazie tylko skrót tokenu).
@@ -12,6 +12,7 @@ import { CopyButtonSmall, IconActionButton, SecondaryFullButton } from "@/compon
 
 const mail = createMailClient();
 const NO_ADDRESSES: ForwardingAddress[] = [];
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("pl-PL", { dateStyle: "medium" });
 
 export default function TicketForwardingSection() {
   const { toast } = useToast();
@@ -57,13 +58,19 @@ export default function TicketForwardingSection() {
   };
 
   return (
-    <section aria-labelledby="ticket-forwarding-heading" className="card space-y-3 p-4">
-      <h2 id="ticket-forwarding-heading" className="section-title">
+    <section
+      id="bilety"
+      aria-labelledby="ticket-forwarding-heading"
+      className="card mb-4 space-y-3 p-4 transition-colors sm:p-6"
+    >
+      <h3 id="ticket-forwarding-heading" className="text-lg font-bold text-text">
         Bilety z poczty
-      </h2>
+      </h3>
       <p className="text-sm text-text-secondary">
-        Przekieruj mail z biletem PKP Intercity (PDF) na adres poniżej – każdy odcinek podróży pojawi się na liście z
-        oznaczeniem do sprawdzenia. Treść maila i PDF nie są zapisywane. Mail bez rozpoznanego biletu wraca do nadawcy.
+        Przekieruj mail z biletem PKP Intercity (PDF) na adres poniżej – każdy odcinek podróży pojawi się w „Pociągach”
+        z oznaczeniem do sprawdzenia. Treść maila z biletem i PDF nie są zapisywane. Do czasu potwierdzenia
+        przekazywania (mail weryfikacyjny Gmaila) albo pierwszego biletu mail bez biletu trafia na 72 godziny do Poczta
+        → Przekierowane – tam odczytasz kod weryfikacyjny. Potem taki mail wraca do nadawcy.
       </p>
       {created && (
         <div className="flex items-center gap-2 rounded-lg border border-warning-line bg-warning-soft p-3">
@@ -78,7 +85,10 @@ export default function TicketForwardingSection() {
           {active.map((a) => (
             <li key={a.id} className="flex items-center gap-2 text-sm text-text-secondary">
               <span className="flex-1">
-                Adres aktywny od {new Date(a.created_at).toLocaleDateString("pl-PL", { dateStyle: "medium" })}
+                Adres aktywny od {fmtDate(a.created_at)}.{" "}
+                {a.buffer_closed_at
+                  ? `Przekazywanie potwierdzone ${fmtDate(a.buffer_closed_at)} – mail bez biletu wraca do nadawcy.`
+                  : "Czeka na potwierdzenie przekazywania – mail bez biletu trafia do Poczty."}
               </span>
               <IconActionButton
                 Icon={Trash2}

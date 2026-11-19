@@ -3,7 +3,9 @@
 // Odbiór wiadomości przekierowanej z bramki poczty (wariant A). Dostęp chroniony sekretem nagłówka.
 // Adres odbiorcy wskazuje konto; treść trafia do bufora szyfrowanego z czasem wygaśnięcia.
 // Adres biletów (b-…): PDF z wiadomości → wpisy w „Pociągach” (lib/server/ticketInbound.ts), bez zapisu treści.
-// Brak rozpoznanego biletu → 422, więc bramka odrzuca wiadomość i nadawca dostaje zwrot z informacją.
+// Wiadomość bez rozpoznanego biletu (np. kod weryfikacyjny przekazywania w Gmailu) trafia do bufora Poczty
+// („Przekierowane”, 72 h) – zwrot do nadawcy uniemożliwiłby włączenie automatycznego przekazywania. Bufor zamyka się
+// po mailu weryfikacyjnym albo pierwszym rozpoznanym bilecie (buffer_closed_at); potem taka wiadomość → 422 (zwrot).
 
 import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -13,8 +15,8 @@ import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { isInboundAuthorized } from "@/lib/server/inboundAuth";
 import { encryptToken } from "@/lib/server/tokenCrypto";
-import { hashForwardingToken, parseForwardingRecipient } from "@/lib/mail/forwarding";
-import { parseInboundPayload } from "@/lib/mail/inbound";
+import { hashForwardingToken, isForwardingConfirmation, parseForwardingRecipient } from "@/lib/mail/forwarding";
+import { parseInboundPayload, type InboundMessage } from "@/lib/mail/inbound";
 import { importTicketMail } from "@/lib/server/ticketInbound";
 
 /** Wiadomość z biletami w PDF (base64) jest większa niż domyślny limit 1 MB; Vercel przyjmuje do 4,5 MB. */
@@ -42,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const admin = supabaseAdmin();
   const { data: address } = await admin
     .from("mail_forwarding_addresses")
-    .select("id, user_id")
+    .select("id, user_id, buffer_closed_at")
     .eq("token_hash", await hashForwardingToken(target.token))
     .eq("kind", target.kind)
     .is("revoked_at", null)
@@ -52,17 +54,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (target.kind === "tickets") {
     try {
       const result = await importTicketMail(admin, address.user_id, message);
-      if (result.added === 0 && result.duplicates === 0) {
-        return res.status(422).json({ error: "Nie rozpoznano biletu PKP Intercity w załącznikach PDF." });
+      if (result.added > 0 || result.duplicates > 0) {
+        // Bilet dotarł – przekazywanie działa, bufor nie jest już potrzebny.
+        if (!address.buffer_closed_at) await closeTicketBuffer(admin, address.id);
+        return res.status(202).json(result);
       }
-      return res.status(202).json(result);
     } catch (err) {
       console.error("[mail/inbound] bilety:", err instanceof Error ? err.message : "nieznany błąd");
       return res.status(500).json({ error: "Nie udało się zapisać biletu." });
     }
+    if (address.buffer_closed_at) {
+      return res.status(422).json({ error: "Nie rozpoznano biletu PKP Intercity w załącznikach PDF." });
+    }
   }
 
-  // Bufor poczty: bez treści PDF (przekazywanej tylko dla adresu biletów).
+  const stored = await bufferMessage(admin, address, message);
+  if (!stored) return res.status(500).json({ error: "Nie udało się zapisać wiadomości." });
+  if (target.kind !== "tickets") return res.status(202).end();
+
+  const confirmation = isForwardingConfirmation(message);
+  if (confirmation) await closeTicketBuffer(admin, address.id);
+  return res.status(202).json({ added: 0, duplicates: 0, buffered: true, bufferClosed: confirmation });
+}
+
+/** Zamknięcie bufora adresu biletów (tylko pierwszy raz – kolejne wywołania nic nie zmieniają). */
+async function closeTicketBuffer(admin: ReturnType<typeof supabaseAdmin>, addressId: string): Promise<void> {
+  const { error } = await admin
+    .from("mail_forwarding_addresses")
+    .update({ buffer_closed_at: new Date().toISOString() })
+    .eq("id", addressId)
+    .is("buffer_closed_at", null);
+  if (error) console.error("[mail/inbound] zamknięcie bufora:", error.message);
+}
+
+/** Bufor Poczty (szyfrowany, wygasa po MAIL_INBOX_RETENTION_HOURS); bez treści PDF. */
+async function bufferMessage(
+  admin: ReturnType<typeof supabaseAdmin>,
+  address: { id: string; user_id: string },
+  message: InboundMessage
+): Promise<boolean> {
   const attachments = message.attachments.map(({ pdfBase64: _pdf, ...rest }) => rest);
   const payload = JSON.stringify({ ...message, attachments, receivedAt: new Date().toISOString() });
   const { error } = await admin.from("mail_inbox").insert({
@@ -71,6 +101,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     payload_encrypted: encryptToken(payload),
     expires_at: new Date(Date.now() + MAIL_INBOX_RETENTION_HOURS * 3_600_000).toISOString(),
   });
-  if (error) return res.status(500).json({ error: "Nie udało się zapisać wiadomości." });
-  return res.status(202).end();
+  return !error;
 }

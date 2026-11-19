@@ -3,7 +3,7 @@
 # Mapa kodu Dzisiaj.Fun
 
 Format wpisu: `ścieżka` – opis z nagłówka · exp: eksporty · http: metody · db: tabele Supabase · rpc: funkcje.
-Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
+Testy (253 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
 
 ## (root)
 
@@ -40,6 +40,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## components/dashboard
 
+- `DailyBrief.tsx` – Briefing dnia na planie dnia (tylko dziś): poranny od brief_morning_time, wieczorny od brief_evening_time (podsumowanie dnia, plan na jutro albo oba –… · db: tasks
 - `DailyPlan.tsx`
 - `DayEvents.tsx`
 - `DayHeader.tsx`
@@ -87,6 +88,8 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `LetterForm.tsx`
 - `LetterList.tsx` – exp: AttachmentSlot, LetterList
+- `LetterNoticeScan.tsx` – Powiadomienia ePUAP / e-Doręczeń z wybranych skrzynek jako propozycje pism. Wybór skrzynek zapisuje się w ustawieniach (letter_mail_accounts).
+- `LetterSendDialog.tsx` – Wysyłka pisma e-mailem z połączonej skrzynki. Treść jest edytowalna; wysyłka wymaga drugiego potwierdzenia (toast.confirm) i trafia do /api/letters/send z…
 
 ## components/mail
 
@@ -163,6 +166,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 ## components/settings
 
 - `AddItemInput.tsx` – Reużywalne pole „dodaj pozycję” do list w ustawieniach (nastroje, nawyki, kategorie, osoby zaufane, profile finansowe, szablony): pole tekstowe + przycisk…
+- `CalendarFeedSection.tsx` – Prywatny adres kanału kalendarza (.ics, WebCal): zadania z terminem, wydarzenia i rutyny planu dnia do subskrypcji w Kalendarzu Apple, Thunderbirdzie i innych. · db: calendar_feed_tokens
 - `CategoryColorPicker.tsx` – Wybór koloru kategorii z zamkniętej palety. Przycisk-próbka otwiera grupę przycisków radiowych (natywne <input type="radio">, więc strzałki, Tab i czytniki…
 - `DataExportSection.tsx`
 - `FinanceSettings.tsx` – Ustawienia Finansów: profile finansowe (do 5, zapis od razu), kategorie liczone jako „Wydatki dnia” i push w dniu terminu płatności (zapis z resztą formularza…
@@ -186,6 +190,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `SlackListsSection.tsx`
 - `TaskCategoriesEditor.tsx` – Edycja własnych kategorii (zadań i wydarzeń) wraz z kolorami. Zmiany trafiają do formularza ustawień i zapisują się razem z nim (przycisk „Zapisz”).
 - `ThemeButton.tsx` – exp: ThemeToggle
+- `TicketForwardingSection.tsx` – Adres do przekierowania maili z biletami (b-<token>@…). Bilety PKP Intercity w PDF trafiają do „Pociągów” z oznaczeniem do sprawdzenia.
 - `TrustedUsersField.tsx` – Lista adresów e-mail zaufanych osób. Każdy wiersz ma stały identyfikator (nie indeks) – usunięcie środkowej osoby nie przenosi fokusu ani wpisanego tekstu do…
 - `UserSection.tsx`
 - `Version.tsx` – Wersja wdrożonej aplikacji. Numer pochodzi z package.json, a data i skrót commita z builda (next.config.mjs) – bez zapytań do GitHuba z przeglądarki. · exp: VersionInfo
@@ -236,6 +241,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `GlobalSearch.tsx`
 - `Layout.tsx`
 - `LoadingState.tsx`
+- `MentionLink.tsx` – Klikalne powiązanie w treści (@Osoba, !Zadanie, $Rachunek): po kliknięciu wyszukuje wpis i otwiera go na stronie modułu ('?focus=<id>').
 - `Modal.tsx` – Native <dialog>-based modal. Replaces the previous pattern of a '<div role="dialog">' overlay with a manual onClick-outside-to-close handler - that pattern…
 - `ModuleGate.tsx`
 - `NoResultsState.tsx`
@@ -291,6 +297,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `useEnabledModules.ts` – Wyłączone moduły z ustawień użytkownika (SettingsProvider). Używane naraz przez pasek, menu, wyszukiwarkę i strażnika strony – wszystkie czytają ten sam stan,…
 - `useEuroRate.ts`
 - `useEventConflicts.ts` – Sprawdza na bieżąco, czy wpisywany termin nakłada się na inne wydarzenia. · exp: parseLocalInput, useEventConflicts · db: events
+- `useFocusTarget.ts` – Otwarcie wpisu z adresu '?focus=<id>' (powiązania @/!/$): po wczytaniu listy przewija do elementu 'id="item-<id>"', ustawia na nim fokus i na chwilę wyróżnia. · exp: focusElementId, useFocusTarget
 - `useHealthConsent.ts` – Zgoda na dane o zdrowiu ze Skrótów iOS (art. 9 ust. 2 lit. a RODO). Cofnięcie zgody usuwa zapisane dane (art. 7 ust.
 - `useIntervalTraining.ts`
 - `useIsClient.ts` – Wartości dostępne tylko w przeglądarce bez efektu ustawiającego stan po zamontowaniu (useSyncExternalStore: na serwerze i przy hydratacji wartość serwerowa,… · exp: useIsClient, useOrigin
@@ -361,10 +368,12 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `budgetUtils.ts` – exp: calculateExpectedYearlyLimit, propagateMonthlyLimits
 - `bulkEvents.ts` – Masowe dodawanie wydarzeń z wklejonej listy. Każda linia to wydarzenie: data albo zakres dat (formaty jak w zjazdyParser), opcjonalnie godziny („10:00–12:00”… · exp: parseBulkEvents, eventEndTime
 - `calendarExport.ts` – Przeniesienie edycji lub usunięcia wydarzenia z aplikacji do powiązanego kalendarza zewnętrznego. · exp: calendarTargetLabel, exportEventToCalendar, syncLinkedEventChange · db: connected_calendars
+- `calendarFeed.ts` – Kanał kalendarza (.ics, subskrypcja WebCal): wydarzenia (z wystąpieniami cyklicznymi), zadania z terminem i rutyny planu dnia. · exp: FEED_PAST_DAYS, FEED_FUTURE_DAYS, escapeIcsText, foldLine, buildCalendarFeed, feedRange
 - `categoryColors.ts` – Kolory kategorii. Paleta jest zamknięta (bez dowolnego HEX-a), bo na pasku wydarzenia w kalendarzu leży biały tekst: każdy kolor ma kontrast co najmniej 4.5:1… · exp: CATEGORY_PALETTE, isPaletteColor, paletteColorName, normalizeCategoryColors, remapCategoryColors
 - `cn.ts` – Combines conditional classes (clsx) and resolves conflicting Tailwind utilities in favor of the last one (tailwind-merge) - e.g.
 - `contrast.ts` – Kontrast kolorów wg WCAG 2.x – do wyboru koloru tekstu na tle wybranym przez użytkownika (nastroje, kategorie) i do testów tokenów motywu. · exp: contrastRatio, readableTextColor
 - `csvUtils.ts` – exp: readFileAsText, processCsvText
+- `dailyBrief.ts` – Briefing dnia – logika bez dostępu do bazy: kiedy pokazać kartę (od godziny z ustawień do zamknięcia przez użytkownika, tylko tego dnia) i które rachunki są… · exp: appTimeHm, briefVisibility, eveningParts, billsDue
 - `dateUtils.ts` – Granice doby 'dateStr' w strefie aplikacji (Europe/Warsaw) jako czasy UTC – niezależnie od strefy przeglądarki lub serwera. · exp: formatTime, localDateTimeToISO, parseEventDate, dateToTimestamp, eventSpansDate, APP_TIME_ZONE, getAppDate, getAppDateTime, +1
 - `daySchemas.ts` – Kilka schematów może obejmować ten sam dzień tygodnia (np. „Zwykły czwartek” i „Czwartek z warsztatem”). · exp: schemasForWeekday, defaultSchemaFor, resolveActiveSchema
 - `demoTour.ts` – Dane przewodnika demo: kroki po funkcjach budowane z FEATURE_GROUPS (jedno źródło prawdy z /start i /guide) oraz krótka instrukcja pierwszych kroków dla nowego… · exp: DEMO_QUICK_START, buildDemoSteps, tryHref
@@ -376,11 +385,13 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `eventTimes.ts` – exp: LOCAL_DATE_FORMAT, QUICK_EVENT_DURATIONS, addMinutesToLocal, durationBetween, defaultTimedStart
 - `eventUtils.ts` – Reguła wydarzenia: nowe pole 'recurrence', a przy starszych wpisach – 'repeat'. · exp: eventRule, expandRepeatingEvents, getEventsForDay
 - `finance.ts` – Logika finansów bez dostępu do bazy (łatwa do testowania): - terminy rachunków stałych (ten sam silnik reguł co zadania i wydarzenia), - prognoza rachunków na… · exp: billOccurrences, nextBillDue, monthRange, nextMonthKey, forecastMonth, billMonthStatus, merchantKey, suggestBillLink, +6
+- `financeShortcut.ts` – Treść żądania z automatyzacji Skrótów iOS „Transakcja” (Apple Pay): wyłącznie kwota i nazwa sprzedawcy. · exp: parseAmount, parseFinanceShortcutPayload
 - `fonts.ts` – Jedyny krój aplikacji. Klasa 'variable' trafia na <html> (pages/_document.tsx), więc zmienna --font-atkinson jest dostępna w całym dokumencie, także w oknach i… · exp: atkinson
 - `habits.ts` – Własne nawyki: do 8, każdy z nazwą i ikoną. Dawne 8 stałych nawyków (kolumny pills…duolingo i przełączniki habit_*) to teraz po prostu domyślna lista – ich… · exp: HABIT_ICON_NAMES, LEGACY_HABITS, isLegacyHabitId, normalizeHabits, resolveHabits, isHabitDone, newHabitId
 - `holidays.ts` – exp: getPolishHolidays
 - `icsGenerator.ts` – Eksport pojedynczego wydarzenia do pliku .ics. · exp: buildSingleEventICS, generateSingleEventICS
 - `imgUtils.ts` – exp: useImages · db: avatars
+- `legalDeadlines.ts` – Obliczanie terminów ustawowych: art. 57 KPA (tak samo art. 123 KPK). · exp: isNonWorkingDay, nextWorkingDay, rawTermEnd, termEnd, describeTerm
 - `letterArchive.ts` – Pakowanie plików pisma do jednego archiwum ZIP: jeden katalog o nazwie sygnatury, w nim podfoldery „pismo” i „odpowiedz” z numerowanymi plikami PDF. · exp: safeName, archiveEntryPaths, buildLetterArchive, archiveFileName, downloadBlob
 - `letterTemplates.ts` – Temat pisma (np. do tytułu wiadomości e-mail). · exp: letterSubject, generateLetterBody
 - `localUserData.ts` – Usuwa z przeglądarki wszystko, co dotyczy zalogowanego konta: kopię danych offline, kolejkę niewysłanych zapisów, pamięć service workera i klucze localStorage… · exp: clearLocalUserData
@@ -389,6 +400,8 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `meetingPollGrid.ts` – Koniec przedziału; w odróżnieniu od addMinutesToTime nie zawija północy („24:00” zamiast „00:00”). · exp: generateTimeSlots, slotKey, buildAllowedSlotSet, slotEndTime, formatDurationMinutes, formatPollDay, nextWorkingDays, contiguousRanges, +2
 - `meetingPollResults.ts` – Agregacja wyników ankiety dla osoby uczestniczącej: ile osób zaznaczyło każdy termin. · exp: summarizeResponses, isRespondentResults
 - `meetingPollSignup.ts` – Ankiety w trybie zapisów: walidacja zapisu, komunikaty błędów funkcji bazy, siatka slotów z zajętością, grupowanie zapisów i eksport CSV dla organizatora. · exp: SIGNUP_CONSENT_VERSION, MAX_BOOKING_SLOTS, validateBookingPayload, personKey, bookingFailure, buildSignupDays, countBySlot, groupBookings, +2
+- `mentions.ts` – Powiązania encji w treści: @Osoba, !Zadanie, $Rachunek. Nazwa zaczyna się literą, spacje zapisuje się jako „_” („!Kupić_bilety” → zadanie „Kupić bilety”). · exp: findMentions, splitMentions, toObsidianLinks, fromObsidianLinks, obsidianTag
+- `mentionTargets.ts` – Rozwiązanie powiązania (@Osoba, !Zadanie, $Rachunek) na identyfikator wpisu i stronę modułu. · exp: MENTION_HREF, MENTION_LABEL, pickCandidate, resolveMention · db: tasks, recurring_bills, people
 - `noteEditing.ts` – exp: applyBold, toggleListPrefix, continueListOnEnter, handleListContinuation
 - `noteFormatting.tsx` – 'mentions: false' – treść spoza aplikacji (poczta): znaki @/!/$ zostają zwykłym tekstem. · exp: renderNoteLineContent, parseNoteLine, groupNoteLines, linkifyText
 - `notesUtils.ts` – Normalizes one raw textarea line before it's stored as a note item: trims whitespace and adds an https:// scheme when the whole line is a bare domain (e.g. · exp: filterNotes, getNoteTitles, normalizeNoteLine
@@ -420,6 +433,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `taskReminders.ts` – Przypomnienia o zadaniu (tabela task_reminders). W formularzu trzymamy je jako wartości pola datetime-local („2026-10-12T09:00”, czas lokalny), w bazie jako… · exp: toLocalInput, reminderPresets, validateReminders, fetchPendingReminders, replacePendingReminders · db: task_reminders
 - `text.ts` – Liniowe operacje na tekście zamiast wyrażeń regularnych z nawracaniem (np. · exp: trimWhere, trimChars, isSimpleEmail
 - `themeScriptHash.mjs` – Skrót SHA-256 skryptu, który next-themes wstawia w treść strony (ustawia motyw przed pierwszym renderem).
+- `ticketParser.ts` – Odczyt biletu PKP Intercity z tekstu PDF (pdf-parse): stacje, data, godzina, pociąg, wagon, miejsce. Bilet z przesiadką ma kilka odcinków („1. odcinek:”, „2. · exp: extractStationNames, extractRoute, parseTicketData, parseTicketLegs, ticketDateToIso
 - `timeContext.ts` – exp: getTimeContext
 - `tmdb.ts` – Zamienia wyniki /search/multi na wspólny kształt; pomija osoby i nieznane typy. · exp: translateSeriesStatus, isSafePosterPath, posterUrl, normalizeSearchResults, extractPolishProviders, buildMovieData, searchMedia, fetchMediaDetails
 - `trainPlan.ts` – Okno odpytywania PKP PLK: od 3 h przed planowym odjazdem ze stacji początkowej do 3 h po planowym przyjeździe do stacji docelowej. · exp: plannedDeparture, formatHm, planHourKey, expectedDeparture, trainStatusWindow, trainTimePhase, isStatusRelevant, relativeDeparture, +5
@@ -458,12 +472,13 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `deleteFlow.ts` – Dwustopniowe potwierdzenie usunięcia wiadomości: 1) „Usunąć z aplikacji?” – Anuluj kończy bez zmian, 2) „Przenieść też do kosza w poczcie?” – tylko jawne… · exp: askDeleteMode
 - `emailHtml.ts` – Przygotowanie HTML wiadomości do wyświetlenia w izolowanym <iframe srcdoc> (bez skryptów): sanitizacja DOMPurify, bezpieczne linki w nowej karcie, obrazy… · exp: remoteImageUrl, prepareEmailHtml
 - `format.ts` – Dziś: „14:05”; w tym roku: „3 paź”; starsze: „3.10.2025”. Niepoprawna data: pusty tekst. · exp: formatMailDate, senderName
-- `forwarding.ts` – Wariant A (bez dostępu do skrzynki): każde konto dostaje unikalny adres, na który użytkownik ustawia przekierowanie. · exp: isForwardingKind, createForwardingToken, forwardingAddress, parseForwardingRecipient, hashForwardingToken, planForwardingCreate
+- `forwarding.ts` – Wariant A (bez dostępu do skrzynki): każde konto dostaje unikalny adres, na który użytkownik ustawia przekierowanie. · exp: isForwardingKind, createForwardingToken, forwardingAddress, isForwardingConfirmation, parseForwardingRecipient, hashForwardingToken, planForwardingCreate
 - `gmail.ts` – Klient Gmail API (wariant B). Fetch jest wstrzykiwany, więc logikę można testować bez sieci. · exp: parseBatchResponse, GmailApiError, decodeBase64Url, parseGmailMessage, createGmailClient
 - `htmlText.ts` – Tekst z HTML (bez DOM) – na potrzeby wykrywania zaproszeń i podglądu, gdy wiadomość nie ma części text/plain. · exp: htmlToPlainText
 - `inbound.ts` – Walidacja przychodzącej wiadomości przekierowanej do aplikacji (wariant A). · exp: parseInboundPayload, invitationOf
 - `inboxActions.ts` – Zamiana przekierowanej wiadomości (z bufora) na wiersz zadania lub wydarzenia. Czysta logika. · exp: inboxActionRow
 - `invitations.ts` – Wykrywanie zaproszeń na spotkania: załącznik iCalendar (.ics), linki do konferencji oraz wiadomości z zaproszeniem bez załącznika. · exp: findConferenceLinks, zonedWallTimeToUtc, parseIcsDate, parseIcs, detectInvitation
+- `letterNotices.ts` – Rozpoznawanie powiadomień ePUAP / e-Doręczeń (UPO, UPP, dowód doręczenia) w nagłówkach wiadomości – podstawa propozycji wpisu w module Pisma. · exp: LETTER_NOTICE_QUERIES, classifyNotice, toLetterNotices
 - `mailTasks.ts` – Wiersz zadania utworzonego z wiadomości. Treść wiadomości NIE trafia do zadania; zapisujemy wyłącznie nadawcę, żeby zadanie wskazywało źródło. · exp: nextDay, buildMailTaskRow
 - `notices.ts` – Komunikaty po powrocie z trasy połączenia konta (parametr ?connected= albo ?error=). · exp: callbackNoticeFor
 - `outlook.ts` – Klient Microsoft Graph (poczta Outlook). Fetch jest wstrzykiwany; logika jest testowalna bez sieci. · exp: GraphApiError, formatGraphAddress, decodeBase64Utf8, createOutlookClient
@@ -506,6 +521,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `accountData.ts` – Eksport i usuwanie wszystkich danych konta (RODO art. 15, 17, 20) na podstawie rejestru config/userData.ts. · exp: AccountDataError, exportUserData, deleteUserData
 - `apiGuards.ts` – Wspólne sprawdzenia na początku endpointów: dozwolona metoda HTTP i zalogowany użytkownik. Zwracają null po wysłaniu odpowiedzi błędu. · exp: allowMethods, requireUser
+- `calendarFeedTokens.ts` – Token kanału kalendarza (.ics). Osobny od tokenu Skrótów: adres kanału trafia do aplikacji kalendarza i bywa synchronizowany między urządzeniami, więc jego… · exp: generateFeedToken, hashFeedToken, feedTokenFromPath
 - `calendarTime.ts` – exp: toSupabaseTime, outlookToSupabaseTime, warsawNaiveToRFC3339
 - `cronAuth.ts` – exp: verifyCronRequest
 - `exportTarget.ts` – Czy wydarzenie można przypiąć do docelowego kalendarza. - Cykliczne: nie. · exp: resolveExportTarget, canAttachToTarget · db: connected_calendars
@@ -537,6 +553,8 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `slackSync/taskMapping.ts` – Pola puste w aplikacji, a wypełnione w Slacku (np. termin dodany do mapowania po pierwszym imporcie). · exp: withBuiltInColumns, missingFieldsFromItem, todayInPoland, isWithinImportHorizon, fingerprint, buildFields, itemToTaskPatch, itemChangedSince, +3
 - `slackSync/types.ts`
 - `supabaseAdmin.ts` – Klient Supabase z kluczem service_role – omija RLS, więc wolno go używać wyłącznie po stronie serwera i tylko po własnym sprawdzeniu, czy zasób należy do…
+- `ticketInbound.ts` – Bilety z poczty: wiadomość przekierowana na adres b-<token>@… (np. potwierdzenie zakupu PKP Intercity). · exp: legToRow, importTicketMail · db: user_trains
+- `ticketPdf.ts` – Tekst z PDF biletu (pdf-parse). Tylko serwer: wymaga atrapy canvas (lib/server/pdfCanvasGlobals.ts). · exp: PdfReadError, extractPdfText
 - `tokenCrypto.ts` – exp: encryptToken, decryptToken
 - `turnstile.ts` – Weryfikacja tokenu Cloudflare Turnstile po stronie serwera (publiczne formularze ankiet). · exp: enforceTurnstile
 - `vaultConnection.ts` – Połączenie z vaultem (OAuth OneDrive / Google Drive), ważny token i repozytorium danych dla runVaultSync. · exp: startVaultOAuth, handleVaultCallback, vaultStorageFor, supabaseVaultRepo · db: vault_connections, vault_sync_state, notes
@@ -592,7 +610,13 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## pages/api/calendar
 
+- `feed-token.ts` – Token kanału kalendarza: POST – nowy token (poprzedni przestaje działać), DELETE – wyłączenie kanału. Jawny token zwracany jest tylko raz; w bazie skrót. · http: DELETE · db: calendar_feed_tokens
+- `feed/[token].ts` – Kanał kalendarza .ics do subskrypcji (webcal://…/api/calendar/feed/<token>.ics) w Kalendarzu Apple, Thunderbirdzie i innych. · db: calendar_feed_tokens, events, tasks, day_schemas, day_schema_choices, daily_overrides
 - `sync-calendars.ts` – http: GET · db: events, connected_calendars
+
+## pages/api/finance
+
+- `shortcut.ts` – POST z automatyzacji Skrótów iOS wyzwalanej płatnością Apple Pay: { amount, merchant }. · db: finance_profiles, transactions, recurring_bills, budget_categories
 
 ## pages/api/google-calendar
 
@@ -602,6 +626,11 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 ## pages/api/health
 
 - `shortcut.ts` – POST ze Skrótu iOS (Apple Zdrowie): kroki, tętno, sen, treningi. Uwierzytelnianie tokenem skrótów (jak czas pracy i szybkie notatki). Dane o zdrowiu (art. · db: health_daily, health_workouts, health_sleep_segments, health_heart_rate, settings
+
+## pages/api/letters
+
+- `scan.ts` – Powiadomienia ePUAP / e-Doręczeń w wybranej skrzynce (Gmail, Outlook): tylko nagłówki, nic nie jest zapisywane.
+- `send.ts` – Wysyłka pisma e-mailem z połączonej skrzynki (Gmail, Outlook). Wymaga jawnego potwierdzenia (confirm: true) z interfejsu – bez niego nic nie jest wysyłane.
 
 ## pages/api/mail
 
@@ -731,6 +760,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `bills.ts` – Terminy rachunków stałych – wspólne dla aplikacji i edge functions (bez zależności zewnętrznych, jak recurrence.ts). · exp: billOccurrences, isBillDueOn, BILL_TASK_CATEGORY, billTaskTitle
 - `columns.ts` – Kopia list kolumn z lib/db/columns.ts dla funkcji Edge (Deno nie importuje spoza supabase/functions). · exp: TABLE_COLUMNS, cols
 - `config.ts` – Limity i ustawienia funkcji Edge (Deno). Pliki z config/ są poza bundlem funkcji, dlatego wartości używane także w aplikacji (np. · exp: MAX_INTERVAL, MAX_COUNT, MAX_STEPS, MAX_SHARED_NOTIFY_TEXT, MAX_ERROR_CONTEXT, MAX_ERROR_MESSAGE, MAX_ERROR_STACK, MAX_MINUTES_AHEAD, +3
+- `contacts.ts` – Progi przypomnień o kontakcie według priorytetu osoby – jedno źródło dla aplikacji (usePeople, briefing) i funkcji process-notifications. · exp: CONTACT_THRESHOLD_DAYS, daysSinceContact, isContactOverdue
 - `errors.ts` – exp: getErrorMessage
 - `notificationTime_test.ts`
 - `notificationTime.ts` – Obliczenia czasu dla powiadomień – wydzielone, żeby dało się je testować. · exp: weekdayIndexPL, plDayBoundsUTC, REMINDER_TOLERANCE_MS, warsawWallClockToInstant, warsawWallClockNow, isAllDayStored, wallClockDayBounds, eventReminderType
@@ -783,6 +813,8 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-05_poll_signups.sql` – Ankiety w trybie zapisów: terminy z ograniczoną liczbą miejsc (pojemność slotu) i limitem terminów na osobę. · obj: meeting_poll_bookings, meeting_poll_bookings_select_own, meeting_poll_bookings_delete_own, _meeting_poll_fail, _meeting_poll_slot_rows, _meeting_poll_slot_json, book_meeting_poll_slots
 - `2026-11-12_rls_initplan.sql` – Polityki RLS w schemacie public: 'auth.uid()' w warunku jest wyliczane dla każdego wiersza.
 - `2026-11-19_product_prices.sql` – Katalog cen produktów (Ustawienia → Ceny produktów) i dane pomocnicze importu paragonów. · obj: product_prices, receipt_aliases, imported_receipts, product_prices_own, receipt_aliases_own, imported_receipts_own
+- `2026-11-20_brief_feed_tickets.sql` – Wydanie 1.45.0: briefing dnia, kanał .ics (WebCal), płatności ze Skrótów (Apple Pay), bilety z poczty, skrzynki do wyszukiwania potwierdzeń ePUAP / e-Doręczeń. · obj: calendar_feed_tokens, calendar_feed_tokens_select_own, user_trains_update_own
+- `2026-11-21_ticket_buffer.sql` – Wydanie 1.45.0 (uzupełnienie): adres biletów przyjmuje wiadomości bez biletu do bufora Poczty tylko do chwili potwierdzenia przekazywania (mail weryfikacyjny…
 
 ## supabase/tests
 

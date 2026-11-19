@@ -35,6 +35,7 @@ Dlatego **nie używaj `supabase db push`**.
 
 | Skrypt                                                | Co robi                                                                                                                                                                                                           | Uwagi                                                                                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `supabase/sql/2026-11-21_ticket_buffer.sql`           | `mail_forwarding_addresses.buffer_closed_at` – zamknięcie bufora adresu biletów                                                                                                                                   | **przed** wdrożeniem 1.45.0, po `2026-11-20_brief_feed_tickets.sql`; idempotentny                                     |
 | `supabase/sql/2026-11-20_brief_feed_tickets.sql`      | kolumny briefingu i `letter_mail_accounts` w `settings`, tabela `calendar_feed_tokens`, `transactions.source` + `shortcut`, `user_trains.source/needs_review` + polityka update, `mail_forwarding_addresses.kind` | **przed** wdrożeniem 1.45.0; zapytanie kontrolne na końcu pliku zwraca 6 wierszy; skrypt jest idempotentny            |
 | `supabase/sql/2026-11-19_product_prices.sql`          | tabele `product_prices`, `receipt_aliases`, `imported_receipts` (RLS, uprawnienia) dla katalogu cen i importu paragonów                                                                                           | po uruchomieniu: Ustawienia → Ceny produktów pokazują pusty katalog; skrypt jest idempotentny                         |
 | `supabase/sql/2026-11-12_rls_initplan.sql`            | opakowuje `auth.uid()` w `(select auth.uid())` we wszystkich politykach RLS w `public` (szybsze zapytania na dużych tabelach)                                                                                     | po uruchomieniu zapytanie kontrolne z nagłówka skryptu zwraca 0 wierszy; skrypt jest idempotentny                     |
@@ -380,7 +381,7 @@ także przy ukryciu karty i zamknięciu widoku.
 
 Kolejność wdrożenia:
 
-1. SQL Editor: `supabase/sql/2026-11-20_brief_feed_tickets.sql` – **przed** aplikacją (nowe kolumny w zapytaniach).
+1. SQL Editor: `supabase/sql/2026-11-20_brief_feed_tickets.sql`, potem `2026-11-21_ticket_buffer.sql` – **przed** aplikacją.
 2. Funkcja Edge: `supabase functions deploy process-notifications` (wersja `1.45.0` w odpowiedzi, `_shared/contacts.ts`).
 3. cron-job.org: `morning_brief` → `*/15 5-12 * * *`, `evening_audit` → `*/15 16-23 * * *` (tabela „Zadania”).
 4. Bramka poczty: `cd docs/mail-gateway && npm run deploy` (PDF dla adresów biletów, `MAX_PDF_BYTES`).
@@ -393,7 +394,7 @@ Kolejność wdrożenia:
 | WebCal        | Ustawienia → Kanał kalendarza: adres `webcal://…/api/calendar/feed/<token>.ics`                                                                                                                                                                                                                            |
 | Apple Pay     | `POST /api/finance/shortcut` (token Skrótów); instrukcja – sekcja „Skróty iOS: płatności Apple Pay”                                                                                                                                                                                                        |
 | Pisma         | Terminy wg art. 57 KPA (miesiące kalendarzowe, sobota i dni wolne → następny dzień roboczy), warianty terminu z podstawą prawną; wyszukiwanie UPO/UPP/e-Doręczeń w wybranych skrzynkach (propozycje do zatwierdzenia); wysyłka e-mailem z potwierdzeniem                                                   |
-| Pociągi       | Adres na bilety (`b-…`), bilet z przesiadką → osobne odcinki, wpis „do sprawdzenia” z przyciskami „Zatwierdź” / „Popraw”; poprawka odczytu biletu z odcinkami także przy wgrywaniu PDF                                                                                                                     |
+| Pociągi       | Adres na bilety (`b-…`, Ustawienia → Bilety z poczty), bilet z przesiadką → osobne odcinki, wpis „do sprawdzenia” z przyciskami „Zatwierdź” / „Popraw”; poprawka odczytu biletu z odcinkami także przy wgrywaniu PDF                                                                                       |
 | Poprawki      | Data propozycji terminu pisma nie przesuwa się o dzień (UTC); Wigilia dniem wolnym od 2025 r.; jeden próg kontaktu (60 dni dla priorytetu 3) w aplikacji i push; opis powiadomienia o rachunkach zgodny z działaniem                                                                                       |
 
 Ograniczenia:
@@ -455,7 +456,17 @@ Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/mail/inbound" `
   -Headers @{ "x-mail-inbound-secret" = "<MAIL_INBOUND_SECRET>" } -ContentType "application/json" -Body $body
 ```
 
-Oczekiwany wynik: `202` z `{ added, duplicates, unreadable }`; ponowne wysłanie – `duplicates`; PDF bez biletu – `422`.
+Oczekiwany wynik: `202` z `{ added, duplicates, unreadable }`; ponowne wysłanie – `duplicates`; wiadomość bez biletu – `202`
+z `buffered: true` (Poczta → Przekierowane, 72 h) do zamknięcia bufora, potem `422` (zwrot do nadawcy).
+
+Bufor adresu biletów zamyka się automatycznie (`buffer_closed_at`) po mailu weryfikacyjnym przekazywania (nadawca
+`forwarding-noreply@google.com` albo temat „Forwarding Confirmation” / „Potwierdzenie przekazywania”) lub po pierwszym
+rozpoznanym bilecie. Ponowne otwarcie: nowy adres w Ustawieniach (stary odwołaj) albo w SQL Editor
+`update public.mail_forwarding_addresses set buffer_closed_at = null where id = '<id>';`.
+
+Gmail – automatyczne przekazywanie: Ustawienia → Przekazywanie i POP/IMAP → Dodaj adres przekierowania (`b-…`). Kod
+weryfikacyjny pojawia się w Poczta → Przekierowane; po potwierdzeniu: filtr „Od: bilet@intercity.pl”, „Zawiera załącznik” →
+„Przekaż do” adres `b-…`.
 
 ## Wydanie 1.43.0 – wdrożenie i zmiany
 

@@ -29,7 +29,7 @@ function kindOf(value: unknown) {
 async function listAddresses(req: NextApiRequest, res: NextApiResponse, { supabase }: Auth): Promise<void> {
   const { data, error } = await supabase
     .from("mail_forwarding_addresses")
-    .select("id, label, kind, created_at, revoked_at")
+    .select("id, label, kind, created_at, revoked_at, buffer_closed_at")
     .eq("kind", kindOf(req.query.kind))
     .order("created_at", { ascending: true });
   if (error) {

@@ -27,6 +27,15 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
+/**
+ * Mail weryfikacyjny przekazywania (Gmail: nadawca forwarding-noreply@google.com, temat „… Forwarding Confirmation”
+ * lub polski odpowiednik). Po nim adres biletów zamyka bufor Poczty dla wiadomości bez biletu.
+ */
+export function isForwardingConfirmation(message: { from: string; subject: string }): boolean {
+  if (/forwarding-noreply@google\.com/i.test(message.from)) return true;
+  return /forwarding confirmation|potwierdzenie przekazywania|przekazywanie poczty/i.test(message.subject);
+}
+
 /** Rodzaj i token adresu odbiorcy (p-… lub b-…); null – adres spoza domeny lub w złym formacie. */
 export function parseForwardingRecipient(
   recipient: string,

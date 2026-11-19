@@ -57,5 +57,5 @@ czytać całość. Architektura i bezpieczeństwo: [docs/ARCHITECTURE.md](docs/A
 - Briefing dnia: `components/dashboard/DailyBrief.tsx`, `lib/dailyBrief.ts`; push – `morning_brief`/`evening_audit` w `process-notifications`
 - Powiązania `@Osoba` `!Zadanie` `$Rachunek`: `lib/mentions.ts` (parser, Obsidian), `lib/mentionTargets.ts`, `components/ui/MentionLink.tsx`; otwarcie wpisu `?focus=<id>` – `hooks/useFocusTarget.ts` (element `id="item-<id>"`)
 - Pisma: terminy `lib/legalDeadlines.ts` (art. 57 KPA) + `RESPONSE_TERMS` w `types/letters.ts`; skrzynki/wysyłka `pages/api/letters/{scan,send}.ts`
-- Bilety: parser `lib/ticketParser.ts` (odcinki), poczta `lib/server/ticketInbound.ts` (adres `b-…`, `pages/api/mail/inbound.ts`), bramka `docs/mail-gateway/worker.js`
+- Bilety: parser `lib/ticketParser.ts` (odcinki), poczta `lib/server/ticketInbound.ts` (adres `b-…`, `pages/api/mail/inbound.ts`), bramka `docs/mail-gateway/worker.js`, UI adresu `components/settings/TicketForwardingSection.tsx`
 - Kanał .ics: `lib/calendarFeed.ts`, `pages/api/calendar/feed/[token].ts`; Apple Pay: `pages/api/finance/shortcut.ts`

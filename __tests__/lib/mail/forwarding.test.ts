@@ -6,6 +6,7 @@ import {
   forwardingAddress,
   hashForwardingToken,
   parseForwardingRecipient,
+  isForwardingConfirmation,
 } from "@/lib/mail/forwarding";
 
 const DOMAIN = "poczta.dzisiaj.fun";
@@ -40,5 +41,15 @@ describe("adresy przekierowania", () => {
     expect(h1).toBe(await hashForwardingToken(token));
     expect(h1).toMatch(/^[a-f0-9]{64}$/);
     expect(h1).not.toContain(token);
+  });
+});
+
+describe("isForwardingConfirmation", () => {
+  it("rozpoznaje mail weryfikacyjny przekazywania Gmaila", () => {
+    expect(
+      isForwardingConfirmation({ from: "forwarding-noreply@google.com", subject: "(#1) Gmail Forwarding Confirmation" })
+    ).toBe(true);
+    expect(isForwardingConfirmation({ from: "x@y.pl", subject: "Potwierdzenie przekazywania w Gmailu" })).toBe(true);
+    expect(isForwardingConfirmation({ from: "bilet@intercity.pl", subject: "Bilet PKP Intercity" })).toBe(false);
   });
 });

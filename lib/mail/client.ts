@@ -78,6 +78,8 @@ export interface ForwardingAddress {
   id: string;
   label: string;
   kind?: "mail" | "tickets";
+  /** Adres biletów: zamknięcie bufora wiadomości bez biletu (null – bufor otwarty). */
+  buffer_closed_at?: string | null;
   created_at: string;
   revoked_at: string | null;
 }

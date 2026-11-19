@@ -14,9 +14,10 @@ const MAX_DESC = 160;
 const MAX_EXPORTS = 8;
 
 // NOSONAR: git jest celowo wywoływany z PATH (narzędzie deweloperskie uruchamiane lokalnie i w CI).
-const files = execFileSync("git", ["ls-files"], { encoding: "utf8" })
+// Pliki śledzone i nowe (jeszcze niedodane), bez usuniętych z dysku – wynik nie zależy od `git add`.
+const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" })
   .split("\n")
-  .filter((f) => f && SRC.test(f) && !SKIP.some((r) => r.test(f)))
+  .filter((f) => f && SRC.test(f) && !SKIP.some((r) => r.test(f)) && existsSync(f))
   .sort((a, b) => a.localeCompare(b));
 
 const clip = (s) => {
@@ -150,9 +151,11 @@ for (const f of files) {
 }
 
 // NOSONAR: j.w., git z PATH.
-const testCount = execFileSync("git", ["ls-files", "__tests__"], { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean).length;
+const testCount = new Set(
+  execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "__tests__"], { encoding: "utf8" })
+    .split("\n")
+    .filter((f) => f && existsSync(f))
+).size;
 
 let md = `<!-- Plik generowany: npm run codemap. Nie edytować ręcznie. -->
 

@@ -5,15 +5,17 @@
 // i sprawdza zawartość przycisku (tekst, wyrażenie `{...}` albo same ikony).
 
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 
 const NAME_ATTR = /\b(aria-label|aria-labelledby|title)=/;
 
+/** Pliki śledzone i nowe (niedodane), bez usuniętych z dysku – wynik nie zależy od `git add`. */
 function tsxFiles(): string[] {
-  return execFileSync("git", ["ls-files", "components", "pages", "providers", "lib"], { encoding: "utf8" })
-    .split("\n")
-    .filter((f) => f.endsWith(".tsx"));
+  const args = ["ls-files", "--cached", "--others", "--exclude-standard", "components", "pages", "providers", "lib"];
+  return [...new Set(execFileSync("git", args, { encoding: "utf8" }).split("\n"))].filter(
+    (f) => f.endsWith(".tsx") && existsSync(f)
+  );
 }
 
 /** Indeks znaku po domykającym `>` otwarcia tagu (pomija `>` w `=>` i w wyrażeniach `{...}`). */
