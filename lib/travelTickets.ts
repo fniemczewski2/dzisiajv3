@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { addDays, format, isBefore, parseISO, startOfDay } from "date-fns";
-import { replacePendingReminders, toLocalInput } from "./taskReminders";
+import { replacePendingReminders, toLocalInput, warsawDateTimeToUTC } from "./taskReminders";
 
 export const TICKET_REMINDER_DAYS_BEFORE = 30;
 
@@ -23,7 +23,8 @@ export function ticketTaskDay(eventStartDay: string, today: Date = new Date()): 
 }
 
 function ticketReminderTime(taskDay: string, now: Date = new Date()): string {
-  const nine = new Date(`${taskDay}T09:00:00`);
+  const [y, m, d] = taskDay.split("-").map(Number);
+  const nine = warsawDateTimeToUTC(y, m, d, 9, 0);
   return toLocalInput(nine > now ? nine : new Date(now.getTime() + 3_600_000));
 }
 
