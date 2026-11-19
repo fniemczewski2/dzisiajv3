@@ -2,6 +2,8 @@
 //
 // Odbiór wiadomości przekierowanej z bramki poczty (wariant A). Dostęp chroniony sekretem nagłówka.
 // Adres odbiorcy wskazuje konto; treść trafia do bufora szyfrowanego z czasem wygaśnięcia.
+// Adres biletów (b-…): PDF z wiadomości → wpisy w „Pociągach” (lib/server/ticketInbound.ts), bez zapisu treści.
+// Brak rozpoznanego biletu → 422, więc bramka odrzuca wiadomość i nadawca dostaje zwrot z informacją.
 
 import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -11,8 +13,12 @@ import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { isInboundAuthorized } from "@/lib/server/inboundAuth";
 import { encryptToken } from "@/lib/server/tokenCrypto";
-import { hashForwardingToken, tokenFromRecipient } from "@/lib/mail/forwarding";
+import { hashForwardingToken, parseForwardingRecipient } from "@/lib/mail/forwarding";
 import { parseInboundPayload } from "@/lib/mail/inbound";
+import { importTicketMail } from "@/lib/server/ticketInbound";
+
+/** Wiadomość z biletami w PDF (base64) jest większa niż domyślny limit 1 MB; Vercel przyjmuje do 4,5 MB. */
+export const config = { api: { bodyParser: { sizeLimit: "4mb" } }, maxDuration: 30 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!allowMethods(req, res, ["POST"])) return;
@@ -30,19 +36,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const message = parseInboundPayload(req.body);
   if (!message) return res.status(400).json({ error: "Nieprawidłowa wiadomość." });
 
-  const token = tokenFromRecipient(message.recipient, domain);
-  if (!token) return res.status(404).json({ error: "Nieznany adres." });
+  const target = parseForwardingRecipient(message.recipient, domain);
+  if (!target) return res.status(404).json({ error: "Nieznany adres." });
 
   const admin = supabaseAdmin();
   const { data: address } = await admin
     .from("mail_forwarding_addresses")
     .select("id, user_id")
-    .eq("token_hash", await hashForwardingToken(token))
+    .eq("token_hash", await hashForwardingToken(target.token))
+    .eq("kind", target.kind)
     .is("revoked_at", null)
     .maybeSingle();
   if (!address) return res.status(404).json({ error: "Nieznany adres." });
 
-  const payload = JSON.stringify({ ...message, receivedAt: new Date().toISOString() });
+  if (target.kind === "tickets") {
+    try {
+      const result = await importTicketMail(admin, address.user_id, message);
+      if (result.added === 0 && result.duplicates === 0) {
+        return res.status(422).json({ error: "Nie rozpoznano biletu PKP Intercity w załącznikach PDF." });
+      }
+      return res.status(202).json(result);
+    } catch (err) {
+      console.error("[mail/inbound] bilety:", err instanceof Error ? err.message : "nieznany błąd");
+      return res.status(500).json({ error: "Nie udało się zapisać biletu." });
+    }
+  }
+
+  // Bufor poczty: bez treści PDF (przekazywanej tylko dla adresu biletów).
+  const attachments = message.attachments.map(({ pdfBase64: _pdf, ...rest }) => rest);
+  const payload = JSON.stringify({ ...message, attachments, receivedAt: new Date().toISOString() });
   const { error } = await admin.from("mail_inbox").insert({
     user_id: address.user_id,
     forwarding_id: address.id,

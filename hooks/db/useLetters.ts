@@ -7,7 +7,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useCrudResource } from "./useCrudResource";
 import {
   CATEGORY_CODE_MAP,
-  RESPONSE_DAYS_MAP,
+  RESPONSE_TERMS,
   type Letter,
   type LetterAttachment,
   type LetterCategory,
@@ -18,6 +18,7 @@ import {
 import { MAX_LETTER_ATTACHMENTS, MAX_LETTER_PDF_SIZE_MB } from "@/config/limits";
 import { archiveEntryPaths, archiveFileName, buildLetterArchive, downloadBlob } from "@/lib/letterArchive";
 import { cols } from "@/lib/db/columns";
+import { termEnd } from "@/lib/legalDeadlines";
 
 const MESSAGES = {
   fetchError: "Błąd pobierania pism.",
@@ -30,13 +31,19 @@ const MESSAGES = {
   confirmDelete: "Czy na pewno chcesz usunąć to pismo wraz z załącznikami?",
 };
 
-export function suggestResponseDate(category: LetterCategory, issueDate: string): string | null {
-  if (category === "Inne") return null;
-  const days = RESPONSE_DAYS_MAP[category];
-  const d = new Date(`${issueDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+/** Warianty terminu dla kategorii (pusta lista dla „Inne”). */
+export function responseTermsFor(category: LetterCategory) {
+  return category === "Inne" ? [] : RESPONSE_TERMS[category];
+}
+
+/**
+ * Proponowany termin odpowiedzi: od dnia złożenia pisma, według art. 57 KPA (lib/legalDeadlines.ts).
+ * `termId` wybiera wariant (np. przedłużenie z art. 13 ust. 2 UDIP); brak – wariant domyślny.
+ */
+export function suggestResponseDate(category: LetterCategory, issueDate: string, termId?: string): string | null {
+  const terms = responseTermsFor(category);
+  const term = terms.find((t) => t.id === termId) ?? terms[0];
+  return term ? termEnd(issueDate, term.count, term.unit) : null;
 }
 
 /** Każdy plik ma unikalną ścieżkę, więc kilka załączników tej samej sekcji nie nadpisuje się. */

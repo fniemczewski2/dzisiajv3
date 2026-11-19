@@ -37,6 +37,7 @@ import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { AddButton, CancelButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
 import QuickNotes from "./QuickNotes";
+import DailyBrief from "./DailyBrief";
 import RecurringPreviewList from "../tasks/RecurringPreviewList";
 import { useRecurringTaskPreviews } from "@/hooks/db/useRecurringTaskPreviews";
 import DaySchemaSwitcher from "./DaySchemaSwitcher";
@@ -312,6 +313,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
 
         {!fetchingSettings && (
           <>
+            {isToday && <DailyBrief today={dateStr} tasks={tasks} events={events} trains={trains} />}
+
             {draftForms.length > 0 && (
               <div className="multi-draft-container mb-6 space-y-4">
                 {draftForms.map((draft, idx) => (

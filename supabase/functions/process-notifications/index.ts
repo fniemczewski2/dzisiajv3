@@ -14,6 +14,7 @@ import { getErrorMessage } from "../_shared/errors.ts";
 import { usersNotifiedToday, rowsByUser, sentDataKeys, sentKey } from "./batch.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
 import { cols } from "../_shared/columns.ts";
+import { isContactOverdue } from "../_shared/contacts.ts";
 
 interface ScheduleEntry {
   label: string;
@@ -39,7 +40,7 @@ interface TaskNotifRow {
  * czy na serwerze działa aktualny kod (np. poprawka stref czasowych z 1.39.9).
  * Podbijaj przy każdej zmianie tej funkcji.
  */
-const FUNCTION_VERSION = "1.40.0";
+const FUNCTION_VERSION = "1.45.0";
 
 interface EventRow {
   id: string;
@@ -181,18 +182,68 @@ async function optedOutUsers(supabase: SupabaseClient, column: string): Promise<
   return new Set((data ?? []).map((r: { user_id: string }) => r.user_id));
 }
 
+/** „HH:mm” z ustawień; niepoprawna wartość → domyślna. */
+function briefTime(value: unknown, fallback: string): string {
+  return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : fallback;
+}
+
+function currentHm(ctx: NotifCtx): string {
+  return `${ctx.plNow.hour}:${ctx.plNow.timeStr.split(":")[1]}`;
+}
+
+function nextDay(day: string): string {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+interface BriefUserRow {
+  user_id: string;
+  brief_morning_time?: string | null;
+  brief_evening_time?: string | null;
+  brief_evening_mode?: string | null;
+}
+
+/** Osoby z włączonym typem, u których minęła godzina briefingu (cron co 15 min), bez wysyłki dziś. */
+async function dueBriefUsers(
+  ctx: NotifCtx,
+  flag: "notif_morning_brief" | "notif_evening",
+  timeColumn: "brief_morning_time" | "brief_evening_time",
+  fallback: string,
+  type: string
+): Promise<BriefUserRow[]> {
+  // Stała lista kolumn: zapytanie z szablonem (`${…}`) psuje typy postgrest-js (ParserError w deno check).
+  const { data } = await ctx.supabase
+    .from("settings")
+    .select("user_id, brief_morning_time, brief_evening_time, brief_evening_mode")
+    .eq(flag, true)
+    .not("user_id", "is", null);
+  const now = currentHm(ctx);
+  const due = ((data ?? []) as unknown as BriefUserRow[]).filter((u) => now >= briefTime(u[timeColumn], fallback));
+  const notified = await usersNotifiedToday(
+    ctx.supabase,
+    type,
+    ctx.startOfDayUTC,
+    due.map((u) => u.user_id)
+  );
+  return due.filter((u) => !notified.has(u.user_id));
+}
+
+function countLabel(count: number, one: string, few: string, many: string): string {
+  return `${count} ${pluralize(count, one, few, many)}`;
+}
+
 async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, sendPushAndLog } = ctx;
-  const { data: users } = await supabase
-    .from("settings")
-    .select("user_id")
-    .eq("notif_morning_brief", true)
-    .not("user_id", "is", null);
-  const ids = (users ?? []).map((u) => u.user_id as string);
-  // Zbiorczo: kto już dostał powiadomienie, zadania i wydarzenia wszystkich osób naraz.
-  const notified = await usersNotifiedToday(supabase, "morning_brief", ctx.startOfDayUTC, ids);
+  const users = await dueBriefUsers(ctx, "notif_morning_brief", "brief_morning_time", "07:00", "morning_brief");
+  const ids = users.map((u) => u.user_id);
+  if (ids.length === 0) return;
   const tasksByUser = await rowsByUser<{ user_id: string }>(supabase, "tasks", "user_id", ids, {
     eq: { due_date: today },
+    neq: { status: "done" },
+  });
+  const overdueByUser = await rowsByUser<{ user_id: string }>(supabase, "tasks", "user_id", ids, {
+    lt: { due_date: today },
     neq: { status: "done" },
   });
   // start_time to czas ścienny w Polsce zapisany z „+00” – granice dnia w tym samym zapisie.
@@ -201,19 +252,19 @@ async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
     gte: { start_time: day.start },
     lt: { start_time: day.end },
   });
-  await mapPool(users || [], 5, async (user) => {
-    if (notified.has(user.user_id)) return;
-    const tasksCount = tasksByUser.get(user.user_id)?.length ?? 0;
-    const eventsCount = eventsByUser.get(user.user_id)?.length ?? 0;
-
-    if ((tasksCount && tasksCount > 0) || (eventsCount && eventsCount > 0)) {
-      const msgParts = [];
-      if (eventsCount && eventsCount > 0)
-        msgParts.push(`${eventsCount} ${pluralize(eventsCount, "wydarzenie", "wydarzenia", "wydarzeń")}`);
-      if (tasksCount && tasksCount > 0)
-        msgParts.push(`${tasksCount} ${pluralize(tasksCount, "zadanie", "zadania", "zadań")}`);
-      await sendPushAndLog(user.user_id, "Dzień dobry!", `Masz dziś ${msgParts.join(" i ")}.`, "/");
-    }
+  const trainsByUser = await rowsByUser<{ user_id: string }>(supabase, "user_trains", "user_id", ids, {
+    eq: { date: today },
+  });
+  await mapPool(users, 5, async (user) => {
+    const parts = [
+      [eventsByUser.get(user.user_id)?.length ?? 0, "wydarzenie", "wydarzenia", "wydarzeń"],
+      [tasksByUser.get(user.user_id)?.length ?? 0, "zadanie", "zadania", "zadań"],
+      [overdueByUser.get(user.user_id)?.length ?? 0, "zaległe zadanie", "zaległe zadania", "zaległych zadań"],
+      [trainsByUser.get(user.user_id)?.length ?? 0, "pociąg", "pociągi", "pociągów"],
+    ] as const;
+    const msg = parts.filter(([n]) => n > 0).map(([n, a, b, c]) => countLabel(n, a, b, c));
+    if (msg.length === 0) return;
+    await sendPushAndLog(user.user_id, "Poranny briefing", `Dziś: ${msg.join(", ")}.`, "/");
   });
 }
 
@@ -622,27 +673,50 @@ async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
 }
 
 async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
-  const { supabase, today, startOfDayUTC, sendPushAndLog } = ctx;
-  const { data: users } = await supabase
-    .from("settings")
-    .select("user_id")
-    .eq("notif_evening", true)
-    .not("user_id", "is", null);
-  const ids = (users ?? []).map((u) => u.user_id as string);
-  const notified = await usersNotifiedToday(supabase, "evening_audit", startOfDayUTC, ids);
+  const { supabase, today, sendPushAndLog } = ctx;
+  const users = await dueBriefUsers(ctx, "notif_evening", "brief_evening_time", "21:00", "evening_audit");
+  const ids = users.map((u) => u.user_id);
+  if (ids.length === 0) return;
+  const tomorrow = nextDay(today);
   const tasksByUser = await rowsByUser<{ user_id: string; status: string }>(supabase, "tasks", "user_id, status", ids, {
     eq: { due_date: today },
   });
-  await mapPool(users || [], 5, async (user) => {
-    if (notified.has(user.user_id)) return;
-    const tasks = tasksByUser.get(user.user_id) ?? [];
-    const done = tasks.filter((t) => t.status === "done").length;
-    const pending = tasks.length - done;
-    if (pending > 0 || done > 0) {
-      let msg = `Zrealizowano dziś ${done} ${pluralize(done, "zadanie", "zadania", "zadań")}.`;
-      if (pending > 0) msg += ` Do zrobienia zostało ${pending}.`;
-      await sendPushAndLog(user.user_id, "Czas na podsumowanie 🌙", msg, "/");
+  const tomorrowTasks = await rowsByUser<{ user_id: string }>(supabase, "tasks", "user_id", ids, {
+    eq: { due_date: tomorrow },
+    neq: { status: "done" },
+  });
+  const tomorrowBounds = wallClockDayBounds(tomorrow);
+  const tomorrowEvents = await rowsByUser<{ user_id: string }>(supabase, "events", "user_id", ids, {
+    gte: { start_time: tomorrowBounds.start },
+    lt: { start_time: tomorrowBounds.end },
+  });
+  const tomorrowTrains = await rowsByUser<{ user_id: string }>(supabase, "user_trains", "user_id", ids, {
+    eq: { date: tomorrow },
+  });
+  await mapPool(users, 5, async (user) => {
+    const mode = typeof user.brief_evening_mode === "string" ? user.brief_evening_mode : "both";
+    const lines: string[] = [];
+    if (mode !== "tomorrow") {
+      const tasks = tasksByUser.get(user.user_id) ?? [];
+      const done = tasks.filter((t) => t.status === "done").length;
+      const pending = tasks.length - done;
+      if (tasks.length > 0) {
+        lines.push(
+          `Zrealizowano ${countLabel(done, "zadanie", "zadania", "zadań")}${pending > 0 ? `, zostało ${pending}` : ""}.`
+        );
+      }
     }
+    if (mode !== "summary") {
+      const plan = [
+        [tomorrowEvents.get(user.user_id)?.length ?? 0, "wydarzenie", "wydarzenia", "wydarzeń"],
+        [tomorrowTasks.get(user.user_id)?.length ?? 0, "zadanie", "zadania", "zadań"],
+        [tomorrowTrains.get(user.user_id)?.length ?? 0, "pociąg", "pociągi", "pociągów"],
+      ] as const;
+      const parts = plan.filter(([n]) => n > 0).map(([n, a, b, c]) => countLabel(n, a, b, c));
+      if (parts.length > 0) lines.push(`Jutro: ${parts.join(", ")}.`);
+    }
+    if (lines.length === 0) return;
+    await sendPushAndLog(user.user_id, "Wieczorny briefing", lines.join(" "), "/");
   });
 }
 
@@ -819,17 +893,9 @@ async function notifyAnniversary(
   await ctx.sendPushAndLog(person.user_id, labels.title, msg, "/people", { person_id: person.id, sub_type: subType });
 }
 
-function resolveLastContactDate(person: PersonRow): Date | null {
-  if (person.last_contact_date) return new Date(person.last_contact_date);
-  if (person.created_at) return new Date(person.created_at);
-  return null;
-}
-
-const CONTACT_THRESHOLD_DAYS: Record<number, number> = { 1: 14, 2: 30, 3: 60, 4: 365 };
-
-function isContactOverdue(priority: number, diffDays: number): boolean {
-  const threshold = CONTACT_THRESHOLD_DAYS[priority];
-  return threshold !== undefined && diffDays >= threshold;
+/** Bez daty kontaktu liczymy od dodania osoby (push nie przypomina o kimś dodanym przed chwilą). */
+function resolveLastContactDate(person: PersonRow): string | null {
+  return person.last_contact_date ?? person.created_at ?? null;
 }
 
 async function notifyContactReminder(
@@ -841,10 +907,7 @@ async function notifyContactReminder(
   const lastContact = resolveLastContactDate(person);
   if (!lastContact) return;
 
-  const diffTime = Math.abs(ctx.realNow.getTime() - lastContact.getTime());
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  const shouldContact = isContactOverdue(person.priority, diffDays);
+  const shouldContact = isContactOverdue(person.priority, lastContact, ctx.realNow);
   if (!shouldContact || isContactRemindedRecently(sentNotifs, person.user_id, person.id, sevenDaysAgoUTC)) return;
 
   await ctx.sendPushAndLog(

@@ -34,6 +34,8 @@ function mapDbRowToTrain(row: {
   seat: string;
   created_at: string;
   planned_arrival?: string | null;
+  needs_review?: boolean | null;
+  source?: "manual" | "mail" | null;
 }): TrackedTrain {
   return {
     id: row.id,
@@ -48,6 +50,8 @@ function mapDbRowToTrain(row: {
     seat: row.seat,
     createdAt: row.created_at,
     plannedArrival: row.planned_arrival ?? null,
+    needsReview: row.needs_review === true,
+    source: row.source ?? "manual",
   };
 }
 
@@ -216,7 +220,50 @@ export function useTrains() {
     [userId, supabase, allTrains, toast, withRetry, setAllTrains]
   );
 
+  /**
+   * Poprawka wpisu (np. odczytanego z biletu w poczcie). Zapis zawsze zdejmuje znacznik „do sprawdzenia”
+   * – zatwierdzenie bez zmian to zapis tych samych danych.
+   */
+  const updateTrain = useCallback(
+    async (id: string, trainData: TrainInput) => {
+      if (!userId) throw new NotSignedInError();
+      const previous = allTrains;
+      setAllTrains((prev) => prev.map((t) => (t.id === id ? { ...t, ...trainData, needsReview: false } : t)));
+      try {
+        const { data, error } = await withRetry(() =>
+          supabase
+            .from("user_trains")
+            .update({
+              train_number: trainData.trainNumber,
+              train_name: trainData.trainName,
+              date: trainData.date,
+              departure_time: trainData.departureTime,
+              from_station: trainData.from,
+              to_station: trainData.to,
+              wagon: trainData.wagon,
+              seat: trainData.seat,
+              needs_review: false,
+            })
+            .eq("id", id)
+            .eq("user_id", userId)
+            .select(cols("user_trains"))
+            .single()
+        );
+        if (error) throw error;
+        setAllTrains((prev) => prev.map((t) => (t.id === id ? mapDbRowToTrain(data) : t)));
+        toast.success("Zapisano pociąg");
+        return true;
+      } catch {
+        setAllTrains(previous);
+        toast.error("Błąd zapisywania pociągu.");
+        return false;
+      }
+    },
+    [userId, supabase, allTrains, toast, withRetry, setAllTrains]
+  );
+
   return {
+    updateTrain,
     /** W oknie odpytywania PKP PLK (status na żywo). */
     currentTrains: current,
     /** Przed oknem – bez zapytań do PKP PLK. */

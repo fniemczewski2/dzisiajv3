@@ -24,6 +24,7 @@ import { fetchPendingReminders, replacePendingReminders, validateReminders } fro
 import { useToast } from "@/providers/ToastProvider";
 import TaskEditForm from "./TaskEditForm";
 import { linkifyText } from "@/lib/noteFormatting";
+import { focusElementId } from "@/hooks/useFocusTarget";
 
 interface Props {
   task: Task;
@@ -145,7 +146,10 @@ function TaskView({
 }>) {
   const categoryColors = useCategoryColors();
   return (
-    <div className="card flex w-full min-w-0 flex-col p-4 text-left transition-all">
+    <div
+      id={focusElementId(String(task.id))}
+      className="card flex w-full min-w-0 flex-col p-4 text-left transition-all"
+    >
       <div className="flex-1 space-y-3">
         <button
           type="button"

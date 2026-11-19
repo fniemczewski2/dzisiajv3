@@ -10,12 +10,49 @@ import { useTrains } from "@/hooks/db/useTrains";
 import AddTrainForm from "@/components/transport/AddTrainWidget";
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
 import StationBoardWidget from "@/components/transport/StationBoard";
+import TicketForwardingSection from "@/components/transport/TicketForwardingSection";
+import type { TrackedTrain } from "@/types/transport";
 
 /** Ile odbytych podróży pokazujemy naraz. */
 
 export default function TrainsPage() {
   const [expanded, setExpanded] = useState(false);
-  const { currentTrains, upcomingTrains, pastTrains, addTrain, deleteTrain, fetching } = useTrains();
+  const { currentTrains, upcomingTrains, pastTrains, addTrain, deleteTrain, updateTrain, fetching } = useTrains();
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const toInput = (t: TrackedTrain) => ({
+    trainNumber: t.trainNumber,
+    trainName: t.trainName,
+    date: t.date,
+    departureTime: t.departureTime,
+    from: t.from,
+    to: t.to,
+    wagon: t.wagon,
+    seat: t.seat,
+  });
+
+  const renderTrain = (train: TrackedTrain, upcoming: boolean) =>
+    editingId === train.id ? (
+      <AddTrainForm
+        key={train.id}
+        idPrefix={`edit-${train.id}-`}
+        initial={toInput(train)}
+        expanded
+        setExpanded={(open) => !open && setEditingId(null)}
+        onTrainAdded={(data) => {
+          void updateTrain(train.id, data).then((ok) => ok && setEditingId(null));
+        }}
+      />
+    ) : (
+      <TrackedTrainCard
+        key={train.id}
+        train={train}
+        onDelete={deleteTrain}
+        onEdit={setEditingId}
+        onConfirm={train.needsReview ? (id) => void updateTrain(id, toInput(train)) : undefined}
+        upcoming={upcoming}
+      />
+    );
   const [pastLimit, setPastLimit] = useState(PAST_TRAINS_PAGE_SIZE);
 
   let trainsContent;
@@ -32,12 +69,8 @@ export default function TrainsPage() {
     // Bieżące (status z PKP PLK na żywo), potem nadchodzące (status od 3 h przed odjazdem).
     trainsContent = (
       <>
-        {currentTrains.map((train) => (
-          <TrackedTrainCard key={train.id} train={train} onDelete={deleteTrain} />
-        ))}
-        {upcomingTrains.map((train) => (
-          <TrackedTrainCard key={train.id} train={train} onDelete={deleteTrain} upcoming />
-        ))}
+        {currentTrains.map((train) => renderTrain(train, false))}
+        {upcomingTrains.map((train) => renderTrain(train, true))}
       </>
     );
   }
@@ -96,6 +129,8 @@ export default function TrainsPage() {
             </details>
           </section>
         )}
+
+        <TicketForwardingSection />
 
         <StationBoardWidget onTrainAdded={addTrain} />
       </div>

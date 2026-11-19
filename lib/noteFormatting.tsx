@@ -3,6 +3,8 @@
 import { NOTE_FORMATTING_MAX_LENGTH } from "@/config/limits";
 import React from "react";
 import { sanitizeHref } from "@/lib/sanitize";
+import { splitMentions } from "@/lib/mentions";
+import MentionLink from "@/components/ui/MentionLink";
 
 const URL_RE = /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+)/gi;
 
@@ -54,13 +56,23 @@ function linkifyBareDomains(text: string, keyPrefix: string): React.ReactNode[] 
   });
 }
 
-function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
+/** Tekst bez adresów: powiązania @/!/$ jako klikalne odnośniki (lib/mentions.ts), reszta – domeny. */
+function linkifyMentions(text: string, keyPrefix: string, mentions: boolean): React.ReactNode[] {
+  if (!mentions) return linkifyBareDomains(text, keyPrefix);
+  return splitMentions(text).flatMap((part, i): React.ReactNode[] =>
+    part.type === "mention"
+      ? [<MentionLink key={`${keyPrefix}-m-${i}`} mention={part.mention} />]
+      : linkifyBareDomains(part.text, `${keyPrefix}-m${i}`)
+  );
+}
+
+function linkifyPlainText(text: string, keyPrefix: string, mentions = true): React.ReactNode[] {
   if (!text) return [];
   const parts = text.split(URL_RE);
 
   return parts.flatMap((part, i): React.ReactNode[] => {
     if (i % 2 !== 1 || !part) {
-      return linkifyBareDomains(part, `${keyPrefix}-t-${i}`);
+      return linkifyMentions(part, `${keyPrefix}-t-${i}`, mentions);
     }
     return [renderLinkToken(part, `${keyPrefix}-t-${i}`)];
   });
@@ -121,8 +133,9 @@ export function groupNoteLines(items: string[]): NoteBlock[] {
   return blocks;
 }
 
-export function linkifyText(text: string, keyPrefix: string): React.ReactNode {
+/** `mentions: false` – treść spoza aplikacji (poczta): znaki @/!/$ zostają zwykłym tekstem. */
+export function linkifyText(text: string, keyPrefix: string, options: { mentions?: boolean } = {}): React.ReactNode {
   if (!text) return null;
   const clipped = text.length > NOTE_FORMATTING_MAX_LENGTH ? `${text.slice(0, NOTE_FORMATTING_MAX_LENGTH)}…` : text;
-  return linkifyPlainText(clipped, keyPrefix);
+  return linkifyPlainText(clipped, keyPrefix, options.mentions ?? true);
 }

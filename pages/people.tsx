@@ -1,5 +1,6 @@
 // pages/people.tsx
 
+import { useFocusTarget } from "@/hooks/useFocusTarget";
 import React, { useState } from "react";
 import { usePeople } from "@/hooks/db/usePeople";
 import { PersonCard } from "@/components/people/PersonCard";
@@ -18,6 +19,7 @@ import { mapPool } from "@/shared/asyncPool";
 
 export default function PeoplePage() {
   const { people, loading, fetching, addPerson, editPerson, deletePerson, logContact } = usePeople();
+  useFocusTarget(!fetching);
   const { settings } = useSettings();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);

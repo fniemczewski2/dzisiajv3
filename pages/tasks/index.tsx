@@ -1,5 +1,6 @@
 // pages/tasks/index.tsx
 
+import { useFocusTarget } from "@/hooks/useFocusTarget";
 import { RECURRING_PREVIEW_DAYS } from "@/config/defaults";
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
@@ -46,6 +47,7 @@ export default function TasksPage() {
 
   const router = useRouter();
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
+  useFocusTarget(!fetching);
   const { user } = useAuth();
   const { settings } = useSettings();
 

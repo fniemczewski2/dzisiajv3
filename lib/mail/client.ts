@@ -77,6 +77,7 @@ export interface InboxItem {
 export interface ForwardingAddress {
   id: string;
   label: string;
+  kind?: "mail" | "tickets";
   created_at: string;
   revoked_at: string | null;
 }
@@ -145,13 +146,16 @@ export function createMailClient(fetchImpl: FetchLike = (url, init) => fetch(url
       return request(fetchImpl, "/api/mail/event", json({ accountId, messageId }));
     },
 
-    async listForwarding(): Promise<ForwardingAddress[]> {
-      const data = await request<{ addresses: ForwardingAddress[] }>(fetchImpl, "/api/mail/forwarding");
+    async listForwarding(kind: "mail" | "tickets" = "mail"): Promise<ForwardingAddress[]> {
+      const data = await request<{ addresses: ForwardingAddress[] }>(fetchImpl, `/api/mail/forwarding?kind=${kind}`);
       return data.addresses;
     },
 
-    createForwarding(label: string): Promise<{ id: string; address: string; note: string }> {
-      return request(fetchImpl, "/api/mail/forwarding", json({ label }));
+    createForwarding(
+      label: string,
+      kind: "mail" | "tickets" = "mail"
+    ): Promise<{ id: string; address: string; note: string }> {
+      return request(fetchImpl, "/api/mail/forwarding", json({ label, kind }));
     },
 
     revokeForwarding(id: string): Promise<void> {

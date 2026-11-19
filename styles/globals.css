@@ -489,6 +489,11 @@
     color: var(--theme-text);
   }
 
+  /* Wpis otwarty z powiązania (?focus=<id>, hooks/useFocusTarget.ts) – obwódka zamiast samego koloru tła. */
+  .focus-highlight {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-card outline-none;
+  }
+
   .card {
     /* Karta to powierzchnia, nie przycisk: bez reakcji na hover (sugerowała
        klikalność) i bez animacji wejścia przy każdym renderze listy. */

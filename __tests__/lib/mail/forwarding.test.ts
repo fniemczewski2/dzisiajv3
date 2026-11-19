@@ -5,7 +5,7 @@ import {
   createForwardingToken,
   forwardingAddress,
   hashForwardingToken,
-  tokenFromRecipient,
+  parseForwardingRecipient,
 } from "@/lib/mail/forwarding";
 
 const DOMAIN = "poczta.dzisiaj.fun";
@@ -20,14 +20,18 @@ describe("adresy przekierowania", () => {
 
   it("z adresu odzyskuje się token", () => {
     const token = "0123456789abcdef0123456789abcdef";
-    expect(tokenFromRecipient(forwardingAddress(token, DOMAIN), DOMAIN)).toBe(token);
+    expect(parseForwardingRecipient(forwardingAddress(token, DOMAIN), DOMAIN)).toEqual({ kind: "mail", token });
+    expect(parseForwardingRecipient(forwardingAddress(token, DOMAIN, "tickets"), DOMAIN)).toEqual({
+      kind: "tickets",
+      token,
+    });
   });
 
   it("adres z inną domeną albo złym formatem nie daje tokenu", () => {
     const token = "0123456789abcdef0123456789abcdef";
-    expect(tokenFromRecipient(`p-${token}@evil.example`, DOMAIN)).toBeNull();
-    expect(tokenFromRecipient(`p-${token}x@${DOMAIN}`, DOMAIN)).toBeNull();
-    expect(tokenFromRecipient(`x-${token}@${DOMAIN}`, DOMAIN)).toBeNull();
+    expect(parseForwardingRecipient(`p-${token}@evil.example`, DOMAIN)).toBeNull();
+    expect(parseForwardingRecipient(`p-${token}x@${DOMAIN}`, DOMAIN)).toBeNull();
+    expect(parseForwardingRecipient(`x-${token}@${DOMAIN}`, DOMAIN)).toBeNull();
   });
 
   it("skrót tokenu jest deterministyczny i nie równa się tokenowi", async () => {

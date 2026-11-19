@@ -21,6 +21,7 @@ import Seo from "@/components/ui/SEO";
 import SlackListsSection from "@/components/settings/SlackListsSection";
 import DataExportSection from "@/components/settings/DataExportSection";
 import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
+import CalendarFeedSection from "@/components/settings/CalendarFeedSection";
 import HealthConsentSection from "@/components/settings/HealthConsentSection";
 import ObsidianSection from "@/components/settings/ObsidianSection";
 import ProductPricesSection from "@/components/settings/ProductPricesSection";
@@ -30,6 +31,7 @@ const OTHER_SECTIONS = [
   { id: "ceny", title: "Ceny produktów" },
   { id: "slack", title: "Slack" },
   { id: "api", title: "API Skróty" },
+  { id: "webcal", title: "Kanał kalendarza" },
   { id: "powiadomienia", title: "Powiadomienia" },
   { id: "lokalizacja", title: "Lokalizacja" },
   { id: "konto", title: "Konto" },
@@ -96,6 +98,7 @@ export default function SettingsPage() {
           <ReportTemplatePanel />
           <SlackListsSection />
           <ShortcutTokenSection />
+          <CalendarFeedSection />
           <HealthConsentSection />
           <ObsidianSection />
           <ProductPricesSection />

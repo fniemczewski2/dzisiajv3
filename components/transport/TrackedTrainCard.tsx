@@ -3,9 +3,9 @@
 import { describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
 import { trainStatusWindow } from "@/lib/trainPlan";
 import React from "react";
-import { MapPin, Loader2, AlertTriangle, Clock, TrainFront, History } from "lucide-react";
+import { MapPin, Loader2, AlertTriangle, Clock, TrainFront, History, ScanLine } from "lucide-react";
 import { useTrainStatus } from "@/hooks/db/useTrains";
-import { DeleteButton } from "../ui/CommonButtons";
+import { DeleteButton, EditButton } from "../ui/CommonButtons";
 
 interface TrackedTrainProps {
   train: {
@@ -19,8 +19,13 @@ interface TrackedTrainProps {
     wagon: string;
     seat: string;
     plannedArrival?: string | null;
+    needsReview?: boolean;
   };
   onDelete: (id: string) => void;
+  /** Wpis z poczty: zatwierdzenie bez zmian. */
+  onConfirm?: (id: string) => void;
+  /** Otwarcie formularza poprawki. */
+  onEdit?: (id: string) => void;
   /** Odbyta podróż: bez zapytań o status do PKP PLK, z datą przejazdu. */
   historical?: boolean;
   /** Nadchodząca podróż (przed oknem odpytywania): bez zapytań do PKP PLK. */
@@ -42,7 +47,14 @@ const pastDateFmt = new Intl.DateTimeFormat("pl-PL", {
   year: "numeric",
 });
 
-export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming = false }: TrackedTrainProps) => {
+export const TrackedTrainCard = ({
+  train,
+  onDelete,
+  onConfirm,
+  onEdit,
+  historical = false,
+  upcoming = false,
+}: TrackedTrainProps) => {
   // Odbyte i nadchodzące: bez zapytań do PKP PLK (useTrainStatus pilnuje też okna czasowego).
   const { delay, platform, status, loading, hide } = useTrainStatus(train, { enabled: !historical && !upcoming });
   // Pociąg już dojechał (PKP PLK nie podaje dalszych zdarzeń): zostaje na liście z tym statusem
@@ -142,10 +154,38 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
           </div>
         </div>
 
-        <div className="ml-2 w-min">
+        <div className="ml-2 flex w-min gap-1">
+          {onEdit && <EditButton onClick={() => onEdit(train.id)} ariaLabel={`Popraw pociąg ${train.trainNumber}`} />}
           <DeleteButton onClick={() => onDelete(train.id)} ariaLabel={`Usuń pociąg ${train.trainNumber}`} />
         </div>
       </div>
+
+      {train.needsReview && (
+        <div className="mb-4 flex flex-col gap-2 rounded-xl border border-info-line bg-info-soft p-3 text-sm text-info sm:flex-row sm:items-center">
+          <ScanLine aria-hidden="true" className="h-5 w-5 shrink-0" />
+          <p className="flex-1">Dodano z biletu w poczcie. Sprawdź dane i zatwierdź albo popraw.</p>
+          <div className="flex gap-2">
+            {onConfirm && (
+              <button
+                type="button"
+                onClick={() => onConfirm(train.id)}
+                className="min-h-11 rounded-lg border border-info-line bg-card px-3 font-semibold text-text hover:bg-surface-hover"
+              >
+                Zatwierdź
+              </button>
+            )}
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(train.id)}
+                className="min-h-11 rounded-lg border border-info-line bg-card px-3 font-semibold text-text hover:bg-surface-hover"
+              >
+                Popraw
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mb-4 flex items-center justify-between px-1 text-sm text-text">
         <span className="max-w-[40%] truncate font-medium" title={train.from}>

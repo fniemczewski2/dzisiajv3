@@ -3,7 +3,7 @@
 // Jednolity interfejs dla dostawców poczty (Gmail, Outlook). Trasy /api/mail/* nie znają szczegółów API.
 
 import type { MailMessage } from "@/lib/mail/types";
-import { buildReplyMime, toBase64Url } from "@/lib/mail/reply";
+import { buildMessageMime, buildReplyMime, toBase64Url } from "@/lib/mail/reply";
 import { extractAddress } from "@/lib/mail/addresses";
 import { gmailQuery } from "@/lib/mail/search";
 import type { createGmailClient } from "@/lib/mail/gmail";
@@ -18,6 +18,8 @@ export interface MailProviderClient {
   trash(messageId: string): Promise<void>;
   /** Odpowiedź w wątku; wywoływać wyłącznie po zatwierdzeniu przez użytkownika. */
   reply(original: MailMessage, body: string): Promise<{ id: string | null }>;
+  /** Nowa wiadomość; wywoływać wyłącznie po zatwierdzeniu przez użytkownika. */
+  send(message: { to: string; subject: string; body: string }): Promise<{ id: string | null }>;
 }
 
 export class ReplyAddressError extends Error {
@@ -54,6 +56,10 @@ export function gmailProvider(client: GmailClient, accountEmail: string): MailPr
       const sent = await client.sendReply({ raw: toBase64Url(mime), threadId: original.threadId });
       return { id: sent.id };
     },
+    async send({ to, subject, body }) {
+      const sent = await client.sendMessage(toBase64Url(buildMessageMime({ from: accountEmail, to, subject, body })));
+      return { id: sent.id };
+    },
   };
 }
 
@@ -66,6 +72,10 @@ export function outlookProvider(client: OutlookClient): MailProviderClient {
     trash: (messageId) => client.trashMessage(messageId),
     async reply(original, body) {
       await client.replyTo(original.id, body);
+      return { id: null };
+    },
+    async send({ to, subject, body }) {
+      await client.sendMail(to, subject, body);
       return { id: null };
     },
   };

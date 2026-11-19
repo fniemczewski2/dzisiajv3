@@ -38,7 +38,8 @@ export function getPolishHolidays(year: number): Record<string, string> {
   holidays[`${year}-08-15`] = "Wniebowzięcie NMP";
   holidays[`${year}-11-01`] = "Wszystkich Świętych";
   holidays[`${year}-11-11`] = "Święto Niepodległości";
-  holidays[`${year}-12-24`] = "Wigilia";
+  // Wigilia jest ustawowo dniem wolnym od pracy od 2025 r. (nowelizacja ustawy o dniach wolnych od pracy).
+  if (year >= 2025) holidays[`${year}-12-24`] = "Wigilia";
   holidays[`${year}-12-25`] = "Boże Narodzenie";
   holidays[`${year}-12-26`] = "Boże Narodzenie";
 

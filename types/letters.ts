@@ -21,13 +21,57 @@ export const CATEGORY_CODE_MAP: Record<Exclude<LetterCategory, "Inne">, string> 
   Przestępstwo: "K",
 };
 
-export const RESPONSE_DAYS_MAP: Record<Exclude<LetterCategory, "Inne">, number> = {
-  UDIP: 14,
-  Wniosek: 31,
-  Skarga: 31,
-  "Wykroczenie drogowe": 60,
-  Wykroczenie: 60,
-  Przestępstwo: 90,
+/** Jednostka terminu: dni (art. 57 § 1 KPA), tygodnie (§ 2), miesiące (§ 3). */
+export type TermUnit = "days" | "weeks" | "months";
+
+export interface ResponseTerm {
+  id: string;
+  count: number;
+  unit: TermUnit;
+  /** Podstawa prawna i warunek zastosowania – pokazywane pod polem terminu. */
+  basis: string;
+}
+
+/**
+ * Ustawowe terminy odpowiedzi liczone od dnia złożenia pisma (doręczenia organowi). Pierwszy wariant jest
+ * domyślny; kolejne – gdy organ przedłużył termin albo sprawa ma inny charakter. Wykroczenia: termin dotyczy
+ * czynności wyjaśniających i biegnie od ich wszczęcia, więc data jest szacunkiem.
+ */
+export const RESPONSE_TERMS: Record<Exclude<LetterCategory, "Inne">, readonly ResponseTerm[]> = {
+  UDIP: [
+    { id: "udip-14d", count: 14, unit: "days", basis: "art. 13 ust. 1 ustawy o dostępie do informacji publicznej" },
+    {
+      id: "udip-2m",
+      count: 2,
+      unit: "months",
+      basis: "art. 13 ust. 2 ustawy o dostępie do informacji publicznej – po zawiadomieniu o przedłużeniu",
+    },
+  ],
+  Wniosek: [
+    { id: "kpa-244", count: 1, unit: "months", basis: "art. 244 § 1 w zw. z art. 237 § 1 KPA (wniosek, dział VIII)" },
+    {
+      id: "kpa-35-1m",
+      count: 1,
+      unit: "months",
+      basis: "art. 35 § 3 KPA – sprawa wymagająca postępowania wyjaśniającego",
+    },
+    { id: "kpa-35-2m", count: 2, unit: "months", basis: "art. 35 § 3 KPA – sprawa szczególnie skomplikowana" },
+  ],
+  Skarga: [{ id: "kpa-237", count: 1, unit: "months", basis: "art. 237 § 1 KPA" }],
+  "Wykroczenie drogowe": [
+    { id: "kpsw-54", count: 1, unit: "months", basis: "art. 54 § 1 KPSW – czynności wyjaśniające (od ich wszczęcia)" },
+  ],
+  Wykroczenie: [
+    { id: "kpsw-54", count: 1, unit: "months", basis: "art. 54 § 1 KPSW – czynności wyjaśniające (od ich wszczęcia)" },
+  ],
+  Przestępstwo: [
+    {
+      id: "kpk-306",
+      count: 6,
+      unit: "weeks",
+      basis: "art. 306 § 3 KPK – po tym terminie przysługuje zażalenie na bezczynność",
+    },
+  ],
 };
 
 export interface Letter {

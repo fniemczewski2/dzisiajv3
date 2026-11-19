@@ -54,6 +54,11 @@ function formatPl(dateStr: string | null | undefined): string | null {
   return d.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 }
 
+/** Temat pisma (np. do tytułu wiadomości e-mail). */
+export function letterSubject(letter: Pick<Letter, "category" | "category_other">): string {
+  return letter.category === "Inne" ? letter.category_other?.trim() || "Pismo" : TEMPLATES[letter.category].subject;
+}
+
 export function generateLetterBody(letter: Letter): string {
   const meta: LetterTemplateMeta =
     letter.category === "Inne"

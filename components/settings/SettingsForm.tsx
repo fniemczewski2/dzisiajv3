@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import ThemeToggle from "./ThemeButton";
 import { DeleteButton, ToggleSwitch } from "../ui/CommonButtons";
 import { MoodOption } from "@/types/moods";
-import { Settings } from "@/types/settings";
+import { Settings, type BriefEveningMode } from "@/types/settings";
 import SettingsSection, { type SetField } from "./SettingsSection";
 import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
 import CategoryColorPicker from "@/components/settings/CategoryColorPicker";
@@ -32,6 +32,7 @@ export const SETTINGS_SECTIONS = [
   { id: "ogolne", title: "Ogólne" },
   { id: "zadania", title: "Zadania" },
   { id: "nawyki", title: "Nawyki i plan dnia" },
+  { id: "briefing", title: "Briefing" },
   { id: "finanse", title: "Finanse" },
   { id: "sortowanie", title: "Sortowanie" },
   { id: "udostepnianie", title: "Udostępnianie" },
@@ -316,6 +317,65 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
             )}
             <MoodConsentControl />
           </>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        {...common}
+        id="briefing"
+        title="Briefing dnia"
+        description="Karta na planie dnia od wybranej godziny do zamknięcia; powiadomienie push o tej samej porze (Powiadomienia → Poranny i Wieczorny briefing)."
+        keys={["brief_morning_time", "brief_evening_time", "brief_evening_mode"] as const}
+      >
+        {(d, set) => (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label htmlFor="brief_morning_time" className="form-label">
+                Poranny briefing
+              </label>
+              <input
+                id="brief_morning_time"
+                type="time"
+                step={900}
+                value={d.brief_morning_time ?? "07:00"}
+                onChange={(e) => set("brief_morning_time", e.target.value)}
+                className="input-field"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="brief_evening_time" className="form-label">
+                Wieczorny briefing
+              </label>
+              <input
+                id="brief_evening_time"
+                type="time"
+                step={900}
+                value={d.brief_evening_time ?? "21:00"}
+                onChange={(e) => set("brief_evening_time", e.target.value)}
+                className="input-field"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="brief_evening_mode" className="form-label">
+                Wieczorem pokaż
+              </label>
+              <select
+                id="brief_evening_mode"
+                value={d.brief_evening_mode ?? "both"}
+                onChange={(e) => set("brief_evening_mode", e.target.value as BriefEveningMode)}
+                className="input-field"
+              >
+                <option value="both">Podsumowanie dnia i plan na jutro</option>
+                <option value="summary">Podsumowanie dnia</option>
+                <option value="tomorrow">Plan na jutro</option>
+              </select>
+            </div>
+            <p className="text-xs text-text-muted sm:col-span-3">
+              Powiadomienia są wysyłane co 15 minut – godzina jest zaokrąglana w górę do pełnego kwadransa.
+            </p>
+          </div>
         )}
       </SettingsSection>
 

@@ -95,7 +95,7 @@ export default function ShortcutTokenSection() {
       </div>
 
       <p className="mb-3 text-sm text-text-secondary">
-        Jeden token obsługuje oba skróty. W aplikacji Skróty użyj akcji „Pobierz zawartość URL” z metodą POST,
+        Jeden token obsługuje wszystkie skróty. W aplikacji Skróty użyj akcji „Pobierz zawartość URL” z metodą POST,
         nagłówkiem <code className="font-mono">Authorization: Bearer &lt;token&gt;</code> i treścią JSON:
       </p>
       <dl className="mb-4 space-y-3 text-sm">
@@ -112,6 +112,15 @@ export default function ShortcutTokenSection() {
             <code className="font-mono break-all">POST /api/worklogs/auto</code> z treścią{" "}
             <code className="font-mono">{`{"action":"start"}`}</code> lub{" "}
             <code className="font-mono">{`{"action":"end"}`}</code>.
+          </dd>
+        </div>
+        <div>
+          <dt className="font-semibold text-text">Płatność Apple Pay</dt>
+          <dd className="text-text-secondary">
+            Automatyzacja „Transakcja” (wyzwalana płatnością kartą w Portfelu) →{" "}
+            <code className="font-mono break-all">POST /api/finance/shortcut</code> z treścią{" "}
+            <code className="font-mono">{`{"amount":"Kwota","merchant":"Sprzedawca"}`}</code>. Wysyłaj tylko te dwa pola
+            – numer karty, saldo i historia konta nie są potrzebne. Wydatek trafia do Finansów z dzisiejszą datą.
           </dd>
         </div>
       </dl>

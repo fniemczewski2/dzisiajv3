@@ -50,7 +50,7 @@ export default function MailBody({ html, text, inlineImages, keyPrefix }: Readon
   if (!prepared) {
     return (
       <div className="min-w-0 rounded-lg bg-surface p-3 text-sm wrap-anywhere whitespace-pre-wrap text-text">
-        {text ? linkifyText(text, keyPrefix) : "(brak treści)"}
+        {text ? linkifyText(text, keyPrefix, { mentions: false }) : "(brak treści)"}
       </div>
     );
   }

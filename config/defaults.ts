@@ -68,6 +68,12 @@ export const DEFAULT_SETTINGS: Settings = {
   sort_bills: "month",
   daily_spending_limit: 0,
   daily_steps_goal: 10000,
+  brief_morning_time: "07:00",
+  brief_evening_time: "21:00",
+  brief_evening_mode: "both",
+  brief_dismissed_morning: null,
+  brief_dismissed_evening: null,
+  letter_mail_accounts: null,
 };
 
 /**

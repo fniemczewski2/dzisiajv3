@@ -13,6 +13,7 @@ import {
   createForwardingToken,
   forwardingAddress,
   hashForwardingToken,
+  isForwardingKind,
   planForwardingCreate,
 } from "@/lib/mail/forwarding";
 
@@ -20,10 +21,16 @@ const LABEL_MAX = 100;
 
 type Auth = NonNullable<Awaited<ReturnType<typeof requireUser>>>;
 
-async function listAddresses(res: NextApiResponse, { supabase }: Auth): Promise<void> {
+/** `?kind=tickets` – adresy biletów; domyślnie adresy poczty. */
+function kindOf(value: unknown) {
+  return isForwardingKind(value) ? value : "mail";
+}
+
+async function listAddresses(req: NextApiRequest, res: NextApiResponse, { supabase }: Auth): Promise<void> {
   const { data, error } = await supabase
     .from("mail_forwarding_addresses")
-    .select("id, label, created_at, revoked_at")
+    .select("id, label, kind, created_at, revoked_at")
+    .eq("kind", kindOf(req.query.kind))
     .order("created_at", { ascending: true });
   if (error) {
     res.status(500).json({ error: "Nie udało się pobrać adresów." });
@@ -38,7 +45,9 @@ async function createAddress(req: NextApiRequest, res: NextApiResponse, { supaba
     res.status(503).json({ error: "Przekierowania nie są skonfigurowane." });
     return;
   }
-  const rawLabel = (req.body as { label?: unknown } | undefined)?.label;
+  const body = req.body as { label?: unknown; kind?: unknown } | undefined;
+  const kind = kindOf(body?.kind);
+  const rawLabel = body?.label;
   const label = typeof rawLabel === "string" ? rawLabel.trim().slice(0, LABEL_MAX) : "";
   const { count } = await supabase
     .from("mail_forwarding_addresses")
@@ -51,14 +60,14 @@ async function createAddress(req: NextApiRequest, res: NextApiResponse, { supaba
   const token = createForwardingToken();
   const { data, error } = await supabase
     .from("mail_forwarding_addresses")
-    .insert({ user_id: user.id, token_hash: await hashForwardingToken(token), label })
+    .insert({ user_id: user.id, token_hash: await hashForwardingToken(token), label, kind })
     .select("id")
     .single();
   if (error || !data) {
     res.status(500).json({ error: "Nie udało się utworzyć adresu." });
     return;
   }
-  res.status(201).json({ id: data.id, address: forwardingAddress(token, domain) });
+  res.status(201).json({ id: data.id, address: forwardingAddress(token, domain, kind) });
 }
 
 async function revokeAddress(req: NextApiRequest, res: NextApiResponse, { supabase }: Auth): Promise<void> {
@@ -90,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!auth) return;
   if (!(await enforceRateLimit(res, "mailRead", auth.user.id))) return;
   res.setHeader("Cache-Control", CACHE_CONTROL.private);
-  if (req.method === "GET") return listAddresses(res, auth);
+  if (req.method === "GET") return listAddresses(req, res, auth);
   if (req.method === "POST") return createAddress(req, res, auth);
   return revokeAddress(req, res, auth);
 }

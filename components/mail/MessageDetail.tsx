@@ -141,7 +141,7 @@ export default function MessageDetail({ client, accountId, message, invitation, 
           {invitation.location && (
             <p className="flex items-start gap-2 text-sm wrap-anywhere text-text-secondary">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              {linkifyText(invitation.location, `loc-${message.id}`)}
+              {linkifyText(invitation.location, `loc-${message.id}`, { mentions: false })}
             </p>
           )}
           {invitation.conferenceLinks.map((link) => (

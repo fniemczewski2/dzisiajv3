@@ -272,12 +272,12 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `packing.ts` – exp: BACKPACK, SAFETY, SUITCASE
 - `priority.ts` – exp: getPriorityColors
 - `rssSources.ts` – exp: RSS_SOURCES, RSS_GROUPS, MAX_CUSTOM_FEEDS, defaultEnabledSources, resolveEnabledSources, normalizeCustomFeeds
-- `server.ts` – Stałe wyłącznie serwerowe: limity zapytań, timeouty integracji, paginacja i nagłówki cache. Limity widoczne dla użytkownika są w config/limits.ts. · exp: RATE_LIMITS, RATE_LIMIT_REDIS_TIMEOUT_MS, RATE_LIMIT_MEMORY_MAX_KEYS, POLL_EDIT_TOKEN_HEADER, TURNSTILE, CACHE_CONTROL, TIMEOUTS_MS, SERVER_TTL_MS, +28
+- `server.ts` – Stałe wyłącznie serwerowe: limity zapytań, timeouty integracji, paginacja i nagłówki cache. Limity widoczne dla użytkownika są w config/limits.ts. · exp: RATE_LIMITS, RATE_LIMIT_REDIS_TIMEOUT_MS, RATE_LIMIT_MEMORY_MAX_KEYS, POLL_EDIT_TOKEN_HEADER, TURNSTILE, CACHE_CONTROL, TIMEOUTS_MS, SERVER_TTL_MS, +31
 - `slack.ts` – Dawna kategoria systemowa zadań ze Slacka. Od 1.40 o synchronizacji decyduje powiązanie zadania z listą (slack_task_links / slack_task_targets), a zadania z… · exp: SLACK_API_BASE, SLACK_AUTHORIZE_URL, SLACK_STATE_COOKIE, SLACK_STATE_TTL_SECONDS, SLACK_USER_SCOPES, SLACK_REQUEST_TIMEOUT_MS, SLACK_ITEMS_PAGE_SIZE, SLACK_RATE_LIMIT_RETRIES, +16
 - `storage.ts` – Wszystko, co aplikacja zapisuje w przeglądarce. Lista jest źródłem dla polityki prywatności (sekcja „Pliki cookie i pamięć przeglądarki”) i dla czyszczenia… · exp: OFFLINE_CACHE_DB, OFFLINE_CACHE_STORE, OFFLINE_CACHE_DB_VERSION, OFFLINE_QUEUE_DB, OFFLINE_QUEUE_STORE, OFFLINE_QUEUE_DB_VERSION, USER_LOCAL_STORAGE_KEYS, DEVICE_LOCAL_STORAGE_KEYS, +4
 - `tasks.ts` – Kategoria zadań utworzonych z poczty (kategoria systemowa – zawsze dostępna). · exp: TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, MEETING_POLL_TASK_CATEGORY, MAIL_TASK_CATEGORY, MEETING_POLL_TASK_TITLE, MEETING_POLL_TASK_PRIORITY
 - `theme.mjs` – Ustawienia next-themes – wspólne dla _app (ThemeProvider) i next.config.mjs, który liczy z nich skrót SHA-256 skryptu motywu do CSP. · exp: THEME_PROVIDER_PROPS
-- `timing.ts` – Czasy po stronie klienta: ponowienia, okna cofania, odświeżanie danych. Timeouty i TTL serwera – config/server.ts. · exp: RETRY_DELAY_MS, RETRY_MAX_ATTEMPTS, UNDO_WINDOW_MS, SEARCH_DEBOUNCE_MS, TRAIN_STATUS_REFRESH_MS, STATION_BOARD_CLIENT_TIMEOUT_MS, LOVE_COOLDOWN_MS, COPY_FEEDBACK_MS, +15
+- `timing.ts` – Czasy po stronie klienta: ponowienia, okna cofania, odświeżanie danych. Timeouty i TTL serwera – config/server.ts. · exp: RETRY_DELAY_MS, RETRY_MAX_ATTEMPTS, UNDO_WINDOW_MS, FOCUS_HIGHLIGHT_MS, SEARCH_DEBOUNCE_MS, TRAIN_STATUS_REFRESH_MS, STATION_BOARD_CLIENT_TIMEOUT_MS, LOVE_COOLDOWN_MS, +16
 - `userData.ts` – Rejestr wszystkich tabel z danymi użytkownika – jedno źródło dla eksportu danych (RODO art. 15 i 20) i usuwania konta (art. 17). · exp: USER_TABLES, MEETING_POLL_EXPORT_LABELS, MEETING_POLL_EXPORT_COLUMNS, SHARED_REFERENCES, EXPORT_BUCKET, USER_STORAGE_BUCKETS, ACCOUNT_DELETE_CONFIRMATION, EXPORT_FILE_PREFIX, +1
 
 ## hooks
@@ -327,7 +327,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `useEvents.ts` – exp: useVirtualBirthdayEvents, useEvents · db: people, events
 - `useFinance.ts` – Dane Finansów: profile, rachunki stałe i transakcje. Zmiany zapisują się od razu (optymistycznie), a błędy cofają stan i pokazują komunikat. · exp: useFinanceProfiles, useRecurringBills, useTransactions, useCategoryNameMap · db: finance_profiles, recurring_bills, tasks, transactions
 - `useHealthData.ts` – Dane o zdrowiu (Skróty iOS i wpisy ręczne): dzień (kroki), treningi, rejestr tętna, fazy snu. · exp: useHealthDays, useHealthWorkouts, useHeartRateDay, useSleepNight, useWorkoutMutations · db: health_daily, health_workouts, health_heart_rate, health_sleep_segments
-- `useLetters.ts` – exp: suggestResponseDate, useLetters · db: letter_attachments, letters
+- `useLetters.ts` – Warianty terminu dla kategorii (pusta lista dla „Inne”). · exp: responseTermsFor, suggestResponseDate, useLetters · db: letter_attachments, letters
 - `useMeetingPollBookings.ts` – Zapisy uczestników w ankiecie zapisów – odczyt i usuwanie przez sesję organizatora (RLS: tylko właściciel ankiety). · db: meeting_poll_bookings
 - `useMeetingPolls.ts` – db: meeting_polls, meeting_poll_dates, tasks, meeting_poll_responses, meeting_poll_availabilities
 - `useMoods.ts` – db: mood_entries
@@ -382,7 +382,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `icsGenerator.ts` – Eksport pojedynczego wydarzenia do pliku .ics. · exp: buildSingleEventICS, generateSingleEventICS
 - `imgUtils.ts` – exp: useImages · db: avatars
 - `letterArchive.ts` – Pakowanie plików pisma do jednego archiwum ZIP: jeden katalog o nazwie sygnatury, w nim podfoldery „pismo” i „odpowiedz” z numerowanymi plikami PDF. · exp: safeName, archiveEntryPaths, buildLetterArchive, archiveFileName, downloadBlob
-- `letterTemplates.ts` – exp: generateLetterBody
+- `letterTemplates.ts` – Temat pisma (np. do tytułu wiadomości e-mail). · exp: letterSubject, generateLetterBody
 - `localUserData.ts` – Usuwa z przeglądarki wszystko, co dotyczy zalogowanego konta: kopię danych offline, kolejkę niewysłanych zapisów, pamięć service workera i klucze localStorage… · exp: clearLocalUserData
 - `locationUtils.ts` – exp: setGpsCookie, requestSmartLocation
 - `meetingPollDeadline.ts` – exp: pollAutoCloseAt, effectivePollStatus
@@ -390,7 +390,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `meetingPollResults.ts` – Agregacja wyników ankiety dla osoby uczestniczącej: ile osób zaznaczyło każdy termin. · exp: summarizeResponses, isRespondentResults
 - `meetingPollSignup.ts` – Ankiety w trybie zapisów: walidacja zapisu, komunikaty błędów funkcji bazy, siatka slotów z zajętością, grupowanie zapisów i eksport CSV dla organizatora. · exp: SIGNUP_CONSENT_VERSION, MAX_BOOKING_SLOTS, validateBookingPayload, personKey, bookingFailure, buildSignupDays, countBySlot, groupBookings, +2
 - `noteEditing.ts` – exp: applyBold, toggleListPrefix, continueListOnEnter, handleListContinuation
-- `noteFormatting.tsx` – exp: renderNoteLineContent, parseNoteLine, groupNoteLines, linkifyText
+- `noteFormatting.tsx` – 'mentions: false' – treść spoza aplikacji (poczta): znaki @/!/$ zostają zwykłym tekstem. · exp: renderNoteLineContent, parseNoteLine, groupNoteLines, linkifyText
 - `notesUtils.ts` – Normalizes one raw textarea line before it's stored as a note item: trims whitespace and adds an https:// scheme when the whole line is a bare domain (e.g. · exp: filterNotes, getNoteTitles, normalizeNoteLine
 - `objectUtils.ts` – Kopia obiektu bez wskazanych kluczy. Zastępuje destrukturyzację w stylu 'const { id: _id, ...rest } = obj', która zostawiała nieużywane zmienne. · exp: omit
 - `offlineCache.ts` – Ostatnio pobrane listy (zadania, notatki…) w IndexedDB, żeby aplikacja pokazywała dane bez sieci. · exp: readCache, writeCache, clearOfflineCache
@@ -458,7 +458,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `deleteFlow.ts` – Dwustopniowe potwierdzenie usunięcia wiadomości: 1) „Usunąć z aplikacji?” – Anuluj kończy bez zmian, 2) „Przenieść też do kosza w poczcie?” – tylko jawne… · exp: askDeleteMode
 - `emailHtml.ts` – Przygotowanie HTML wiadomości do wyświetlenia w izolowanym <iframe srcdoc> (bez skryptów): sanitizacja DOMPurify, bezpieczne linki w nowej karcie, obrazy… · exp: remoteImageUrl, prepareEmailHtml
 - `format.ts` – Dziś: „14:05”; w tym roku: „3 paź”; starsze: „3.10.2025”. Niepoprawna data: pusty tekst. · exp: formatMailDate, senderName
-- `forwarding.ts` – Wariant A (bez dostępu do skrzynki): każde konto dostaje unikalny adres, na który użytkownik ustawia przekierowanie. · exp: createForwardingToken, forwardingAddress, tokenFromRecipient, hashForwardingToken, planForwardingCreate
+- `forwarding.ts` – Wariant A (bez dostępu do skrzynki): każde konto dostaje unikalny adres, na który użytkownik ustawia przekierowanie. · exp: isForwardingKind, createForwardingToken, forwardingAddress, parseForwardingRecipient, hashForwardingToken, planForwardingCreate
 - `gmail.ts` – Klient Gmail API (wariant B). Fetch jest wstrzykiwany, więc logikę można testować bez sieci. · exp: parseBatchResponse, GmailApiError, decodeBase64Url, parseGmailMessage, createGmailClient
 - `htmlText.ts` – Tekst z HTML (bez DOM) – na potrzeby wykrywania zaproszeń i podglądu, gdy wiadomość nie ma części text/plain. · exp: htmlToPlainText
 - `inbound.ts` – Walidacja przychodzącej wiadomości przekierowanej do aplikacji (wariant A). · exp: parseInboundPayload, invitationOf
@@ -469,7 +469,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `outlook.ts` – Klient Microsoft Graph (poczta Outlook). Fetch jest wstrzykiwany; logika jest testowalna bez sieci. · exp: GraphApiError, formatGraphAddress, decodeBase64Utf8, createOutlookClient
 - `outlookAuth.ts` – Adres autoryzacji Microsoft dla poczty oraz odczyt adresu konta z Graph. · exp: buildMicrosoftMailAuthUrl, graphProfileEmail
 - `provider.ts` – Jednolity interfejs dla dostawców poczty (Gmail, Outlook). Trasy /api/mail/* nie znają szczegółów API. · exp: ReplyAddressError, gmailProvider, outlookProvider
-- `reply.ts` – Budowa odpowiedzi w formacie RFC 5322 (MIME, UTF-8) i kodowanie dla Gmail API. · exp: encodeHeaderValue, utf8ToBase64, toBase64Url, buildReplyMime
+- `reply.ts` – Budowa odpowiedzi w formacie RFC 5322 (MIME, UTF-8) i kodowanie dla Gmail API. · exp: encodeHeaderValue, utf8ToBase64, toBase64Url, buildMessageMime, buildReplyMime
 - `search.ts` – Fraza wyszukiwania wiadomości: normalizacja i przekład na składnię Gmaila oraz Microsoft Graph. · exp: normalizeSearchQuery, gmailQuery, outlookSearchParam
 - `tasks.ts` – Zadanie utworzone z wiadomości: tytuł „Odpowiedz: <temat>”, kategoria „poczta”. · exp: replyTaskTitle
 - `types.ts` – Wspólne typy modułu poczty (Gmail, Outlook, przekierowanie). Treść wiadomości nie jest zapisywana w bazie: istnieje tylko w pamięci podczas wyświetlania.
@@ -657,7 +657,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 ## pages/api/transport
 
 - `locality.ts` – exp: parseCoord, pickLocality · http: GET
-- `parse-ticket.ts` – exp: extractStationNames, extractRoute, parseTicketData · http: POST
+- `parse-ticket.ts` – http: POST
 - `station-board.ts` – http: GET
 - `train-status.ts` – http: GET
 
@@ -797,7 +797,7 @@ Testy (243 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `finance.ts` – Finanse (od 1.40): profile, rachunki stałe (zaplanowane, z regułą powtarzania) i transakcje (faktyczne wpływy/wydatki).
 - `googleCalendar.ts`
 - `habits.ts` – Nawyk zdefiniowany przez użytkownika (max 8). 'id' dawnych nawyków = ich HabitKey.
-- `letters.ts` – exp: LETTER_CATEGORIES, CATEGORY_CODE_MAP, RESPONSE_DAYS_MAP
+- `letters.ts` – Jednostka terminu: dni (art. 57 § 1 KPA), tygodnie (§ 2), miesiące (§ 3). · exp: LETTER_CATEGORIES, CATEGORY_CODE_MAP, RESPONSE_TERMS
 - `meetingPolls.ts` – availability – uczestnicy zaznaczają, kiedy mogą; signup – zapisują się na terminy z ograniczoną liczbą miejsc. · exp: MEETING_POLL_SLOT_DURATIONS
 - `moods.ts`
 - `movies.ts` – Wynik /search/multi – filmy mają 'title', seriale 'name'. · exp: MEDIA_TYPE_LABELS

@@ -26,6 +26,7 @@ import NoResultsState from "@/components/ui/NoResultsState";
 import Seo from "@/components/ui/SEO";
 import { SkeletonReport } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
+import { linkifyText } from "@/lib/noteFormatting";
 
 type SortKey = "newest" | "oldest" | "topic";
 
@@ -97,7 +98,7 @@ function ReportCard({
                   <h4 className="mb-1 font-semibold text-text">Agenda</h4>
                   <ol className="list-decimal space-y-0.5 pl-5 text-text-secondary">
                     {agenda.map((a, i) => (
-                      <li key={`${i}-${a}`}>{a}</li>
+                      <li key={`${i}-${a}`}>{linkifyText(a, `report-agenda-${report.id}-${i}`)}</li>
                     ))}
                   </ol>
                 </section>
@@ -114,7 +115,7 @@ function ReportCard({
                   <ul className="space-y-1">
                     {tasks.map((t, i) => (
                       <li key={`${i}-${t.zadanie}`} className="flex flex-wrap gap-x-2 text-text-secondary">
-                        <span className="text-text">{t.zadanie}</span>
+                        <span className="text-text">{linkifyText(t.zadanie, `report-task-${report.id}-${i}`)}</span>
                         {t.osoba && <span>· {t.osoba}</span>}
                         {t.data && <span className="tabular-nums">· do {formatReportDate(t.data)}</span>}
                       </li>
@@ -125,7 +126,9 @@ function ReportCard({
               {report.notes?.trim() && (
                 <section>
                   <h4 className="mb-1 font-semibold text-text">Notatki</h4>
-                  <p className="whitespace-pre-line text-text-secondary">{report.notes}</p>
+                  <p className="whitespace-pre-line text-text-secondary">
+                    {linkifyText(report.notes, `report-notes-${report.id}`)}
+                  </p>
                 </section>
               )}
             </div>

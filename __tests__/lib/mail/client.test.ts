@@ -53,7 +53,7 @@ describe("createMailClient – przekierowania", () => {
     const out = await createMailClient(fetchMock).createForwarding("Praca");
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("/api/mail/forwarding");
-    expect(JSON.parse(init.body as string)).toEqual({ label: "Praca" });
+    expect(JSON.parse(init.body as string)).toEqual({ label: "Praca", kind: "mail" });
     expect(out.address).toBe("p-x@d");
   });
 

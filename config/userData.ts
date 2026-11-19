@@ -48,6 +48,13 @@ export const USER_TABLES: readonly UserTable[] = [
     stage: 1,
   },
   {
+    table: "calendar_feed_tokens",
+    label: "Kanał kalendarza (WebCal)",
+    owner: "user_id",
+    exportColumns: "created_at, last_used_at",
+    stage: 1,
+  },
+  {
     table: "google_calendar_tokens",
     label: "Dawne połączenie z Kalendarzem Google",
     owner: "user_id",

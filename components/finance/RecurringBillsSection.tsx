@@ -1,5 +1,6 @@
 // components/finance/RecurringBillsSection.tsx
 
+import { focusElementId } from "@/hooks/useFocusTarget";
 import React, { useId, useMemo, useState } from "react";
 import { CheckCircle2, Clock, Repeat, TriangleAlert, type LucideIcon } from "lucide-react";
 import { describeRule } from "@/shared/recurrence";
@@ -89,7 +90,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
       ) : (
         <div className="flex flex-col gap-4 overflow-x-auto">
           {rows.map(({ bill, status, paid }) => (
-            <div key={bill.id} className="card p-4 sm:p-5">
+            <div key={bill.id} id={focusElementId(bill.id)} className="card p-4 sm:p-5">
               <div className="mb-2 flex items-start justify-between pb-2">
                 <div className="flex flex-col gap-1">
                   <p className="font-medium text-text">{bill.name}</p>

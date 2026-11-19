@@ -4,7 +4,13 @@
 // Zwraca wyłącznie pola, których aplikacja używa; nagłówki techniczne i załączniki binarne odrzucane.
 
 import { isSimpleEmail } from "@/lib/text";
-import { MAX_INBOUND_HTML, MAX_INBOUND_ICS, MAX_INBOUND_SUBJECT, MAX_INBOUND_TEXT } from "@/config/server";
+import {
+  MAX_INBOUND_HTML,
+  MAX_INBOUND_ICS,
+  MAX_INBOUND_PDF_BASE64,
+  MAX_INBOUND_SUBJECT,
+  MAX_INBOUND_TEXT,
+} from "@/config/server";
 import { detectInvitation, type Invitation } from "@/lib/mail/invitations";
 
 export interface InboundAttachment {
@@ -12,6 +18,8 @@ export interface InboundAttachment {
   filename: string;
   mimeType: string;
   icsText?: string;
+  /** Treść PDF (base64) – tylko dla adresu biletów, pomijana przy zapisie poczty do bufora. */
+  pdfBase64?: string;
 }
 
 export interface InboundMessage {
@@ -40,7 +48,16 @@ function parseAttachment(item: unknown, index: number): InboundAttachment | null
   const mimeType = (str(a.mimeType, 127) ?? "application/octet-stream").toLowerCase();
   const isCalendar = mimeType === "text/calendar" || filename.toLowerCase().endsWith(".ics");
   const icsText = isCalendar ? str(a.icsText, MAX_INBOUND_ICS) : null;
-  return { attachmentId: `inbound-${index}`, filename, mimeType, ...(icsText ? { icsText } : {}) };
+  const isPdf = mimeType === "application/pdf" || filename.toLowerCase().endsWith(".pdf");
+  const pdf = isPdf ? str(a.pdfBase64, MAX_INBOUND_PDF_BASE64) : null;
+  const pdfBase64 = pdf && /^[A-Za-z0-9+/]+={0,2}$/.test(pdf) ? pdf : null;
+  return {
+    attachmentId: `inbound-${index}`,
+    filename,
+    mimeType,
+    ...(icsText ? { icsText } : {}),
+    ...(pdfBase64 ? { pdfBase64 } : {}),
+  };
 }
 
 export function parseInboundPayload(body: unknown): InboundMessage | null {
@@ -54,11 +71,12 @@ export function parseInboundPayload(body: unknown): InboundMessage | null {
   if (subject === undefined || text === undefined || html === undefined) return null;
   if (!recipient || !isSimpleEmail(recipient, ",;<>") || !from) return null;
 
-  const raw = Array.isArray(b.attachments) ? b.attachments.slice(0, 10) : [];
-  const attachments = raw
-    .map((item, i) => parseAttachment(item, i))
-    .filter((a): a is InboundAttachment => a !== null)
-    .map((a, i) => ({ ...a, attachmentId: `inbound-${i}` }));
+  // Maile przewoźników mają kilkanaście obrazków przed PDF: najpierw załączniki z treścią (.ics, PDF), potem reszta.
+  const raw = Array.isArray(b.attachments) ? b.attachments.slice(0, 20) : [];
+  const parsed = raw.map((item, i) => parseAttachment(item, i)).filter((a): a is InboundAttachment => a !== null);
+  const hasContent = (a: InboundAttachment) => Boolean(a.icsText || a.pdfBase64);
+  const kept = new Set([...parsed.filter(hasContent), ...parsed.filter((a) => !hasContent(a))].slice(0, 10));
+  const attachments = parsed.filter((a) => kept.has(a)).map((a, i) => ({ ...a, attachmentId: `inbound-${i}` }));
   return { recipient, from, subject: subject ?? "", text: text ?? "", html, attachments };
 }
 

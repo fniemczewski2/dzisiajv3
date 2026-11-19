@@ -47,6 +47,16 @@ describe("parseInboundPayload", () => {
     ]);
   });
 
+  it("PDF z treścią nie wypada za obrazkami stopki (limit 10 pozycji)", () => {
+    const images = Array.from({ length: 14 }, (_, i) => ({ filename: `${i}.png`, mimeType: "image/png" }));
+    const msg = parseInboundPayload({
+      ...valid,
+      attachments: [...images, { filename: "Bilet.pdf", mimeType: "application/pdf", pdfBase64: "QUJD" }],
+    });
+    expect(msg?.attachments).toHaveLength(10);
+    expect(msg?.attachments.at(-1)).toMatchObject({ filename: "Bilet.pdf", pdfBase64: "QUJD" });
+  });
+
   it("zaproszenie z ICS jest wykrywane po parsowaniu", () => {
     const ics = ["BEGIN:VEVENT", "SUMMARY:Przegląd", "DTSTART:20261027T100000Z", "END:VEVENT"].join("\r\n");
     const msg = parseInboundPayload({

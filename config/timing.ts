@@ -9,6 +9,8 @@ export const RETRY_MAX_ATTEMPTS = 2;
 
 /** Czas na „Cofnij” po usunięciu zadania. */
 export const UNDO_WINDOW_MS = 5000;
+/** Jak długo wpis otwarty z powiązania (?focus=) ma wyróżnioną obwódkę. */
+export const FOCUS_HIGHLIGHT_MS = 2500;
 
 /** Opóźnienie wyszukiwania podczas pisania. */
 export const SEARCH_DEBOUNCE_MS = 250;

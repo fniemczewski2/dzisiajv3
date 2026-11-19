@@ -18,6 +18,12 @@ export const RATE_LIMITS = {
   quickNotes: { limit: 30, window: "60 s" },
   /** Dane zdrowotne ze Skrótów iOS (na adres IP). */
   healthShortcut: { limit: 30, window: "60 s" },
+  /** Płatności ze Skrótu iOS (automatyzacja Apple Pay), na adres IP. */
+  financeShortcut: { limit: 30, window: "60 s" },
+  /** Pobranie kanału .ics przez aplikację kalendarza (na adres IP). */
+  calendarFeed: { limit: 60, window: "60 s" },
+  /** Wyszukiwanie potwierdzeń ePUAP / e-Doręczeń w skrzynkach (na użytkownika). */
+  letterScan: { limit: 10, window: "10 m" },
   pollRespond: { limit: 5, window: "10 m" },
   /** Zapisy na terminy w ankietach zapisów (na ankietę i adres IP). */
   pollBook: { limit: 6, window: "10 m" },
@@ -138,6 +144,15 @@ export const MAX_INBOUND_HTML = 300_000;
 /** RFC 5322: zalecana maksymalna długość linii nagłówka. */
 export const MAX_INBOUND_SUBJECT = 998;
 export const MAX_INBOUND_ICS = 200_000;
+/**
+ * PDF z biletem w wiadomości przekierowanej na adres biletów (b-…): base64 jednego pliku i łącznie.
+ * Łączny limit mieści się w limicie treści żądania funkcji Vercel (4,5 MB) z zapasem na resztę wiadomości.
+ * Ta sama wartość (w bajtach pliku: 3/4 base64) jest w docs/mail-gateway/worker.js (MAX_PDF_BYTES).
+ */
+export const MAX_INBOUND_PDF_BASE64 = 2_800_000;
+export const MAX_INBOUND_PDF_TOTAL_BASE64 = 3_900_000;
+/** Ile PDF z jednej wiadomości przetwarzamy. */
+export const MAX_INBOUND_PDFS = 5;
 export const MAX_INLINE_IMAGES = 10;
 /** Limit długości base64 jednego obrazu osadzonego (~1,5 MB danych). */
 export const MAX_INLINE_IMAGE_BASE64 = 2_000_000;

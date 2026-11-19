@@ -1,7 +1,7 @@
 // __tests__/pages/api/parse-ticket.test.ts
 
 import { describe, it, expect } from "vitest";
-import { parseTicketData, extractRoute, extractStationNames } from "@/pages/api/transport/parse-ticket";
+import { parseTicketData, extractRoute, extractStationNames } from "@/lib/ticketParser";
 
 const BILET_POZNAN_SZCZECINEK = [
   "BILET NR WN 60619392 KOD 5165",

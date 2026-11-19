@@ -42,6 +42,7 @@ czytać całość. Architektura i bezpieczeństwo: [docs/ARCHITECTURE.md](docs/A
 - Edycje z planu dnia przekazują `{ silent: true }` – toast sukcesu wyświetla wywołujący.
 - Toasty: `toast.success/error/info(msg, { action, durationMs })`, `toast.confirm(msg, { confirmLabel, cancelLabel })` → `Promise<boolean>` (domyślnie „Usuń”, przycisk w stylu danger), `toast.batch`, `toast.loading/dismiss`.
 - „Cofnij”: akcja w toaście, okno `UNDO_WINDOW_MS` (`config/timing.ts`); wzorzec: `deleteTask` w `hooks/db/useTasks.ts`.
+- Terminy ustawowe: tylko `termEnd()` z `lib/legalDeadlines.ts` (daty UTC „yyyy-MM-dd”), nie `Date#setDate` + `toISOString()`.
 - Czas: `dateToTimestamp()` zapisuje czas lokalny z sufiksem `+00` (`…T10:00:00+00`). Parsować przez `parseEventDate()` (`lib/dateUtils.ts`), nie `new Date()` – `new Date("…+00")` daje `Invalid Date`.
 - Wydarzenia: instancje cykliczne mają id `${id}_${yyyy-MM-dd}` (`lib/eventUtils.ts`), wirtualne urodziny/imieniny – `bday_*`/`nday_*` (nieedytowalne).
 - Bezpieczeństwo: każda tabela w `public` ma RLS; endpoint z `service_role` musi sprawdzać właściciela zasobu i mieć test „cudze id → 404”.
@@ -53,3 +54,8 @@ czytać całość. Architektura i bezpieczeństwo: [docs/ARCHITECTURE.md](docs/A
 - Wydarzenia/kalendarz: `hooks/db/useEvents.ts`, `components/calendar/`, sync zewnętrzny `lib/calendarExport.ts`, `pages/api/calendar/sync-calendars.ts`, `pages/api/{google,outlook}-calendar/`
 - Poczta: `pages/api/mail/**`, `lib/mail/`, `lib/server/mail*.ts`, `hooks/useMail*.ts`
 - Powiadomienia/przypomnienia: `supabase/functions/process-{notifications,reminders}`, `send-push`, `notify-shared`
+- Briefing dnia: `components/dashboard/DailyBrief.tsx`, `lib/dailyBrief.ts`; push – `morning_brief`/`evening_audit` w `process-notifications`
+- Powiązania `@Osoba` `!Zadanie` `$Rachunek`: `lib/mentions.ts` (parser, Obsidian), `lib/mentionTargets.ts`, `components/ui/MentionLink.tsx`; otwarcie wpisu `?focus=<id>` – `hooks/useFocusTarget.ts` (element `id="item-<id>"`)
+- Pisma: terminy `lib/legalDeadlines.ts` (art. 57 KPA) + `RESPONSE_TERMS` w `types/letters.ts`; skrzynki/wysyłka `pages/api/letters/{scan,send}.ts`
+- Bilety: parser `lib/ticketParser.ts` (odcinki), poczta `lib/server/ticketInbound.ts` (adres `b-…`, `pages/api/mail/inbound.ts`), bramka `docs/mail-gateway/worker.js`
+- Kanał .ics: `lib/calendarFeed.ts`, `pages/api/calendar/feed/[token].ts`; Apple Pay: `pages/api/finance/shortcut.ts`

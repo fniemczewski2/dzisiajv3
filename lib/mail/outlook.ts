@@ -162,6 +162,22 @@ export function createOutlookClient(accessToken: string, fetchImpl: FetchLike = 
     },
 
     /** Odpowiedź w wątku. Wywoływać wyłącznie po zatwierdzeniu przez użytkownika. */
+    /** Nowa wiadomość (zapisana w Wysłanych); wywoływać wyłącznie po zatwierdzeniu przez użytkownika. */
+    async sendMail(to: string, subject: string, body: string): Promise<void> {
+      await call<void>("/me/sendMail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: {
+            subject,
+            body: { contentType: "Text", content: body },
+            toRecipients: [{ emailAddress: { address: to } }],
+          },
+          saveToSentItems: true,
+        }),
+      });
+    },
+
     async replyTo(messageId: string, comment: string): Promise<void> {
       await call<void>(`/me/messages/${encodeURIComponent(messageId)}/reply`, {
         method: "POST",

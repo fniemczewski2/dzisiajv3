@@ -1,12 +1,20 @@
 // components/letters/LetterList.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { ChevronDown, Upload, Eye, Trash2 } from "lucide-react";
+import { ChevronDown, Upload, Eye, Trash2, Send } from "lucide-react";
 import { useLetters } from "@/hooks/db/useLetters";
-import { EditButton, DeleteButton, FormButtons, CopyButtonSmall, DownloadButton } from "../ui/CommonButtons";
+import {
+  EditButton,
+  DeleteButton,
+  FormButtons,
+  CopyButtonSmall,
+  DownloadButton,
+  IconActionButton,
+} from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import SearchBar from "../ui/SearchBar";
-import { generateLetterBody } from "@/lib/letterTemplates";
+import { generateLetterBody, letterSubject } from "@/lib/letterTemplates";
+import LetterSendDialog from "./LetterSendDialog";
 import type { Letter, LetterAttachment, LetterFileKind } from "@/types/letters";
 import { MAX_LETTER_ATTACHMENTS } from "@/config/limits";
 
@@ -134,6 +142,7 @@ export function AttachmentSlot({
 export default function LetterList({ refreshToken }: Readonly<LetterListProps>) {
   const { letters, editLetter, deleteLetter, fetchLetters, loading, getAttachments, downloadLetterArchive } =
     useLetters();
+  const [sendingId, setSendingId] = useState<string | null>(null);
   const [qText, setQText] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -395,9 +404,23 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                     {hasAttachments && (
                       <DownloadButton onClick={() => void downloadLetterArchive(l)} fileFormat=".zip" />
                     )}
+                    <IconActionButton
+                      Icon={Send}
+                      title={`Wyślij pismo ${l.signature} e-mailem`}
+                      onClick={() => setSendingId(l.id)}
+                    />
                     <EditButton onClick={() => handleEdit(l)} />
                     <DeleteButton onClick={() => void deleteLetter(l.id)} />
                   </div>
+                  {sendingId === l.id && (
+                    <LetterSendDialog
+                      letter={l}
+                      body={letterBody}
+                      subject={`${letterSubject(l)} – sygn. ${l.signature}`}
+                      open
+                      onClose={() => setSendingId(null)}
+                    />
+                  )}
                 </div>
               )}
             </li>

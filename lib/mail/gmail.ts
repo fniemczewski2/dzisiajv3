@@ -226,6 +226,15 @@ export function createGmailClient(accessToken: string, fetchImpl: FetchLike = fe
       await call<unknown>(`/messages/${encodeURIComponent(id)}/trash`, { method: "POST" });
     },
 
+    /** Wysyła nową wiadomość (raw MIME, base64url); wywoływać wyłącznie po zatwierdzeniu przez użytkownika. */
+    async sendMessage(raw: string): Promise<{ id: string }> {
+      return call<{ id: string }>("/messages/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ raw }),
+      });
+    },
+
     /** Wysyła odpowiedź; wywoływać wyłącznie po zatwierdzeniu przez użytkownika. */
     async sendReply(params: { raw: string; threadId: string }): Promise<{ id: string }> {
       return call<{ id: string }>("/messages/send", {

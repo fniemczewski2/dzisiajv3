@@ -10,19 +10,32 @@ interface AddTrainWidgetProps {
   onTrainAdded: (train: TicketFormData) => void;
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
+  /** Edycja istniejącego wpisu (np. biletu z poczty): wartości początkowe, bez wczytywania PDF. */
+  initial?: TicketFormData;
+  /** Prefiks identyfikatorów pól – kilka formularzy na jednej stronie. */
+  idPrefix?: string;
 }
 
-export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Readonly<AddTrainWidgetProps>) {
-  const [formData, setFormData] = useState<TicketFormData>({
-    trainNumber: "",
-    trainName: "",
-    date: "",
-    departureTime: "",
-    from: "",
-    to: "",
-    wagon: "",
-    seat: "",
-  });
+const EMPTY: TicketFormData = {
+  trainNumber: "",
+  trainName: "",
+  date: "",
+  departureTime: "",
+  from: "",
+  to: "",
+  wagon: "",
+  seat: "",
+};
+
+export default function AddTrainForm({
+  onTrainAdded,
+  expanded,
+  setExpanded,
+  initial,
+  idPrefix = "",
+}: Readonly<AddTrainWidgetProps>) {
+  const [formData, setFormData] = useState<TicketFormData>(initial ?? EMPTY);
+  const isEdit = Boolean(initial);
 
   const { handleFileUpload, loading, missingFromTicket, clearTicketReview } = useTicketUpload({
     setFormData,
@@ -33,7 +46,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
     e.preventDefault();
     onTrainAdded(formData);
     clearTicketReview();
-    setFormData({ trainNumber: "", trainName: "", date: "", departureTime: "", from: "", to: "", wagon: "", seat: "" });
+    setFormData(initial ?? EMPTY);
     setExpanded(false);
   };
 
@@ -59,11 +72,11 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="trainNumber" className="form-label">
+              <label htmlFor={`${idPrefix}trainNumber`} className="form-label">
                 Nr pociągu
               </label>
               <input
-                id="trainNumber"
+                id={`${idPrefix}trainNumber`}
                 type="text"
                 value={formData.trainNumber}
                 onChange={(e) => setFormData({ ...formData, trainNumber: e.target.value })}
@@ -73,11 +86,11 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
               />
             </div>
             <div>
-              <label htmlFor="trainName" className="form-label">
+              <label htmlFor={`${idPrefix}trainName`} className="form-label">
                 Nazwa pociągu
               </label>
               <input
-                id="trainName"
+                id={`${idPrefix}trainName`}
                 type="text"
                 value={formData.trainName}
                 onChange={(e) => setFormData({ ...formData, trainName: e.target.value })}
@@ -88,12 +101,12 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
             </div>
           </div>
           <div>
-            <label htmlFor="trainDate" className="form-label">
+            <label htmlFor={`${idPrefix}trainDate`} className="form-label">
               Data i czas
             </label>
             <div className="flex gap-2">
               <input
-                id="trainDate"
+                id={`${idPrefix}trainDate`}
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
@@ -113,11 +126,11 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="stationFrom" className="form-label">
+              <label htmlFor={`${idPrefix}stationFrom`} className="form-label">
                 Stacja początkowa
               </label>
               <input
-                id="stationFrom"
+                id={`${idPrefix}stationFrom`}
                 type="text"
                 value={formData.from}
                 onChange={(e) => setFormData({ ...formData, from: e.target.value })}
@@ -126,11 +139,11 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
               />
             </div>
             <div>
-              <label htmlFor="stationTo" className="form-label">
+              <label htmlFor={`${idPrefix}stationTo`} className="form-label">
                 Stacja końcowa
               </label>
               <input
-                id="stationTo"
+                id={`${idPrefix}stationTo`}
                 type="text"
                 value={formData.to}
                 onChange={(e) => setFormData({ ...formData, to: e.target.value })}
@@ -142,11 +155,11 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="trainWagon" className="form-label">
+              <label htmlFor={`${idPrefix}trainWagon`} className="form-label">
                 Wagon
               </label>
               <input
-                id="trainWagon"
+                id={`${idPrefix}trainWagon`}
                 type="text"
                 value={formData.wagon}
                 onChange={(e) => setFormData({ ...formData, wagon: e.target.value })}
@@ -155,11 +168,11 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
               />
             </div>
             <div>
-              <label htmlFor="trainSeat" className="form-label">
+              <label htmlFor={`${idPrefix}trainSeat`} className="form-label">
                 Miejsce
               </label>
               <input
-                id="trainSeat"
+                id={`${idPrefix}trainSeat`}
                 type="text"
                 value={formData.seat}
                 onChange={(e) => setFormData({ ...formData, seat: e.target.value })}
@@ -176,19 +189,21 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                 setExpanded(false);
               }}
             />
-            <label
-              className={`flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 md:flex-1`}
-            >
-              .pdf
-              <Upload aria-hidden="true" className="h-4 w-4 text-text-secondary" />
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileUpload}
-                disabled={loading}
-                className="hidden"
-              />
-            </label>
+            {!isEdit && (
+              <label
+                className={`flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 md:flex-1`}
+              >
+                .pdf
+                <Upload aria-hidden="true" className="h-4 w-4 text-text-secondary" />
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileUpload}
+                  disabled={loading}
+                  className="hidden"
+                />
+              </label>
+            )}
 
             <SaveButton disabled={loading} />
           </div>

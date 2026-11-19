@@ -1,7 +1,8 @@
 // components/letters/LetterForm.tsx
 
 import React, { useState, SyntheticEvent, useMemo } from "react";
-import { useLetters, suggestResponseDate } from "@/hooks/db/useLetters";
+import { useLetters, suggestResponseDate, responseTermsFor } from "@/hooks/db/useLetters";
+import { describeTerm } from "@/lib/legalDeadlines";
 import { FormButtons } from "../ui/CommonButtons";
 import { getAppDate } from "@/lib/dateUtils";
 import { LETTER_CATEGORIES, type LetterCategory, type LetterInsert } from "@/types/letters";
@@ -9,9 +10,11 @@ import { LETTER_CATEGORIES, type LetterCategory, type LetterInsert } from "@/typ
 interface LetterFormProps {
   onChange: () => void;
   onCancel?: () => void;
+  /** Wartości początkowe – np. z powiadomienia ePUAP / e-Doręczeń (components/letters/LetterNoticeScan.tsx). */
+  initial?: { issueDate?: string; description?: string };
 }
 
-export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormProps>) {
+export default function LetterForm({ onChange, onCancel, initial }: Readonly<LetterFormProps>) {
   const { addLetter, loading } = useLetters();
 
   const today = useMemo(() => getAppDate(), []);
@@ -19,11 +22,13 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
   const [category, setCategory] = useState<LetterCategory>("UDIP");
   const [categoryOther, setCategoryOther] = useState("");
   const [categoryCode, setCategoryCode] = useState("");
-  const [issueDate, setIssueDate] = useState(today);
-  const [responseDate, setResponseDate] = useState<string>(() => suggestResponseDate("UDIP", today) ?? "");
+  const startDate = initial?.issueDate || today;
+  const [issueDate, setIssueDate] = useState(startDate);
+  const [responseDate, setResponseDate] = useState<string>(() => suggestResponseDate("UDIP", startDate) ?? "");
   const [responseDateTouched, setResponseDateTouched] = useState(false);
+  const [termId, setTermId] = useState<string | undefined>(undefined);
   const [recipient, setRecipient] = useState("");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initial?.description ?? "");
   const [licensePlate, setLicensePlate] = useState("");
   const [incidentDate, setIncidentDate] = useState("");
   const [incidentPlace, setIncidentPlace] = useState("");
@@ -31,8 +36,12 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
   const isTrafficViolation = category === "Wykroczenie drogowe";
   const isOtherCategory = category === "Inne";
 
+  const terms = responseTermsFor(category);
+  const activeTerm = terms.find((t) => t.id === termId) ?? terms[0];
+
   const applyCategory = (next: LetterCategory) => {
     setCategory(next);
+    setTermId(undefined);
     if (!responseDateTouched) {
       setResponseDate(suggestResponseDate(next, issueDate) ?? "");
     }
@@ -41,8 +50,14 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
   const applyIssueDate = (next: string) => {
     setIssueDate(next);
     if (!responseDateTouched) {
-      setResponseDate(suggestResponseDate(category, next) ?? "");
+      setResponseDate(suggestResponseDate(category, next, termId) ?? "");
     }
+  };
+
+  const applyTerm = (next: string) => {
+    setTermId(next);
+    setResponseDateTouched(false);
+    setResponseDate(suggestResponseDate(category, issueDate, next) ?? "");
   };
 
   const resetForm = () => {
@@ -52,6 +67,7 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
     setIssueDate(today);
     setResponseDate(suggestResponseDate("UDIP", today) ?? "");
     setResponseDateTouched(false);
+    setTermId(undefined);
     setRecipient("");
     setDescription("");
     setLicensePlate("");
@@ -145,7 +161,7 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor="lf-issue-date" className="form-label">
-            Data wystawienia:
+            Data wystawienia (złożenia):
           </label>
           <input
             id="lf-issue-date"
@@ -171,9 +187,39 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
             }}
             className="input-field w-full"
             disabled={loading}
+            aria-describedby={activeTerm ? "lf-term-basis" : undefined}
           />
         </div>
       </div>
+
+      {terms.length > 1 && (
+        <div>
+          <label htmlFor="lf-term" className="form-label">
+            Wariant terminu:
+          </label>
+          <select
+            id="lf-term"
+            value={activeTerm?.id ?? ""}
+            onChange={(e) => applyTerm(e.target.value)}
+            className="input-field"
+            disabled={loading}
+          >
+            {terms.map((t) => (
+              <option key={t.id} value={t.id}>
+                {describeTerm(t.count, t.unit)} – {t.basis}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {activeTerm && (
+        <p id="lf-term-basis" className="text-xs text-text-secondary">
+          {describeTerm(activeTerm.count, activeTerm.unit)}, {activeTerm.basis}. Liczone od dnia złożenia pisma
+          (doręczenia organowi), bez tego dnia; koniec w sobotę lub dzień ustawowo wolny przesuwa się na następny dzień
+          roboczy (art. 57 KPA).
+        </p>
+      )}
 
       <div>
         <label htmlFor="lf-recipient" className="form-label">

@@ -10,6 +10,7 @@ import type { Person } from "@/types/people";
 import type { Report, ReportTask } from "@/types/reports";
 import { parseFrontMatter, stringifyFrontMatter, type FrontMatter } from "@/lib/obsidian/frontMatter";
 import type { VaultItemType } from "@/lib/obsidian/paths";
+import { fromObsidianLinks, obsidianTag, toObsidianLinks } from "@/lib/mentions";
 
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
 const list = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : []);
@@ -50,9 +51,46 @@ function header(type: VaultItemType, id: string, updated: string | undefined, ex
   return stringifyFrontMatter({ dzisiaj_id: id, dzisiaj_type: type, updated: updated ?? null, ...extra });
 }
 
+/**
+ * Plik z treścią: powiązania @/!/$ → [[Nazwa]]; nagłówek dostaje `tags` (kategoria wpisu, rodzaj pliku
+ * i rodzaje powiązań) oraz `dzisiaj_links` (do odtworzenia znaczników przy imporcie).
+ */
+function vaultDocument(
+  type: VaultItemType,
+  id: string,
+  updated: string | undefined,
+  extra: FrontMatter,
+  body: string,
+  ownTags: readonly (string | null | undefined)[]
+): string {
+  const converted = toObsidianLinks(body);
+  const tags = [...new Set([...ownTags.map(obsidianTag), ...converted.tags].filter((t): t is string => Boolean(t)))];
+  const meta: FrontMatter = { ...extra };
+  if (tags.length > 0) meta.tags = tags;
+  if (converted.links.length > 0) meta.dzisiaj_links = converted.links;
+  return `${header(type, id, updated, meta)}\n${converted.text}`;
+}
+
+/** Treść pliku po imporcie: [[Nazwa]] z listy dzisiaj_links wraca do znacznika @/!/$. */
+function restoreLinks(data: FrontMatter, body: string): string {
+  return fromObsidianLinks(body, list(data.dzisiaj_links));
+}
+
+/** Najwyższy folder notatki jako kategoria („Fundacje/Zapłon” → „Fundacje”). */
+function topFolder(folder: string | null | undefined): string | null {
+  return folder?.split("/")[0]?.trim() || null;
+}
+
 // --- Notatki ------------------------------------------------------------------
 export function noteToMarkdown(note: Note & { folder?: string | null }): string {
-  return `${header("note", note.id, note.updated_at, { title: note.title, folder: note.folder ?? null, pinned: Boolean(note.pinned) })}\n${note.items.join("\n")}\n`;
+  return vaultDocument(
+    "note",
+    note.id,
+    note.updated_at,
+    { title: note.title, folder: note.folder ?? null, pinned: Boolean(note.pinned) },
+    `${note.items.join("\n")}\n`,
+    [topFolder(note.folder)]
+  );
 }
 
 export function noteFromMarkdown(
@@ -60,27 +98,34 @@ export function noteFromMarkdown(
   fallbackTitle: string
 ): Pick<Note, "title" | "items"> & { folder: string | null } {
   const { data, body } = parseFrontMatter(text);
-  const items = trimChars(body, "\n", "end").split("\n");
+  const items = trimChars(restoreLinks(data, body), "\n", "end").split("\n");
   while (items.length > 0 && items[0].trim() === "") items.shift();
   return { title: str(data.title) || fallbackTitle, items, folder: optional(data.folder) };
 }
 
 // --- Przepisy -------------------------------------------------------------------
 export function recipeToMarkdown(recipe: Recipe): string {
-  return `${header("recipe", recipe.id, recipe.created_at, { name: recipe.name, category: recipe.category })}
-## Składniki
+  return vaultDocument(
+    "recipe",
+    recipe.id,
+    recipe.created_at,
+    { name: recipe.name, category: recipe.category },
+    `## Składniki
 ${bulletList(recipe.products)}
 
 ## Przygotowanie
 ${recipe.description}
-`;
+`,
+    [recipe.category, "przepis"]
+  );
 }
 
 export function recipeFromMarkdown(
   text: string,
   fallbackName: string
 ): Pick<Recipe, "name" | "products" | "description"> & { category: string } {
-  const { data, body } = parseFrontMatter(text);
+  const { data, body: rawBody } = parseFrontMatter(text);
+  const body = restoreLinks(data, rawBody);
   const s = sections(body);
   return {
     name: str(data.name) || fallbackName,
@@ -92,17 +137,24 @@ export function recipeFromMarkdown(
 
 // --- Osoby ------------------------------------------------------------------------
 export function personToMarkdown(person: Person): string {
-  return `${header("person", person.id, person.created_at, {
-    first_name: person.first_name,
-    last_name: person.last_name,
-    relationship: person.relationship,
-    priority: person.priority,
-    birthday: person.birthday ?? null,
-    nameday: person.nameday ?? null,
-    phones: person.phones,
-    emails: person.emails,
-    last_contact_date: person.last_contact_date ?? null,
-  })}\n${person.notes ?? ""}\n`;
+  return vaultDocument(
+    "person",
+    person.id,
+    person.created_at,
+    {
+      first_name: person.first_name,
+      last_name: person.last_name,
+      relationship: person.relationship,
+      priority: person.priority,
+      birthday: person.birthday ?? null,
+      nameday: person.nameday ?? null,
+      phones: person.phones,
+      emails: person.emails,
+      last_contact_date: person.last_contact_date ?? null,
+    },
+    `${person.notes ?? ""}\n`,
+    [person.relationship, "osoba"]
+  );
 }
 
 export function personFromMarkdown(text: string): Partial<Person> {
@@ -118,7 +170,7 @@ export function personFromMarkdown(text: string): Partial<Person> {
     phones: list(data.phones),
     emails: list(data.emails),
     last_contact_date: optional(data.last_contact_date),
-    notes: body.trim(),
+    notes: restoreLinks(data, body).trim(),
   };
 }
 
@@ -147,8 +199,12 @@ function taskToLine(t: ReportTask): string {
 
 export function reportToMarkdown(report: Report): string {
   const tasks = report.tasks.map(taskToLine);
-  return `${header("report", report.id, undefined, { topic: report.topic, date: report.date, participants: report.participants })}
-## Porządek
+  return vaultDocument(
+    "report",
+    report.id,
+    undefined,
+    { topic: report.topic, date: report.date, participants: report.participants },
+    `## Porządek
 ${bulletList(report.agenda)}
 
 ## Zadania
@@ -156,12 +212,15 @@ ${tasks.join("\n")}
 
 ## Notatki
 ${report.notes}
-`;
+`,
+    ["protokol"]
+  );
 }
 
 /** Zadania odzyskują app_task_id z dotychczasowego protokołu (dopasowanie po treści i osobie). */
 export function reportFromMarkdown(text: string, previous?: Pick<Report, "tasks">): Partial<Report> {
-  const { data, body } = parseFrontMatter(text);
+  const { data, body: rawBody } = parseFrontMatter(text);
+  const body = restoreLinks(data, rawBody);
   const s = sections(body);
   const tasks: ReportTask[] = (s["zadania"] ?? "")
     .split("\n")

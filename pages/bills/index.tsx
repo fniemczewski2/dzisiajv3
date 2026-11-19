@@ -3,6 +3,7 @@
 // Finanse: rachunki stałe (tabela 1) i miesięczne wydatki/wpływy (tabela 2),
 // z wyborem profilu i miesiąca.
 
+import { useFocusTarget } from "@/hooks/useFocusTarget";
 import React, { useCallback, useMemo, useState } from "react";
 import { addMonths, format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -32,6 +33,7 @@ export default function FinancePage() {
   const categoryNames = useCategoryNameMap(categories, previousYearCategories);
   const { profiles } = useFinanceProfiles();
   const { bills, loading: billsLoading, saveBill, removeBill } = useRecurringBills();
+  useFocusTarget(!billsLoading);
   const tx = useTransactions({ from, to });
 
   const [quickAdd, setQuickAdd] = useState(0);

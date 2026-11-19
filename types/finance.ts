@@ -40,7 +40,8 @@ export interface Transaction {
   category_id: string | null;
   recurring_bill_id: string | null;
   link_status: TransactionLinkStatus | null;
-  source: "manual" | "csv" | "legacy";
+  /** „shortcut” – automatyzacja Apple Pay w Skrótach iOS (pages/api/finance/shortcut.ts). */
+  source: "manual" | "csv" | "legacy" | "shortcut";
   import_key: string | null;
 }
 

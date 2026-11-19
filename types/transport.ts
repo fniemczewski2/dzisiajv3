@@ -58,9 +58,15 @@ export interface TrackedTrain {
   seat: string;
   /** Planowy przyjazd do stacji docelowej „HH:MM” – zapisywany po pierwszej odpowiedzi PKP PLK. */
   plannedArrival?: string | null;
+  /** Wpis z poczty (adres biletów) do sprawdzenia i zatwierdzenia przez użytkownika. */
+  needsReview?: boolean;
+  source?: "manual" | "mail";
 }
 
-export type TrainInput = Omit<TrackedTrain, "id" | "userId" | "createdAt" | "plannedArrival">;
+export type TrainInput = Omit<
+  TrackedTrain,
+  "id" | "userId" | "createdAt" | "plannedArrival" | "needsReview" | "source"
+>;
 
 export interface TicketFormData {
   trainNumber: string;

@@ -38,6 +38,28 @@ export function toBase64Url(value: string): string {
   return trimChars(utf8ToBase64(value).replaceAll("+", "-").replaceAll("/", "_"), "=", "end");
 }
 
+export interface MessageInput {
+  from: string;
+  to: string;
+  subject: string;
+  body: string;
+}
+
+/** Nowa wiadomość (nie odpowiedź): bez „Re:” i nagłówków wątku. */
+export function buildMessageMime(input: MessageInput): string {
+  for (const v of [input.from, input.to, input.subject]) assertHeaderSafe(v);
+  const headers = [
+    `From: ${input.from}`,
+    `To: ${input.to}`,
+    `Subject: ${encodeHeaderValue(input.subject.trim())}`,
+    "MIME-Version: 1.0",
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+  ];
+  const encodedBody = utf8ToBase64(input.body).replace(/(.{76})/g, "$1\r\n");
+  return `${headers.join("\r\n")}\r\n\r\n${encodedBody}`;
+}
+
 export function buildReplyMime(input: ReplyInput): string {
   for (const v of [input.from, input.to, input.subject, input.inReplyTo ?? "", input.references ?? ""]) {
     assertHeaderSafe(v);

@@ -34,7 +34,12 @@ export default function NotificationPreferences() {
   };
 
   const notifOptions = [
-    { key: "notif_morning_brief", label: "Poranny Brief", description: "Zaplanuj dzień o 07:00", icon: Sun },
+    {
+      key: "notif_morning_brief",
+      label: "Poranny briefing",
+      description: "O godzinie z sekcji Briefing dnia: zadania, zaległe, rachunki, pociągi",
+      icon: Sun,
+    },
     {
       key: "notif_tasks",
       label: "Nadchodzące zadania",
@@ -49,7 +54,12 @@ export default function NotificationPreferences() {
     },
     { key: "notif_water", label: "Nawodnienie", description: "Powiadomienia o 10:00, 14:00 i 18:00", icon: Droplet },
     { key: "notif_habits", label: "Codzienne nawyki", description: "Przypomnienie o nawykach", icon: CheckSquare },
-    { key: "notif_evening", label: "Wieczorny audyt", description: "Podsumowanie dnia o 21:00", icon: Moon },
+    {
+      key: "notif_evening",
+      label: "Wieczorny briefing",
+      description: "O godzinie z sekcji Briefing dnia: podsumowanie i/lub plan na jutro",
+      icon: Moon,
+    },
     {
       key: "notif_birthdays",
       label: "Urodziny i imieniny",
@@ -62,7 +72,7 @@ export default function NotificationPreferences() {
       description: "Zgodnie z ustawionym priorytetem",
       icon: Users,
     },
-    { key: "notif_bills", label: "Płatności rachunków", description: "W dniu oraz 1 i 7 dni wcześniej", icon: Coins },
+    { key: "notif_bills", label: "Płatności rachunków", description: "W dniu terminu płatności", icon: Coins },
     {
       key: "notif_day_schema",
       label: "Schemat dnia",

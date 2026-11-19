@@ -33,14 +33,15 @@ Dlatego **nie używaj `supabase db push`**.
 
 **Skrypty w repozytorium – kolejność uruchomienia** (każdy można powtórzyć bez szkody):
 
-| Skrypt                                                | Co robi                                                                                                                           | Uwagi                                                                                                                 |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `supabase/sql/2026-11-19_product_prices.sql`          | tabele `product_prices`, `receipt_aliases`, `imported_receipts` (RLS, uprawnienia) dla katalogu cen i importu paragonów           | po uruchomieniu: Ustawienia → Ceny produktów pokazują pusty katalog; skrypt jest idempotentny                         |
-| `supabase/sql/2026-11-12_rls_initplan.sql`            | opakowuje `auth.uid()` w `(select auth.uid())` we wszystkich politykach RLS w `public` (szybsze zapytania na dużych tabelach)     | po uruchomieniu zapytanie kontrolne z nagłówka skryptu zwraca 0 wierszy; skrypt jest idempotentny                     |
-| `supabase/sql/2026-10-17_errors_retention.sql`        | pg_cron: usuwanie logów błędów po 30 dniach                                                                                       | wymaga rozszerzenia `pg_cron`                                                                                         |
-| `supabase/sql/2026-10-18_audit_hardening.sql`         | indeksy, uprawnienia `anon`, `NOT NULL` na `user_id`, unikalne subskrypcje push, kolumna `mood_consent_at`, bucket `user-exports` | tabele z wierszami bez właściciela są wypisane w NOTICE i pominięte – przypisz lub usuń te wiersze i uruchom ponownie |
-| `supabase/sql/2026-10-19_trains_consent_realtime.sql` | kolumny `user_trains.planned_arrival`, `settings.mood_consent_version`; `shopping_lists` w publikacji Realtime                    | bez niego: przyjazd pociągu i wersja zgody nie są zapisywane, listy nie odświeżają się na żywo                        |
-| `supabase/sql/2026-10-18_drop_legacy_tables.sql`      | usuwa nieużywane `bills`, `places`, `google_calendar_tokens`                                                                      | **nieodwracalne** – najpierw kopia (`pg_dump`, instrukcja w pliku)                                                    |
+| Skrypt                                                | Co robi                                                                                                                                                                                                           | Uwagi                                                                                                                 |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `supabase/sql/2026-11-20_brief_feed_tickets.sql`      | kolumny briefingu i `letter_mail_accounts` w `settings`, tabela `calendar_feed_tokens`, `transactions.source` + `shortcut`, `user_trains.source/needs_review` + polityka update, `mail_forwarding_addresses.kind` | **przed** wdrożeniem 1.45.0; zapytanie kontrolne na końcu pliku zwraca 6 wierszy; skrypt jest idempotentny            |
+| `supabase/sql/2026-11-19_product_prices.sql`          | tabele `product_prices`, `receipt_aliases`, `imported_receipts` (RLS, uprawnienia) dla katalogu cen i importu paragonów                                                                                           | po uruchomieniu: Ustawienia → Ceny produktów pokazują pusty katalog; skrypt jest idempotentny                         |
+| `supabase/sql/2026-11-12_rls_initplan.sql`            | opakowuje `auth.uid()` w `(select auth.uid())` we wszystkich politykach RLS w `public` (szybsze zapytania na dużych tabelach)                                                                                     | po uruchomieniu zapytanie kontrolne z nagłówka skryptu zwraca 0 wierszy; skrypt jest idempotentny                     |
+| `supabase/sql/2026-10-17_errors_retention.sql`        | pg_cron: usuwanie logów błędów po 30 dniach                                                                                                                                                                       | wymaga rozszerzenia `pg_cron`                                                                                         |
+| `supabase/sql/2026-10-18_audit_hardening.sql`         | indeksy, uprawnienia `anon`, `NOT NULL` na `user_id`, unikalne subskrypcje push, kolumna `mood_consent_at`, bucket `user-exports`                                                                                 | tabele z wierszami bez właściciela są wypisane w NOTICE i pominięte – przypisz lub usuń te wiersze i uruchom ponownie |
+| `supabase/sql/2026-10-19_trains_consent_realtime.sql` | kolumny `user_trains.planned_arrival`, `settings.mood_consent_version`; `shopping_lists` w publikacji Realtime                                                                                                    | bez niego: przyjazd pociągu i wersja zgody nie są zapisywane, listy nie odświeżają się na żywo                        |
+| `supabase/sql/2026-10-18_drop_legacy_tables.sql`      | usuwa nieużywane `bills`, `places`, `google_calendar_tokens`                                                                                                                                                      | **nieodwracalne** – najpierw kopia (`pg_dump`, instrukcja w pliku)                                                    |
 
 **Wersjonowanie schematu (zalecane):** `supabase link` → `supabase db pull` zapisze bieżący schemat do
 `supabase/migrations/`. Po usunięciu wpisu `supabase/migrations` z `.gitignore` CI zacznie uruchamiać
@@ -83,13 +84,13 @@ Dla każdego wiersza z tabeli poniżej: **Dashboard → Create cronjob**, potem:
 | Schemat dnia                     | `…/process-notifications?type=day_schema`                                             | `x-cron-secret`                       | `* * * * *`               |
 | Zadania z godziną                | `…/process-notifications?type=upcoming_task`                                          | `x-cron-secret`                       | `*/15 * * * *`            |
 | Nawodnienie                      | `…/process-notifications?type=hydration`                                              | `x-cron-secret`                       | `0 9-21 * * *`            |
-| Poranne podsumowanie             | `…/process-notifications?type=morning_brief`                                          | `x-cron-secret`                       | `0 7 * * *`               |
+| Poranny briefing                 | `…/process-notifications?type=morning_brief`                                          | `x-cron-secret`                       | `*/15 5-12 * * *`         |
 | Rachunki                         | `…/process-notifications?type=bill_due`                                               | `x-cron-secret`                       | `0 8 * * *`               |
 | Terminy pism                     | `…/process-notifications?type=letters_deadline`                                       | `x-cron-secret`                       | `0 9 * * *`               |
 | Zamykanie ankiet – przypomnienie | `…/process-notifications?type=poll_closing`                                           | `x-cron-secret`                       | `0 10 * * *`              |
 | Urodziny, imieniny, kontakt      | `…/process-notifications?type=people`                                                 | `x-cron-secret`                       | `0 9 * * *`               |
 | Nawyki                           | `…/process-notifications?type=daily_habits`                                           | `x-cron-secret`                       | `0 20 * * *`              |
-| Wieczorne podsumowanie           | `…/process-notifications?type=evening_audit`                                          | `x-cron-secret`                       | `0 21 * * *`              |
+| Wieczorny briefing               | `…/process-notifications?type=evening_audit`                                          | `x-cron-secret`                       | `*/15 16-23 * * *`        |
 | Czyszczenie bufora poczty        | `https://www.dzisiaj.fun/api/mail/inbox/purge`                                        | `Authorization: Bearer <CRON_SECRET>` | `0 * * * *`               |
 | Zadania cykliczne                | `https://<projekt>.supabase.co/functions/v1/process-reminders`                        | `x-cron-secret: <CRON_SECRET>`        | `0 3 * * *`               |
 
@@ -101,6 +102,10 @@ Dla każdego wiersza z tabeli poniżej: **Dashboard → Create cronjob**, potem:
 - `upcoming_task` – zadania zaplanowane w bieżącej godzinie, z ochroną przed duplikatem w ciągu dnia.
 - `hydration` – jedno przypomnienie na godzinę.
 - `bill_due` – nic nie wysyła przed 8:00 (`BILL_PUSH_HOUR`).
+- `morning_brief`, `evening_audit` (od 1.45.0) – godzina z ustawień osoby (`brief_morning_time`, `brief_evening_time`);
+  funkcja wysyła, gdy minęła, raz dziennie. Wywołanie co 15 minut = opóźnienie do 15 minut. Godziny ustawione poza
+  oknem harmonogramu (np. poranny o 4:00) zadziałają dopiero przy pierwszym wywołaniu w oknie – przy zmianie okna
+  w cron-job.org zaktualizuj opis w ustawieniach (`components/settings/SettingsForm.tsx`, sekcja „briefing”).
 - Typy dzienne (`morning_brief`, `daily_habits`, `evening_audit`, `letters_deadline`, `poll_closing`,
   `people`) mają ochronę przed ponowną wysyłką tego samego dnia, więc dodatkowe wywołanie nie zdubluje powiadomień.
 - Parametru `type` nie pomijaj: bez niego funkcja wykonuje tylko typ domyślny `daily_habits`.
@@ -370,6 +375,87 @@ także przy ukryciu karty i zamknięciu widoku.
 - Liczby ustala serwer ze stanu listy w bazie (dodana pozycja musi na niej być, usunięta nie może); klient nie wpłynie
   na liczby. Odbiorca zawsze wynika z bazy (druga osoba listy).
 - Po zmianie kodu funkcji wykonaj `supabase functions deploy notify-shared`.
+
+## Wydanie 1.45.0 – wdrożenie i zmiany
+
+Kolejność wdrożenia:
+
+1. SQL Editor: `supabase/sql/2026-11-20_brief_feed_tickets.sql` – **przed** aplikacją (nowe kolumny w zapytaniach).
+2. Funkcja Edge: `supabase functions deploy process-notifications` (wersja `1.45.0` w odpowiedzi, `_shared/contacts.ts`).
+3. cron-job.org: `morning_brief` → `*/15 5-12 * * *`, `evening_audit` → `*/15 16-23 * * *` (tabela „Zadania”).
+4. Bramka poczty: `cd docs/mail-gateway && npm run deploy` (PDF dla adresów biletów, `MAX_PDF_BYTES`).
+5. Aplikacja (Vercel). Brak nowych zmiennych środowiskowych.
+
+| Obszar        | Zmiana                                                                                                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Briefing dnia | Karta na planie dnia (dziś) od godziny z ustawień do zamknięcia: pogoda, zadania i zaległe, spotkania, rachunki (dziś i zaległe), pociągi z bazy (bez statusu PKP PLK), osoby do kontaktu wg priorytetu. Wieczorem: podsumowanie, plan na jutro albo oba (`brief_evening_mode`). Push o tej samej godzinie |
+| Powiązania    | `@Osoba`, `!Zadanie`, `$Rachunek` (spacja = `_`) w notatkach, zadaniach, wydarzeniach i protokołach – kliknięcie otwiera wpis (`?focus=<id>`). W poczcie wyłączone. Obsidian: `[[Nazwa]]`, `tags`, `dzisiaj_links` (powrót znacznika przy imporcie)                                                        |
+| WebCal        | Ustawienia → Kanał kalendarza: adres `webcal://…/api/calendar/feed/<token>.ics`                                                                                                                                                                                                                            |
+| Apple Pay     | `POST /api/finance/shortcut` (token Skrótów); instrukcja – sekcja „Skróty iOS: płatności Apple Pay”                                                                                                                                                                                                        |
+| Pisma         | Terminy wg art. 57 KPA (miesiące kalendarzowe, sobota i dni wolne → następny dzień roboczy), warianty terminu z podstawą prawną; wyszukiwanie UPO/UPP/e-Doręczeń w wybranych skrzynkach (propozycje do zatwierdzenia); wysyłka e-mailem z potwierdzeniem                                                   |
+| Pociągi       | Adres na bilety (`b-…`), bilet z przesiadką → osobne odcinki, wpis „do sprawdzenia” z przyciskami „Zatwierdź” / „Popraw”; poprawka odczytu biletu z odcinkami także przy wgrywaniu PDF                                                                                                                     |
+| Poprawki      | Data propozycji terminu pisma nie przesuwa się o dzień (UTC); Wigilia dniem wolnym od 2025 r.; jeden próg kontaktu (60 dni dla priorytetu 3) w aplikacji i push; opis powiadomienia o rachunkach zgodny z działaniem                                                                                       |
+
+Ograniczenia:
+
+- Powiadomienia ePUAP / e-Doręczeń są rozpoznawane po słowach kluczowych w temacie i nadawcy (`lib/mail/letterNotices.ts`) – bez
+  próbek wiadomości z obu systemów. Po zebraniu przykładów doprecyzuj reguły i testy.
+- Termin dla wykroczeń (art. 54 § 1 KPSW) biegnie od wszczęcia czynności wyjaśniających, nie od złożenia zawiadomienia – data jest
+  szacunkiem.
+- Otwieranie z powiązania wyróżnia wpis tylko, gdy jest widoczny w bieżącym widoku (filtry, ukryty priorytet 5, rachunek bez terminu
+  w tym miesiącu) – inaczej komunikat.
+
+## Skróty iOS: płatności Apple Pay
+
+Automatyzacja osobista w aplikacji Skróty: **Automatyzacja → Nowa → Transakcja** (wyzwalacz: płatność wybraną kartą w Portfelu,
+„Uruchom natychmiast”). Akcja „Pobierz zawartość adresu URL”: `POST https://www.dzisiaj.fun/api/finance/shortcut`, nagłówek
+`Authorization: Bearer <token Skrótów>`, treść JSON z dwoma polami ze zmiennych wyzwalacza: `amount` (Kwota) i `merchant`
+(Sprzedawca). Nazwy pól wyzwalacza zależą od wersji iOS. Nie dodawaj innych pól – serwer je pomija, ale nie powinny opuszczać
+telefonu.
+
+Zapis: wydatek z dzisiejszą datą (czas polski), profil finansowy o najniższej kolejności, `source = "shortcut"`; kategoria z
+ostatniej transakcji tego samego sprzedawcy, powiązanie z rachunkiem stałym jako sugestia (`link_status = "suggested"`).
+
+```powershell
+$body = '{"amount":"12,34 zł","merchant":"Kawiarnia"}'
+Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/finance/shortcut" `
+  -Headers @{ Authorization = "Bearer <TOKEN>" } -ContentType "application/json" -Body $body
+```
+
+## Kanał kalendarza (WebCal)
+
+Ustawienia → Kanał kalendarza → „Utwórz adres”. Adres (pokazywany raz) dodaje się jako subskrybowany kalendarz w Kalendarzu Apple
+(macOS: Plik → Nowa subskrypcja kalendarza; iOS: ustawienia Kalendarza → Konta → Dodaj konto → Inne → Dodaj subskrybowany
+kalendarz – nazwy zależą od wersji systemu) albo w Thunderbirdzie (Nowy kalendarz → W sieci). Na iPhonie wystarczy też dotknąć
+odnośnika „Dodaj do kalendarza” w ustawieniach aplikacji. Kalendarz pobiera kanał sam; częstotliwość ustawia klient (kanał sugeruje 1 h). Nowy adres
+unieważnia poprzedni. Token w bazie tylko jako SHA-256; wyciek adresu = podgląd planu do czasu wygenerowania nowego.
+
+## Limity wiadomości (bilety)
+
+Adres biletów `b-<token>@poczta.dzisiaj.fun` przekazuje PDF (base64) do `/api/mail/inbound`. Ograniczenia na ścieżce:
+
+| Miejsce                   | Limit                                                                      | Gdzie zmienić                                                                                                                             |
+| ------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloudflare Email Routing  | rozmiar wiadomości ustala Cloudflare (dokumentacja Email Routing → Limits) | nie da się zmienić                                                                                                                        |
+| Worker                    | jeden PDF ≤ `MAX_PDF_BYTES` (2 000 000 B), łącznie 2,9 MB, do 5 PDF        | `docs/mail-gateway/wrangler.toml` → `[vars] MAX_PDF_BYTES`; stałe `MAX_TOTAL_PDF_BYTES`, `MAX_PDFS` w `worker.js`; potem `npm run deploy` |
+| Aplikacja – walidacja     | base64 jednego PDF ≤ 2 800 000 znaków, łącznie 3 900 000, do 5 PDF         | `config/server.ts`: `MAX_INBOUND_PDF_BASE64`, `MAX_INBOUND_PDF_TOTAL_BASE64`, `MAX_INBOUND_PDFS`                                          |
+| Aplikacja – treść żądania | 4 MB                                                                       | `pages/api/mail/inbound.ts` → `config.api.bodyParser.sizeLimit`                                                                           |
+| Vercel Functions          | treść żądania do 4,5 MB (limit platformy)                                  | nie da się zwiększyć – większe pliki wymagają zapisu do Storage w Workerze i przekazania odnośnika                                        |
+
+Zasada: base64 = 4/3 rozmiaru pliku, więc łączny rozmiar PDF × 4/3 + treść wiadomości musi zmieścić się w 4,5 MB. Zmieniaj
+limity razem we wszystkich trzech miejscach. Bilety PKP Intercity z próbek mają 96–117 kB.
+
+Test bez bramki (PowerShell, PDF z dysku):
+
+```powershell
+$pdf = [Convert]::ToBase64String([IO.File]::ReadAllBytes("bilet.pdf"))
+$body = @{ recipient = "b-<token>@poczta.dzisiaj.fun"; from = "bilet@intercity.pl"; subject = "Bilet"; text = "";
+  attachments = @(@{ filename = "bilet.pdf"; mimeType = "application/pdf"; pdfBase64 = $pdf }) } | ConvertTo-Json -Depth 4
+Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/mail/inbound" `
+  -Headers @{ "x-mail-inbound-secret" = "<MAIL_INBOUND_SECRET>" } -ContentType "application/json" -Body $body
+```
+
+Oczekiwany wynik: `202` z `{ added, duplicates, unreadable }`; ponowne wysłanie – `duplicates`; PDF bez biletu – `422`.
 
 ## Wydanie 1.43.0 – wdrożenie i zmiany
 

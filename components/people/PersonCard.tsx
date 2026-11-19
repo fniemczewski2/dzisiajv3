@@ -1,5 +1,6 @@
 // components/people/PersonCard.tsx
 
+import { focusElementId } from "@/hooks/useFocusTarget";
 import { buildVCard } from "@/lib/vcard";
 import React, { useState } from "react";
 import { Phone, Mail, Clock, ChevronDown, ChevronUp, Cake, Gift } from "lucide-react";
@@ -30,7 +31,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
   return (
     <>
-      <div className="card relative flex flex-col p-4 transition-all">
+      <div id={focusElementId(person.id)} className="card relative flex flex-col p-4 transition-all">
         <div className="flex cursor-pointer items-center justify-between select-none">
           <div className="flex flex-col">
             <h3 className="text-lg font-bold text-text">

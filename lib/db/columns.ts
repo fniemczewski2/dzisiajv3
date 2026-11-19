@@ -37,7 +37,7 @@ export const TABLE_COLUMNS = {
     "id, user_id, profile_id, name, amount, category_id, start_date, recurrence, active, created_at, updated_at",
   reports: "id, topic, date, agenda, participants, tasks, notes, inserted_at, updated_at, user_id, template_id",
   settings:
-    "sort_order, show_completed, show_habits, show_water_tracker, show_budget_items, users, show_month_view, show_notifications, theme, favorite_stops, user_id, notif_morning_brief, notif_tasks, notif_events, notif_water, notif_habits, notif_evening, sort_notes, sort_shopping, sort_movies, sort_recipes, sort_places, show_mood_tracker, mood_options, main_view, hide_priority_5, sort_people, notif_birthdays, notif_contact, sort_bills, task_categories, category_colors, disabled_modules, custom_habits, rss_sources, rss_custom, daily_spending_categories, notif_bills, report_template, mood_consent_at, mood_consent_version, notif_day_schema, notif_reminders, notif_letters, notif_polls, notif_love, notif_shared_lists, notif_shared_tasks, notif_shared_events, health_consent_at, health_consent_version, daily_spending_limit, daily_steps_goal",
+    "sort_order, show_completed, show_habits, show_water_tracker, show_budget_items, users, show_month_view, show_notifications, theme, favorite_stops, user_id, notif_morning_brief, notif_tasks, notif_events, notif_water, notif_habits, notif_evening, sort_notes, sort_shopping, sort_movies, sort_recipes, sort_places, show_mood_tracker, mood_options, main_view, hide_priority_5, sort_people, notif_birthdays, notif_contact, sort_bills, task_categories, category_colors, disabled_modules, custom_habits, rss_sources, rss_custom, daily_spending_categories, notif_bills, report_template, mood_consent_at, mood_consent_version, notif_day_schema, notif_reminders, notif_letters, notif_polls, notif_love, notif_shared_lists, notif_shared_tasks, notif_shared_events, health_consent_at, health_consent_version, daily_spending_limit, daily_steps_goal, brief_morning_time, brief_evening_time, brief_evening_mode, brief_dismissed_morning, brief_dismissed_evening, letter_mail_accounts",
   shopping_lists: "id, name, elements, inserted_at, updated_at, user_id, shared_with_id",
   slack_lists:
     "id, connection_id, user_id, list_id, list_title, column_map, is_default, created_at, updated_at, sync_enabled, assignee_emails, import_category",
@@ -47,7 +47,7 @@ export const TABLE_COLUMNS = {
   transactions:
     "id, user_id, profile_id, date, amount, is_income, description, category_id, recurring_bill_id, link_status, source, import_key, created_at",
   user_trains:
-    "id, user_id, train_number, date, departure_time, from_station, to_station, wagon, seat, created_at, train_name, planned_arrival",
+    "id, user_id, train_number, date, departure_time, from_station, to_station, wagon, seat, created_at, train_name, planned_arrival, source, needs_review",
   vcard_profiles:
     "id, user_id, profile_name, full_name, avatar_url, organization, phones, emails, addresses, social_links, business_data, is_public, public_slug, created_at, updated_at, color_light, color_dark",
   work_logs: "id, user_id, description, start_time, end_time, created_at, updated_at",

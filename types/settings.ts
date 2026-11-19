@@ -73,7 +73,22 @@ export interface Settings {
 
   daily_spending_limit?: number | null;
   daily_steps_goal?: number | null;
+
+  /** Godzina porannego briefingu „HH:mm” (karta na planie dnia i push). */
+  brief_morning_time?: string;
+  /** Godzina wieczornego briefingu „HH:mm”. */
+  brief_evening_time?: string;
+  /** Wieczorny briefing: podsumowanie dnia, plan na jutro albo oba. */
+  brief_evening_mode?: BriefEveningMode;
+  /** Dzień (yyyy-MM-dd), w którym użytkownik zamknął kartę porannego briefingu. */
+  brief_dismissed_morning?: string | null;
+  /** Dzień (yyyy-MM-dd), w którym użytkownik zamknął kartę wieczornego briefingu. */
+  brief_dismissed_evening?: string | null;
+  /** Konta poczty przeszukiwane w module Pisma (potwierdzenia ePUAP / e-Doręczeń). */
+  letter_mail_accounts?: string[] | null;
 }
+
+export type BriefEveningMode = "summary" | "tomorrow" | "both";
 
 export interface EmailByIdRow {
   id: string;
