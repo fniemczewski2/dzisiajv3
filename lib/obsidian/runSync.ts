@@ -60,6 +60,15 @@ export interface VaultRepo {
   addDecision(decision: { fileId: string; path: string; candidateIds: string[]; values: ImportValues }): Promise<void>;
   /** Decyzja wykonana – usunięcie wpisu („skip” zostaje, żeby plik nie wracał do importu). */
   closeDecision(fileId: string): Promise<void>;
+  /**
+   * Cofnięcie importu: wiersz dopiero co powstał (insertNote/insertItem), ale nie
+   * udało się odesłać dzisiaj_id z powrotem do pliku źródłowego. Bez tego plik
+   * zostałby zaimportowany ponownie przy każdej kolejnej synchronizacji – duplikat.
+   * UWAGA: wołane tylko dla NOWO utworzonych wierszy – nigdy dla scalenia
+   * duplikatu osoby z istniejącym wierszem (status „merge”), bo tam wiersz
+   * istniał już przed tą synchronizacją.
+   */
+  deleteItem(type: VaultItemType, id: string): Promise<void>;
 }
 
 export interface SyncSummary {
@@ -195,11 +204,14 @@ async function importFile(
   return { type: action.type, row } as Row;
 }
 
-type PersonOutcome = { kind: "imported"; row: Row } | { kind: "pending"; candidateIds: string[] } | { kind: "skipped" };
+type PersonOutcome =
+  { kind: "imported"; row: Row; isNew: boolean } | { kind: "pending"; candidateIds: string[] } | { kind: "skipped" };
 
 /**
  * Plik osoby bez dzisiaj_id: decyzja użytkownika (scal / utwórz / pomiń), a bez decyzji – nowy wiersz,
  * o ile nie ma osoby o tym samym imieniu i nazwisku; wtedy powstaje decyzja „pending” i plik czeka.
+ * `isNew` mówi, czy zwrócony wiersz dopiero co powstał (true – wolno go cofnąć przy błędzie zapisu)
+ * czy jest istniejącą osobą scaloną ze zmianami z pliku (false – NIE wolno go usuwać).
  */
 async function importPerson(
   repo: VaultRepo,
@@ -221,7 +233,7 @@ async function importPerson(
     const changes = mergePersonChanges(target.row, values);
     if (Object.keys(changes).length > 0) await repo.updateItem("person", target.row.id, changes);
     await repo.closeDecision(file.fileId);
-    return { kind: "imported", row: { type: "person", row: { ...target.row, ...changes } } };
+    return { kind: "imported", row: { type: "person", row: { ...target.row, ...changes } }, isNew: false };
   }
   if (decision?.status !== "create") {
     const people = [...rows.values()].filter((r) => r.type === "person").map((r) => r.row as Person);
@@ -233,7 +245,7 @@ async function importPerson(
   }
   const row = (await repo.insertItem("person", values)) as Person;
   if (decision) await repo.closeDecision(file.fileId);
-  return { kind: "imported", row: { type: "person", row } };
+  return { kind: "imported", row: { type: "person", row }, isNew: true };
 }
 
 export async function runVaultSync(
@@ -327,6 +339,7 @@ export async function runVaultSync(
       }
       case "import": {
         let imported: Row;
+        let isNew = true;
         if (action.type === "person") {
           const outcome = await importPerson(repo, action.file, rows, decisions, options.today);
           if (outcome.kind === "pending") {
@@ -336,15 +349,30 @@ export async function runVaultSync(
           }
           if (outcome.kind === "skipped") break;
           imported = outcome.row;
+          isNew = outcome.isNew;
           handled.add(imported.row.id);
         } else {
           imported = await importFile(repo, action, options.today);
         }
         rows.set(imported.row.id, imported);
         const markdown = toEntry(imported).markdown;
-        const written = await writeMerged(action.file.path, markdown, action.file.fileId, action.file.content);
-        record(imported.row.id, written.fileId, markdown, written.text);
-        summary.imported++;
+        try {
+          const written = await writeMerged(action.file.path, markdown, action.file.fileId, action.file.content);
+          record(imported.row.id, written.fileId, markdown, written.text);
+          summary.imported++;
+        } catch (err) {
+          if (isNew) {
+            // Wiersz dopiero co powstał, ale plik źródłowy nadal nie ma dzisiaj_id – bez
+            // cofnięcia zostałby zaimportowany ponownie (duplikat) przy każdej kolejnej
+            // synchronizacji. Usuwamy wiersz i przerywamy; spróbujemy od nowa.
+            // (Dla scalenia duplikatu osoby – isNew=false – wiersz istniał już wcześniej
+            // i nigdy nie jest tu usuwany.)
+            await repo.deleteItem(imported.type, imported.row.id).catch((cleanupErr) => {
+              console.error("[vault sync] nie udało się cofnąć importu po błędzie zapisu:", cleanupErr);
+            });
+          }
+          throw err;
+        }
         break;
       }
     }

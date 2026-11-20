@@ -13,11 +13,16 @@ import {
 import type { VaultStorage } from "@/lib/obsidian/storage";
 import type { SyncStateRow } from "@/lib/obsidian/syncPlan";
 
-function memoryVault(): VaultStorage & { files: Map<string, { path: string; content: string }> } {
+function memoryVault(): VaultStorage & {
+  files: Map<string, { path: string; content: string }>;
+  failWriteFor: Set<string>;
+} {
   const files = new Map<string, { path: string; content: string }>();
+  const failWriteFor = new Set<string>();
   let seq = 0;
   return {
     files,
+    failWriteFor,
     async list() {
       return [...files.entries()].map(([fileId, f]) => ({ fileId, path: f.path }));
     },
@@ -25,6 +30,7 @@ function memoryVault(): VaultStorage & { files: Map<string, { path: string; cont
       return files.get(fileId)?.content ?? "";
     },
     async write(path, content, fileId) {
+      if (failWriteFor.has(path)) throw new Error(`symulowany błąd zapisu: ${path}`);
       const id = fileId ?? `f${++seq}`;
       files.set(id, { path: files.get(id)?.path ?? path, content });
       return id;
@@ -36,6 +42,7 @@ function memoryRepo(data: VaultData) {
   let state: SyncStateRow[] = [];
   const decisions = new Map<string, ImportDecision>();
   const updates: { type: string; id: string; changes: Record<string, unknown> }[] = [];
+  const deletions: { type: string; id: string }[] = [];
   const repo: VaultRepo = {
     async loadData() {
       return data;
@@ -89,8 +96,16 @@ function memoryRepo(data: VaultData) {
     async closeDecision(fileId) {
       decisions.delete(fileId);
     },
+    async deleteItem(type, id) {
+      deletions.push({ type, id });
+      const list = { note: data.notes, recipe: data.recipes, person: data.people, report: data.reports }[type] as {
+        id: string;
+      }[];
+      const idx = list.findIndex((r) => r.id === id);
+      if (idx !== -1) list.splice(idx, 1);
+    },
   };
-  return { repo, updates, decisions, getState: () => state };
+  return { repo, updates, decisions, deletions, getState: () => state };
 }
 
 const data = (): VaultData => ({
@@ -206,6 +221,49 @@ describe("runVaultSync", () => {
     expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 0, uploaded: 0, conflicts: 0 });
     expect(d.recipes).toHaveLength(1);
     expect(d.people).toHaveLength(1);
+  });
+
+  it("błąd zapisu dzisiaj_id po imporcie NOWEGO wiersza cofa go zamiast tworzyć duplikat przy kolejnej synchronizacji", async () => {
+    const vault = memoryVault();
+    const d: VaultData = { notes: [], recipes: [], people: [], reports: [] };
+    const { repo, deletions } = memoryRepo(d);
+    vault.files.set("x1", { path: "Notatki/Fundacja/Pomysły.md", content: "pierwszy\ndrugi\n" });
+    vault.failWriteFor.add("Notatki/Fundacja/Pomysły.md");
+
+    await expect(runVaultSync(repo, vault, OPTS)).rejects.toThrow("symulowany błąd zapisu");
+    expect(d.notes).toHaveLength(0); // wiersz cofnięty, nie został osieroconym duplikatem
+    expect(deletions).toEqual([{ type: "note", id: "new-0" }]);
+
+    // Plik nadal nie ma dzisiaj_id (zapis się nie powiódł) – naprawiamy usterkę i ponawiamy.
+    vault.failWriteFor.delete("Notatki/Fundacja/Pomysły.md");
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 1, skippedImports: 0 });
+    expect(d.notes).toHaveLength(1);
+
+    // Kolejna synchronizacja nie tworzy drugiej kopii.
+    expect(await runVaultSync(repo, vault, OPTS)).toMatchObject({ imported: 0, uploaded: 0 });
+    expect(d.notes).toHaveLength(1);
+  });
+
+  it("błąd zapisu przy SCALENIU duplikatu osoby NIE kasuje istniejącej osoby (isNew=false)", async () => {
+    const vault = memoryVault();
+    const d = data();
+    const { repo, decisions, deletions } = memoryRepo(d);
+    vault.files.set("v1", {
+      path: "Osoby/Rodzina/Anna Nowak.md",
+      content: '---\ntags:\n  - Osoby/Rodzina\nphones: ["600100200"]\n---\nCiocia\n',
+    });
+    await runVaultSync(repo, vault, OPTS); // tworzy decyzję "pending" (duplikat Anny Nowak)
+    decisions.set("v1", { ...decisions.get("v1")!, status: "merge", personId: "p1" });
+    vault.failWriteFor.add("Osoby/Rodzina/Anna Nowak.md");
+
+    await expect(runVaultSync(repo, vault, OPTS)).rejects.toThrow("symulowany błąd zapisu");
+    expect(deletions).toEqual([]); // nic nie zostało cofnięte
+    expect(d.people.find((p) => p.id === "p1")).toBeTruthy(); // Anna Nowak nadal istnieje
+    expect(d.people.find((p) => p.id === "p1")!.phones).toEqual(["600100200"]); // zmiany ze scalenia zachowane
+
+    vault.failWriteFor.delete("Osoby/Rodzina/Anna Nowak.md");
+    await runVaultSync(repo, vault, OPTS);
+    expect(d.people).toHaveLength(1); // wciąż jedna osoba, nie dwie
   });
 
   it("zmiana po obu stronach: wersja aplikacji w pliku i kopia konfliktu", async () => {

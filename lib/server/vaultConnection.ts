@@ -338,5 +338,10 @@ export function supabaseVaultRepo(supabase: SupabaseClient, userId: string): Vau
       if (error || !data) throw error ?? new Error("Brak wiersza po zapisie.");
       return data as never;
     },
+    async deleteItem(type, id) {
+      const table = TABLES[type];
+      const { error } = await supabase.from(table).delete().eq("id", id).eq("user_id", userId);
+      if (error) throw error;
+    },
   };
 }
