@@ -499,6 +499,7 @@ Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `reply.ts` – Budowa odpowiedzi w formacie RFC 5322 (MIME, UTF-8) i kodowanie dla Gmail API. · exp: encodeHeaderValue, utf8ToBase64, toBase64Url, buildMessageMime, buildReplyMime
 - `search.ts` – Fraza wyszukiwania wiadomości: normalizacja i przekład na składnię Gmaila oraz Microsoft Graph. · exp: normalizeSearchQuery, gmailQuery, outlookSearchParam
 - `tasks.ts` – Zadanie utworzone z wiadomości: tytuł „Odpowiedz: <temat>”, kategoria „poczta”. · exp: replyTaskTitle
+- `ticketNotice.ts` – Treść odpowiedzi na wiadomość z biletem. Odpowiedź wysyła bramka poczty (docs/mail-gateway/worker.js) jako reply na przekierowaną wiadomość: nadawcą jest adres… · exp: ticketNoticeSubject, ticketNoticeBody
 - `types.ts` – Wspólne typy modułu poczty (Gmail, Outlook, przekierowanie). Treść wiadomości nie jest zapisywana w bazie: istnieje tylko w pamięci podczas wyświetlania.
 - `unified.ts` – Wspólny widok skrzynek: wiadomości ze wszystkich połączonych kont i przekierowane w jednej liście, od najnowszych. · exp: mergeMail, filterInbox
 
@@ -568,7 +569,6 @@ Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `slackSync/types.ts`
 - `supabaseAdmin.ts` – Klient Supabase z kluczem service_role – omija RLS, więc wolno go używać wyłącznie po stronie serwera i tylko po własnym sprawdzeniu, czy zasób należy do…
 - `ticketInbound.ts` – Bilety z poczty: wiadomość przekierowana na adres b-<token>@… (np. potwierdzenie zakupu PKP Intercity). · exp: legToRow, describeRow, importTicketMail · db: user_trains
-- `ticketNotify.ts` – Potwierdzenie importu biletu: po każdej wiadomości na adres biletów (b-…) aplikacja wysyła jedną wiadomość na adres podłączonego konta poczty – lista dodanych… · exp: ticketNoticeSubject, ticketNoticeBody, notifyTicketImport · db: mail_accounts
 - `ticketPdf.ts` – Tekst z PDF biletu (pdf-parse). Tylko serwer: wymaga atrapy canvas (lib/server/pdfCanvasGlobals.ts). · exp: PdfReadError, extractPdfText
 - `tokenCrypto.ts` – exp: encryptToken, decryptToken
 - `turnstile.ts` – Weryfikacja tokenu Cloudflare Turnstile po stronie serwera (publiczne formularze ankiet). · exp: enforceTurnstile

@@ -457,8 +457,15 @@ Invoke-RestMethod -Method Post -Uri "https://www.dzisiaj.fun/api/mail/inbound" `
   -Headers @{ "x-mail-inbound-secret" = "<MAIL_INBOUND_SECRET>" } -ContentType "application/json" -Body $body
 ```
 
-Oczekiwany wynik: `202` z `{ added, duplicates, unreadable }`; ponowne wysłanie – `duplicates`; wiadomość bez biletu – `202`
-z `buffered: true` (Poczta → Przekierowane, 72 h) do zamknięcia bufora, potem `422` (zwrot do nadawcy).
+Oczekiwany wynik: `202` z `{ added, duplicates, unreadable, notice }`; ponowne wysłanie – `duplicates`; wiadomość bez
+biletu – `202` z `buffered: true` (Poczta → Przekierowane, 72 h). Aplikacja nigdy nie odrzuca wiadomości na adres
+biletów: zwrot SMTP kończył się komunikatem od mailer-daemona i utratą biletu.
+
+Pole `notice` (temat + treść) bramka wysyła jako **reply** na przekierowaną wiadomość: nadawcą jest adres biletów
+`b-<token>@…`, adresatem autor przekierowania (nagłówek `From` wiadomości, czyli skrzynka, z której bilet przyszedł).
+Przy nierozpoznanym bilecie treść zawiera inwentarz załączników, które dotarły do aplikacji (nazwa, typ MIME, czy miały
+treść PDF) – to rozstrzyga, czy problem jest w bramce, czy w parserze. Reply wymaga Workera w wersji z `message.reply()`
+(`docs/mail-gateway/worker.js`), więc po tej zmianie konieczny jest `npm run deploy` bramki.
 
 Bufor adresu biletów zamyka się automatycznie (`buffer_closed_at`) po mailu weryfikacyjnym przekazywania (nadawca
 `forwarding-noreply@google.com` albo temat „Forwarding Confirmation” / „Potwierdzenie przekazywania”) lub po pierwszym

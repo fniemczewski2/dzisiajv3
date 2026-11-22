@@ -4,8 +4,9 @@
 // Adres odbiorcy wskazuje konto; treść trafia do bufora szyfrowanego z czasem wygaśnięcia.
 // Adres biletów (b-…): PDF z wiadomości → wpisy w „Pociągach” (lib/server/ticketInbound.ts), bez zapisu treści.
 // Wiadomość bez rozpoznanego biletu (np. kod weryfikacyjny przekazywania w Gmailu) trafia do bufora Poczty
-// („Przekierowane”, 72 h) – zwrot do nadawcy uniemożliwiłby włączenie automatycznego przekazywania. Bufor zamyka się
-// po mailu weryfikacyjnym albo pierwszym rozpoznanym bilecie (buffer_closed_at); potem taka wiadomość → 422 (zwrot).
+// („Przekierowane”, 72 h). Odpowiedź o wyniku wraca w polu `notice` – bramka wysyła ją jako reply
+// z adresu biletów do autora przekierowania (docs/mail-gateway/worker.js). Nigdy nie odrzucamy wiadomości:
+// zwrot SMTP kończył się komunikatem od mailer-daemona i utratą biletu.
 
 import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -18,7 +19,7 @@ import { encryptToken } from "@/lib/server/tokenCrypto";
 import { hashForwardingToken, isForwardingConfirmation, parseForwardingRecipient } from "@/lib/mail/forwarding";
 import { parseInboundPayload, type InboundMessage } from "@/lib/mail/inbound";
 import { importTicketMail } from "@/lib/server/ticketInbound";
-import { notifyTicketImport } from "@/lib/server/ticketNotify";
+import { ticketNoticeBody, ticketNoticeSubject, type TicketNotice } from "@/lib/mail/ticketNotice";
 
 /** Wiadomość z biletami w PDF (base64) jest większa niż domyślny limit 1 MB; Vercel przyjmuje do 4,5 MB. */
 export const config = { api: { bodyParser: { sizeLimit: "4mb" } }, maxDuration: 30 };
@@ -52,28 +53,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .maybeSingle();
   if (!address) return res.status(404).json({ error: "Nieznany adres." });
 
+  let notice: { subject: string; body: string } | null = null;
+
   if (target.kind === "tickets") {
     try {
       const result = await importTicketMail(admin, address.user_id, message);
+      notice = noticeFor({ ok: true, result }, message.subject);
       if (result.added > 0 || result.duplicates > 0) {
         // Bilet dotarł – przekazywanie działa, bufor nie jest już potrzebny.
         if (!address.buffer_closed_at) await closeTicketBuffer(admin, address.id);
-        await notifyTicketImport(admin, address.user_id, message.subject, { ok: true, result });
         const { addedRows: _rows, ...summary } = result;
-        return res.status(202).json(summary);
+        return res.status(202).json({ ...summary, notice });
       }
-      // Bufor zamknięty: wiadomość na adres biletów bez biletu nie trafia już do Poczty – informujemy mailem.
-      if (address.buffer_closed_at) {
-        await notifyTicketImport(admin, address.user_id, message.subject, { ok: true, result });
-      }
+      // Nierozpoznany bilet: wiadomość zostaje w buforze Poczty (niżej), a autor dostaje odpowiedź ze szczegółami.
     } catch (err) {
       const reason = err instanceof Error ? err.message : "nieznany błąd";
       console.error("[mail/inbound] bilety:", reason);
-      await notifyTicketImport(admin, address.user_id, message.subject, { ok: false, reason });
-      return res.status(500).json({ error: "Nie udało się zapisać biletu." });
-    }
-    if (address.buffer_closed_at) {
-      return res.status(422).json({ error: "Nie rozpoznano biletu PKP Intercity w załącznikach PDF." });
+      notice = noticeFor({ ok: false, reason }, message.subject);
     }
   }
 
@@ -83,7 +79,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const confirmation = isForwardingConfirmation(message);
   if (confirmation) await closeTicketBuffer(admin, address.id);
-  return res.status(202).json({ added: 0, duplicates: 0, buffered: true, bufferClosed: confirmation });
+  // Maila weryfikacyjnego Gmaila nie komentujemy – odpowiedź trafiłaby do robota Google.
+  return res.status(202).json({
+    added: 0,
+    duplicates: 0,
+    buffered: true,
+    bufferClosed: confirmation,
+    ...(confirmation ? {} : { notice }),
+  });
+}
+
+/** Temat i treść odpowiedzi dla bramki (wysyła ją jako reply z adresu biletów do nadawcy). */
+function noticeFor(notice: TicketNotice, subject: string): { subject: string; body: string } {
+  return { subject: ticketNoticeSubject(notice), body: ticketNoticeBody(notice, subject) };
 }
 
 /** Zamknięcie bufora adresu biletów (tylko pierwszy raz – kolejne wywołania nic nie zmieniają). */

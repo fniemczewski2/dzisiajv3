@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const h = vi.hoisted(() => ({
-  ticket: { added: 0, duplicates: 0, unreadable: 0 },
+  ticket: { added: 0, duplicates: 0, unreadable: 0, addedRows: [], diagnostics: [] as string[] },
   inserts: [] as { table: string; row: Record<string, unknown> }[],
   closedAt: null as string | null,
   updates: [] as Record<string, unknown>[],
@@ -68,7 +68,7 @@ function call(recipient: string, from = "znajomy@example.com", subject = "Cześ�
 }
 
 beforeEach(() => {
-  h.ticket = { added: 0, duplicates: 0, unreadable: 0 };
+  h.ticket = { added: 0, duplicates: 0, unreadable: 0, addedRows: [], diagnostics: [] };
   h.inserts = [];
   h.closedAt = null;
   h.updates = [];
@@ -79,7 +79,9 @@ describe("/api/mail/inbound – adres biletów", () => {
     const { req, res } = call(`b-${TOKEN}@poczta.test`);
     await handler(req, res);
     expect(res.statusCode).toBe(202);
-    expect(res.payload).toEqual({ added: 0, duplicates: 0, buffered: true, bufferClosed: false });
+    expect(res.payload).toMatchObject({ added: 0, duplicates: 0, buffered: true, bufferClosed: false });
+    // Nadawca dostaje odpowiedź z bramki (pole `notice`), a nie zwrotkę SMTP.
+    expect((res.payload as { notice: { subject: string } }).notice.subject).toBe("Bilet: brak danych do dodania");
     expect(h.inserts).toHaveLength(1);
     expect(h.inserts[0]).toMatchObject({ table: "mail_inbox", row: { user_id: "u1", forwarding_id: "f1" } });
     expect(h.updates).toHaveLength(0);
@@ -92,25 +94,30 @@ describe("/api/mail/inbound – adres biletów", () => {
       "(#123456) Potwierdzenie przekazywania w Gmailu"
     );
     await handler(req, res);
+    // Mail weryfikacyjny Gmaila: bez odpowiedzi (trafiłaby do robota Google).
     expect(res.payload).toEqual({ added: 0, duplicates: 0, buffered: true, bufferClosed: true });
     expect(h.inserts).toHaveLength(1);
     expect(h.updates).toEqual([{ buffer_closed_at: expect.any(String) }]);
   });
 
-  it("po zamknięciu bufora mail bez biletu → 422 (zwrot), bez zapisu", async () => {
+  it("po zamknięciu bufora mail bez rozpoznanego biletu → 202 i bufor (bez zwrotki SMTP)", async () => {
     h.closedAt = "2026-11-20T10:00:00Z";
     const { req, res } = call(`b-${TOKEN}@poczta.test`);
     await handler(req, res);
-    expect(res.statusCode).toBe(422);
-    expect(h.inserts).toHaveLength(0);
+    // Odrzucenie kończyło się zwrotką z serwera nadawcy i utratą biletu – wiadomość zostaje w Poczcie.
+    expect(res.statusCode).toBe(202);
+    expect(res.payload).toMatchObject({ buffered: true });
+    expect(h.inserts).toHaveLength(1);
   });
 
   it("rozpoznany bilet – bez zapisu treści w buforze", async () => {
-    h.ticket = { added: 2, duplicates: 0, unreadable: 0 };
+    h.ticket = { added: 2, duplicates: 0, unreadable: 0, addedRows: [], diagnostics: [] };
     const { req, res } = call(`b-${TOKEN}@poczta.test`);
     await handler(req, res);
     expect(res.statusCode).toBe(202);
-    expect(res.payload).toEqual(h.ticket);
+    // `addedRows` zostaje w aplikacji; bramka dostaje podsumowanie i gotową treść odpowiedzi.
+    expect(res.payload).toMatchObject({ added: 2, duplicates: 0, unreadable: 0 });
+    expect((res.payload as { notice: { subject: string } }).notice.subject).toContain("dodano 2");
     expect(h.inserts).toHaveLength(0);
     expect(h.updates).toHaveLength(1);
   });

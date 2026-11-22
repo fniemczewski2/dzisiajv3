@@ -8,10 +8,15 @@
 //   MAX_PDF_BYTES        – opcjonalnie: limit jednego PDF z biletem (domyślnie 2 000 000 B; zob. RUNBOOK „Limity wiadomości”)
 //
 // PDF są przekazywane (base64) wyłącznie dla adresów biletów b-<token>@…; dla adresów poczty p-… – tylko nazwy plików.
-// Bramka nie zapisuje treści: przekazuje ją jednym żądaniem do aplikacji i odrzuca wiadomość,
-// jeśli aplikacja nie potwierdzi odbioru (kod 202) – nadawca dostaje wtedy zwrot.
+// Bramka nie zapisuje treści: przekazuje ją jednym żądaniem do aplikacji.
+//
+// Odpowiedź o wyniku: aplikacja zwraca w JSON pole `notice` (temat + treść), a bramka wysyła je jako
+// reply na przekierowaną wiadomość – nadawcą jest adres biletów b-<token>@…, adresatem autor przekierowania.
+// Wiadomości nie odrzucamy nawet przy błędzie aplikacji: zwrot SMTP kończył się komunikatem od
+// mailer-daemona i utratą biletu. Błąd aplikacji → reply z informacją o niepowodzeniu.
 
 import PostalMime from "postal-mime";
+import { EmailMessage } from "cloudflare:email";
 
 /** Nadawca z nagłówka From (nie z koperty SMTP – przy przekierowaniu koperta wskazuje skrzynkę przekierowującą). */
 function headerFrom(parsed, envelopeFrom) {
@@ -88,6 +93,74 @@ export default {
       }),
     });
 
-    if (res.status !== 202) message.setReject(`Odrzucono przez aplikację (${res.status}).`);
+    const notice = await readNotice(res);
+    await reply(message, parsed, notice);
   },
 };
+
+/** Treść odpowiedzi z aplikacji; przy błędzie HTTP – komunikat zastępczy. */
+async function readNotice(res) {
+  if (res.status !== 202) {
+    return {
+      subject: "Bilet: nie udało się przetworzyć",
+      body: `Aplikacja odrzuciła wiadomość (kod ${res.status}). Bilet nie został dodany – spróbuj ponownie później.`,
+    };
+  }
+  try {
+    const data = await res.json();
+    return data?.notice?.subject && data?.notice?.body ? data.notice : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Nagłówek adresu w MIME: ASCII bez znaków sterujących (bezpieczne złożenie wiersza nagłówka). */
+function headerSafe(value) {
+  return String(value ?? "").replaceAll(/[\r\n]/g, " ");
+}
+
+/** Tekst w nagłówku Subject: kodowanie MIME word (UTF-8, base64) – polskie znaki. */
+function encodeSubject(subject) {
+  const bytes = new TextEncoder().encode(subject);
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return `=?UTF-8?B?${btoa(binary)}?=`;
+}
+
+/** Treść odpowiedzi jako base64 – kodowanie quoted-printable nie jest tu potrzebne. */
+function encodeBody(body) {
+  const bytes = new TextEncoder().encode(body);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  return btoa(binary).replaceAll(/(.{76})/g, "$1\r\n");
+}
+
+/**
+ * Odpowiedź do nadawcy przekierowania, wysłana z adresu, na który bilet przyszedł.
+ * message.reply() nie wymaga bindingu send_email – Cloudflare dopuszcza odpowiedź na odebraną wiadomość.
+ */
+async function reply(message, parsed, notice) {
+  if (!notice) return;
+  const to = parsed.from?.address || message.from;
+  if (!to) return;
+  const messageId = `<${crypto.randomUUID()}@${message.to.split("@")[1]}>`;
+  const inReplyTo = parsed.messageId
+    ? `In-Reply-To: ${headerSafe(parsed.messageId)}\r\nReferences: ${headerSafe(parsed.messageId)}\r\n`
+    : "";
+  const raw =
+    `From: ${headerSafe(message.to)}\r\n` +
+    `To: ${headerSafe(to)}\r\n` +
+    `Subject: ${encodeSubject(notice.subject)}\r\n` +
+    `Message-ID: ${messageId}\r\n` +
+    inReplyTo +
+    `MIME-Version: 1.0\r\n` +
+    `Content-Type: text/plain; charset="utf-8"\r\n` +
+    `Content-Transfer-Encoding: base64\r\n\r\n` +
+    encodeBody(notice.body);
+  try {
+    await message.reply(new EmailMessage(message.to, to, raw));
+  } catch (err) {
+    console.error("reply:", err?.message ?? err);
+  }
+}

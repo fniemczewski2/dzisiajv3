@@ -70,8 +70,25 @@ export interface TicketImportResult {
   duplicates: number;
   /** PDF bez rozpoznanego biletu lub z błędem odczytu. */
   unreadable: number;
-  /** Odcinki faktycznie zapisane – treść wiadomości zwrotnej (lib/server/ticketNotify.ts). */
+  /** Odcinki faktycznie zapisane – treść wiadomości zwrotnej (lib/mail/ticketNotice.ts). */
   addedRows: TrainRow[];
+  /** Po jednym wierszu na nierozpoznany PDF: dlaczego się nie udało (do wiadomości zwrotnej). */
+  diagnostics: string[];
+}
+
+/** Pola, bez których parser nie złoży odcinka – ich brak najszybciej wskazuje zmianę układu biletu. */
+const REQUIRED_MARKERS = ["Data odjazdu", "Godzina odjazdu", "Pociąg:"] as const;
+
+/** Dlaczego z tego PDF nie powstał żaden odcinek. Bez treści biletu – same wskazówki diagnostyczne. */
+function describeUnreadable(index: number, text: string): string {
+  const label = `PDF ${index + 1}`;
+  const chars = text.trim().length;
+  if (chars < 50) return `${label}: brak warstwy tekstowej (${chars} znaków) – prawdopodobnie skan lub obraz.`;
+  const missing = REQUIRED_MARKERS.filter((marker) => !text.includes(marker));
+  if (missing.length > 0) {
+    return `${label}: ${chars} znaków tekstu, brak pól: ${missing.join(", ")} – to chyba nie jest bilet PKP Intercity albo zmienił się układ wydruku.`;
+  }
+  return `${label}: ${chars} znaków tekstu, pola są, ale nie udało się odczytać daty, godziny lub numeru pociągu.`;
 }
 
 /** Odcinek w wiadomości zwrotnej: „IC 6112 Lech, 26.11.2026 06:36, Poznań Główny → Warszawa Centralna, wagon 15, miejsce 14”. */
@@ -116,19 +133,39 @@ export async function importTicketMail(
   readText: (pdf: Buffer) => Promise<string> = extractPdfText
 ): Promise<TicketImportResult> {
   const rows: TrainRow[] = [];
+  const diagnostics: string[] = [];
   let unreadable = 0;
-  for (const pdf of ticketPdfs(message)) {
-    try {
-      const legs = parseTicketLegs(await readText(Buffer.from(pdf, "base64")))
-        .map((leg) => legToRow(userId, leg))
-        .filter((r): r is TrainRow => r !== null);
-      if (legs.length === 0) unreadable++;
-      rows.push(...legs);
-    } catch {
-      unreadable++;
+  const pdfs = ticketPdfs(message);
+  if (pdfs.length === 0) {
+    // Inwentarz tego, co aplikacja faktycznie dostała od bramki – odróżnia problem bramki od parsera.
+    diagnostics.push(
+      message.attachments.length === 0
+        ? "Bramka nie przekazała żadnego załącznika. Jeśli w wiadomości były PDF, Worker ich nie dołączył (stara wersja worker.js albo adres nierozpoznany jako adres biletów)."
+        : `Bramka przekazała ${message.attachments.length} załączników, ale żaden nie miał treści PDF:`
+    );
+    for (const a of message.attachments) {
+      diagnostics.push(
+        `- ${a.filename || "(bez nazwy)"} [${a.mimeType}] ${a.pdfBase64 ? "treść PDF obecna" : "bez treści PDF"}`
+      );
     }
   }
-  if (rows.length === 0) return { added: 0, duplicates: 0, unreadable, addedRows: [] };
+  for (const [index, pdf] of pdfs.entries()) {
+    try {
+      const text = await readText(Buffer.from(pdf, "base64"));
+      const legs = parseTicketLegs(text)
+        .map((leg) => legToRow(userId, leg))
+        .filter((r): r is TrainRow => r !== null);
+      if (legs.length === 0) {
+        unreadable++;
+        diagnostics.push(describeUnreadable(index, text));
+      }
+      rows.push(...legs);
+    } catch (err) {
+      unreadable++;
+      diagnostics.push(`PDF ${index + 1}: błąd odczytu pliku (${err instanceof Error ? err.message : "nieznany"}).`);
+    }
+  }
+  if (rows.length === 0) return { added: 0, duplicates: 0, unreadable, addedRows: [], diagnostics };
 
   const dates = [...new Set(rows.map((r) => r.date))];
   const { data: existing, error: readError } = await admin
@@ -144,7 +181,7 @@ export async function importTicketMail(
     known.add(key);
     return true;
   });
-  if (fresh.length === 0) return { added: 0, duplicates: rows.length, unreadable, addedRows: [] };
+  if (fresh.length === 0) return { added: 0, duplicates: rows.length, unreadable, addedRows: [], diagnostics };
 
   const { added, duplicates } = await insertRows(admin, fresh);
   return {
@@ -152,5 +189,6 @@ export async function importTicketMail(
     duplicates: rows.length - fresh.length + duplicates,
     unreadable,
     addedRows: added,
+    diagnostics,
   };
 }
