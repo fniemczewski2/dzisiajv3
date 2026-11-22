@@ -65,6 +65,25 @@ const csp = [
 // każdej stronie własny skrypt startowy o treści zależnej od builda, którego
 // nie da się dopuścić stałym skrótem. scripts/check-inline-scripts.mjs po
 // buildzie przerywa wdrożenie, jeśli pojawi się skrypt bez skrótu.
+/**
+ * Pliki wykonawcze czytnika PDF. pdfjs ładuje worker (pdf.worker.mjs) ścieżką z dysku, więc musi trafić
+ * do bundla funkcji – inaczej odczyt kończy się „Setting up fake worker failed: Cannot find module …”.
+ * pdfjs-dist bywa zagnieżdżone w node_modules/pdf-parse (zależnie od sposobu instalacji), stąd oba warianty ścieżek.
+ */
+const PDF_RUNTIME_FILES = [
+  "./node_modules/pdf-parse/dist/**/*",
+  "./node_modules/pdf-parse/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+  "./node_modules/pdf-parse/node_modules/pdfjs-dist/legacy/build/pdf.mjs",
+  "./node_modules/pdf-parse/node_modules/pdfjs-dist/standard_fonts/**/*",
+  "./node_modules/pdf-parse/node_modules/pdfjs-dist/cmaps/**/*",
+  "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+  "./node_modules/pdfjs-dist/legacy/build/pdf.mjs",
+  "./node_modules/pdfjs-dist/standard_fonts/**/*",
+  "./node_modules/pdfjs-dist/cmaps/**/*",
+  "./node_modules/@napi-rs/canvas/**/*",
+  "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
+];
+
 const cspHeaderName =
   process.env.CSP_REPORT_ONLY === "1" ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
 
@@ -78,15 +97,9 @@ const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   outputFileTracingIncludes: {
-    "/api/transport/parse-ticket": [
-      "./node_modules/pdf-parse/dist/**/*",
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      "./node_modules/pdfjs-dist/legacy/build/pdf.mjs",
-      "./node_modules/pdfjs-dist/standard_fonts/**/*",
-      "./node_modules/pdfjs-dist/cmaps/**/*",
-      "./node_modules/@napi-rs/canvas/**/*",
-      "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
-    ],
+    // Obie trasy czytają PDF (lib/server/ticketPdf.ts): ręczne wgranie biletu i poczta z biletami.
+    "/api/transport/parse-ticket": PDF_RUNTIME_FILES,
+    "/api/mail/inbound": PDF_RUNTIME_FILES,
   },
   images: {
     remotePatterns: [

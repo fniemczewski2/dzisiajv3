@@ -8,3 +8,23 @@ compatibility_date = "2026-10-01"
 INBOUND_URL = "https://www.dzisiaj.fun/api/mail/inbound"
 # Limit jednego PDF z biletem (bajty). Zmiana: docs/RUNBOOK.md, „Limity wiadomości (bilety)”.
 MAX_PDF_BYTES = "2000000"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+redact_query_string = false
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = false
+head_sampling_rate = 1
+persist = true
+
+[observability.issues]
+enabled = true
+

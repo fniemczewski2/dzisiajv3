@@ -11,7 +11,10 @@
 // Bramka nie zapisuje treści: przekazuje ją jednym żądaniem do aplikacji.
 //
 // Odpowiedź o wyniku: aplikacja zwraca w JSON pole `notice` (temat + treść), a bramka wysyła je jako
-// reply na przekierowaną wiadomość – nadawcą jest adres biletów b-<token>@…, adresatem autor przekierowania.
+// reply na przekierowaną wiadomość – nadawcą jest adres biletów b-<token>@…, adresatem skrzynka, która
+// wiadomość przekazała (nadawca koperty SMTP). Działa tak samo dla automatycznego przekazywania w Gmailu
+// i dla ręcznego „Przekaż dalej”: w obu przypadkach kopertę wystawia skrzynka przekazująca, a nagłówek
+// From zostaje przewoźnika (przekazywanie automatyczne) albo zmienia się na użytkownika (ręczne).
 // Wiadomości nie odrzucamy nawet przy błędzie aplikacji: zwrot SMTP kończył się komunikatem od
 // mailer-daemona i utratą biletu. Błąd aplikacji → reply z informacją o niepowodzeniu.
 
@@ -80,6 +83,16 @@ export default {
       ...mapped.filter((a) => !a.icsText && !a.pdfBase64),
     ].slice(0, 20);
 
+    console.log(
+      "inbound",
+      JSON.stringify({
+        to: message.to,
+        tickets,
+        parsed: (parsed.attachments ?? []).map((a) => ({ n: a.filename, m: a.mimeType })),
+        sent: attachments.map((a) => ({ n: a.filename, m: a.mimeType, pdf: Boolean(a.pdfBase64) })),
+      })
+    );
+
     const res = await fetch(env.INBOUND_URL, {
       method: "POST",
       headers: { "content-type": "application/json", "x-mail-inbound-secret": env.MAIL_INBOUND_SECRET },
@@ -93,24 +106,38 @@ export default {
       }),
     });
 
-    const notice = await readNotice(res);
-    await reply(message, parsed, notice);
+    const { notice, summary } = await readNotice(res);
+    // Diagnostyka bez danych wrażliwych: fragment adresu, liczba PDF i odpowiedź aplikacji.
+    console.log(
+      "inbound",
+      JSON.stringify({
+        token: message.to.slice(0, 6),
+        pdfs: attachments.filter((a) => a.pdfBase64).length,
+        status: res.status,
+        summary: summary.slice(0, 1200),
+      })
+    );
+    await reply(message, parsed, notice, env);
   },
 };
 
-/** Treść odpowiedzi z aplikacji; przy błędzie HTTP – komunikat zastępczy. */
+/** Treść odpowiedzi z aplikacji (plus surowa odpowiedź do logu); przy błędzie HTTP – komunikat zastępczy. */
 async function readNotice(res) {
+  const summary = await res.text().catch(() => "");
   if (res.status !== 202) {
     return {
-      subject: "Bilet: nie udało się przetworzyć",
-      body: `Aplikacja odrzuciła wiadomość (kod ${res.status}). Bilet nie został dodany – spróbuj ponownie później.`,
+      summary,
+      notice: {
+        subject: "Bilet: nie udało się przetworzyć",
+        body: `Aplikacja odrzuciła wiadomość (kod ${res.status}). Bilet nie został dodany – spróbuj ponownie później.`,
+      },
     };
   }
   try {
-    const data = await res.json();
-    return data?.notice?.subject && data?.notice?.body ? data.notice : null;
+    const data = JSON.parse(summary);
+    return { summary, notice: data?.notice?.subject && data?.notice?.body ? data.notice : null };
   } catch {
-    return null;
+    return { summary, notice: null };
   }
 }
 
@@ -137,30 +164,44 @@ function encodeBody(body) {
 }
 
 /**
- * Odpowiedź do nadawcy przekierowania, wysłana z adresu, na który bilet przyszedł.
- * message.reply() nie wymaga bindingu send_email – Cloudflare dopuszcza odpowiedź na odebraną wiadomość.
+ * Odpowiedź do skrzynki, która wiadomość przekazała, wysłana z adresu biletów.
+ *
+ * Adresat: nadawca koperty SMTP (`message.from`). Przy automatycznym przekazywaniu w Gmailu nagłówek From
+ * zostaje przewoźnika (bilet@intercity.pl) – odpowiedź na ten adres trafiłaby do PKP Intercity, dlatego
+ * bierzemy kopertę. Przy ręcznym „Przekaż dalej” oba adresy są tą samą skrzynką.
+ *
+ * Nadawca: adres biletów, na który wiadomość przyszła. Cloudflare dopuszcza taki From tylko wtedy, gdy jego
+ * domena jest obsługiwana przez Email Routing na tym koncie – inaczej message.reply() zgłasza
+ * „mail from is not from the correct domain”. Zob. docs/RUNBOOK.md, „Odpowiedzi na wiadomości z biletami”.
  */
-async function reply(message, parsed, notice) {
+async function reply(message, parsed, notice, env) {
   if (!notice) return;
-  const to = parsed.from?.address || message.from;
+  const to = message.from || parsed.from?.address;
   if (!to) return;
   const messageId = `<${crypto.randomUUID()}@${message.to.split("@")[1]}>`;
-  const inReplyTo = parsed.messageId
-    ? `In-Reply-To: ${headerSafe(parsed.messageId)}\r\nReferences: ${headerSafe(parsed.messageId)}\r\n`
-    : "";
+  const original = parsed.messageId ? headerSafe(parsed.messageId) : "";
   const raw =
     `From: ${headerSafe(message.to)}\r\n` +
     `To: ${headerSafe(to)}\r\n` +
     `Subject: ${encodeSubject(notice.subject)}\r\n` +
     `Message-ID: ${messageId}\r\n` +
-    inReplyTo +
+    (original ? `In-Reply-To: ${original}\r\nReferences: ${original}\r\n` : "") +
     `MIME-Version: 1.0\r\n` +
     `Content-Type: text/plain; charset="utf-8"\r\n` +
     `Content-Transfer-Encoding: base64\r\n\r\n` +
     encodeBody(notice.body);
+
   try {
     await message.reply(new EmailMessage(message.to, to, raw));
+    return;
   } catch (err) {
     console.error("reply:", err?.message ?? err);
+  }
+  // Zapasowo binding send_email (wrangler.toml → [[send_email]] name = "NOTIFY"), gdy reply nie przechodzi.
+  if (!env.NOTIFY) return;
+  try {
+    await env.NOTIFY.send(new EmailMessage(message.to, to, raw));
+  } catch (err) {
+    console.error("send_email:", err?.message ?? err);
   }
 }

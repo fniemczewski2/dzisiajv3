@@ -461,8 +461,19 @@ Oczekiwany wynik: `202` z `{ added, duplicates, unreadable, notice }`; ponowne w
 biletu – `202` z `buffered: true` (Poczta → Przekierowane, 72 h). Aplikacja nigdy nie odrzuca wiadomości na adres
 biletów: zwrot SMTP kończył się komunikatem od mailer-daemona i utratą biletu.
 
+### Odpowiedzi na wiadomości z biletami
+
 Pole `notice` (temat + treść) bramka wysyła jako **reply** na przekierowaną wiadomość: nadawcą jest adres biletów
-`b-<token>@…`, adresatem autor przekierowania (nagłówek `From` wiadomości, czyli skrzynka, z której bilet przyszedł).
+`b-<token>@…`, adresatem skrzynka, która wiadomość przekazała (nadawca koperty SMTP). Działa jednakowo dla
+automatycznego przekazywania w Gmailu i dla ręcznego „Przekaż dalej”. Adres z koperty, a nie z nagłówka `From`:
+przy przekazywaniu automatycznym `From` zostaje przewoźnika, więc odpowiedź trafiłaby do PKP Intercity.
+
+Cloudflare dopuszcza `From` tylko z domeny obsługiwanej przez Email Routing na tym koncie. Jeśli w logach Workera
+widać `reply: mail from is not from the correct domain`, domena adresów biletów nie jest tam zarejestrowana
+(same rekordy MX kierujące na Cloudflare nie wystarczą). Wyjścia: włączyć Email Routing dla tej domeny lub
+subdomeny, przenieść adresy biletów na domenę już obsługiwaną (`MAIL_FORWARDING_DOMAIN` w Vercelu + nowy adres
+w Ustawieniach + przepięcie filtra w Gmailu), albo odkomentować binding `[[send_email]]` w `wrangler.toml`
+(wymaga zweryfikowanego adresu docelowego) – bramka użyje go, gdy `message.reply()` zawiedzie.
 Przy nierozpoznanym bilecie treść zawiera inwentarz załączników, które dotarły do aplikacji (nazwa, typ MIME, czy miały
 treść PDF) – to rozstrzyga, czy problem jest w bramce, czy w parserze. Reply wymaga Workera w wersji z `message.reply()`
 (`docs/mail-gateway/worker.js`), więc po tej zmianie konieczny jest `npm run deploy` bramki.
