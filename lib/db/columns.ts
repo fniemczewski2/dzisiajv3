@@ -14,6 +14,8 @@ export const TABLE_COLUMNS = {
   daily_overrides: "id, user_id, date, schema_id, created_at, new_time, is_hidden",
   day_schema_choices: "user_id, date, schema_id, created_at",
   day_schemas: "id, name, days, entries, created_at, user_id, is_default",
+  event_overrides:
+    "id, user_id, event_id, occurrence_date, start_time, end_time, rule_start_time, rule_end_time, canceled, shared, created_at, updated_at",
   events:
     "id, title, description, start_time, end_time, place, repeat, created_at, user_id, shared_with_id, google_event_id, calendar_id, category, recurrence",
   finance_profiles: "id, user_id, name, color, sort_order, created_at",
@@ -43,7 +45,7 @@ export const TABLE_COLUMNS = {
     "id, connection_id, user_id, list_id, list_title, column_map, is_default, created_at, updated_at, sync_enabled, assignee_emails, import_category",
   streaks: "id, name, start_date, icon, created_at, user_id",
   tasks:
-    "id, title, description, due_date, category, priority, status, scheduled_time, user_id, for_user_id, created_at, updated_at, done_at, is_recurring, repeat_days, recurring_until, recurrence, recurring_bill_id, bill_due_date",
+    "id, title, description, due_date, category, priority, status, scheduled_time, user_id, for_user_id, created_at, updated_at, done_at, is_recurring, repeat_days, recurring_until, recurrence, recurrence_anchor, recurring_bill_id, bill_due_date",
   transactions:
     "id, user_id, profile_id, date, amount, is_income, description, category_id, recurring_bill_id, link_status, source, import_key, created_at",
   user_trains:

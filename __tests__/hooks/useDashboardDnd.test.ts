@@ -6,9 +6,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
-const h = vi.hoisted(() => ({ success: vi.fn(), confirm: vi.fn(async () => true) }));
+const occ = vi.hoisted(() => ({
+  move: vi.fn(async () => true),
+  reset: vi.fn(async () => true),
+  find: vi.fn(() => undefined),
+}));
+
+const h = vi.hoisted(() => ({ success: vi.fn(), confirm: vi.fn(async () => true), info: vi.fn() }));
 vi.mock("@/providers/ToastProvider", () => ({
-  useToast: () => ({ toast: { success: h.success, error: vi.fn(), info: vi.fn(), confirm: h.confirm } }),
+  useToast: () => ({ toast: { success: h.success, error: vi.fn(), info: h.info, confirm: h.confirm } }),
 }));
 
 import { useDashboardDnd } from "@/hooks/useDashboardDnd";
@@ -23,8 +29,21 @@ const event = {
 } as never;
 const dropAt = (time: string) => ({ over: { id: `slot-${time}`, data: { current: { time } } }, active: {} });
 
+/** Zapis wyjątku terminu serii – podstawiany we wszystkich wywołaniach hooka. */
+const occurrenceProps: Pick<
+  Parameters<typeof useDashboardDnd>[0],
+  "moveOccurrence" | "resetOccurrence" | "overrideFor"
+> = {
+  moveOccurrence: occ.move,
+  resetOccurrence: occ.reset,
+  overrideFor: occ.find,
+};
+
 beforeEach(() => {
+  occ.move.mockClear();
+  occ.reset.mockClear();
   h.success.mockReset();
+  h.info.mockReset();
   h.confirm.mockReset();
   h.confirm.mockResolvedValue(true);
 });
@@ -34,7 +53,7 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
     const editTask = vi.fn(async () => true);
     const editEvent = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [task], events: [], userId: "u1", date, editTask, editEvent })
+      useDashboardDnd({ tasks: [task], events: [], userId: "u1", date, editTask, editEvent, ...occurrenceProps })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("14:30"), active: { id: "plan-task-7" } } as never);
@@ -50,7 +69,7 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
     const editTask = vi.fn(async () => true);
     const editEvent = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [], events: [event], userId: "u1", date, editTask, editEvent })
+      useDashboardDnd({ tasks: [], events: [event], userId: "u1", date, editTask, editEvent, ...occurrenceProps })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("08:00"), active: { id: "plan-event-e1" } } as never);
@@ -65,7 +84,15 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
   it("odrzucony zapis: brak potwierdzenia sukcesu", async () => {
     const editTask = vi.fn(async () => false);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [task], events: [], userId: "u1", date, editTask, editEvent: vi.fn(async () => false) })
+      useDashboardDnd({
+        tasks: [task],
+        events: [],
+        userId: "u1",
+        date,
+        editTask,
+        editEvent: vi.fn(async () => false),
+        ...occurrenceProps,
+      })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("14:30"), active: { id: "plan-task-7" } } as never);
@@ -83,6 +110,7 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
         date,
         editTask,
         editEvent: vi.fn(async () => true),
+        ...occurrenceProps,
       })
     );
     await act(async () => {
@@ -95,7 +123,15 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
   it("wydarzenie z czasem „…+00” (stan po 1. przesunięciu) da się przesunąć ponownie – poprawne godziny, bez NaN", async () => {
     const editEvent = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [], events: [event], userId: "u1", date, editTask: vi.fn(), editEvent })
+      useDashboardDnd({
+        tasks: [],
+        events: [event],
+        userId: "u1",
+        date,
+        editTask: vi.fn(),
+        editEvent,
+        ...occurrenceProps,
+      })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("15:00"), active: { id: "plan-event-e1" } } as never);
@@ -110,7 +146,15 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
     h.confirm.mockResolvedValue(false);
     const editTask = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [task], events: [], userId: "u1", date, editTask, editEvent: vi.fn() })
+      useDashboardDnd({
+        tasks: [task],
+        events: [],
+        userId: "u1",
+        date,
+        editTask,
+        editEvent: vi.fn(),
+        ...occurrenceProps,
+      })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("14:30"), active: { id: "plan-task-7" } } as never);
@@ -122,7 +166,15 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
   it("Cofnij przywraca poprzednie godziny wydarzenia", async () => {
     const editEvent = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [], events: [event], userId: "u1", date, editTask: vi.fn(), editEvent })
+      useDashboardDnd({
+        tasks: [],
+        events: [event],
+        userId: "u1",
+        date,
+        editTask: vi.fn(),
+        editEvent,
+        ...occurrenceProps,
+      })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("15:00"), active: { id: "plan-event-e1" } } as never);
@@ -140,7 +192,15 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
   it("Cofnij przywraca poprzednią godzinę zadania (także brak godziny)", async () => {
     const editTask = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [task], events: [], userId: "u1", date, editTask, editEvent: vi.fn() })
+      useDashboardDnd({
+        tasks: [task],
+        events: [],
+        userId: "u1",
+        date,
+        editTask,
+        editEvent: vi.fn(),
+        ...occurrenceProps,
+      })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("14:30"), active: { id: "plan-task-7" } } as never);
@@ -157,12 +217,60 @@ describe("useDashboardDnd – potwierdzenie przesunięcia", () => {
   it("upuszczenie w tym samym slocie godzinowym: bez confirm i bez zapisu", async () => {
     const editEvent = vi.fn(async () => true);
     const { result } = renderHook(() =>
-      useDashboardDnd({ tasks: [], events: [event], userId: "u1", date, editTask: vi.fn(), editEvent })
+      useDashboardDnd({
+        tasks: [],
+        events: [event],
+        userId: "u1",
+        date,
+        editTask: vi.fn(),
+        editEvent,
+        ...occurrenceProps,
+      })
     );
     await act(async () => {
       await result.current.handleDragEnd({ ...dropAt("09:00"), active: { id: "plan-event-e1" } } as never);
     });
     expect(h.confirm).not.toHaveBeenCalled();
     expect(editEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe("useDashboardDnd – wystąpienie serii", () => {
+  const seriesInstance = {
+    id: "e1_2026-11-04",
+    title: "Trening",
+    recurrence: { freq: "weekly", interval: 1 },
+    start_time: "2026-11-04T09:00:00+00",
+    end_time: "2026-11-04T10:00:00+00",
+  } as never;
+
+  it("zapisuje wyjątek terminu, a nie wiersz serii", async () => {
+    const editTask = vi.fn(async () => true);
+    const editEvent = vi.fn(async () => true);
+    const { result } = renderHook(() =>
+      useDashboardDnd({
+        tasks: [],
+        events: [seriesInstance],
+        userId: "u1",
+        date,
+        editTask,
+        editEvent,
+        ...occurrenceProps,
+      })
+    );
+    await act(async () => {
+      await result.current.handleDragEnd({ ...dropAt("08:00"), active: { id: "plan-event-e1_2026-11-04" } } as never);
+    });
+    expect(editEvent).not.toHaveBeenCalled();
+    expect(occ.move).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "e1_2026-11-04" }),
+      "2026-11-04",
+      expect.any(Date),
+      expect.any(Date),
+      { shared: false }
+    );
+    const [, , start, end] = occ.move.mock.calls[0] as unknown as [unknown, string, Date, Date];
+    expect(start.getHours()).toBe(8);
+    expect(end.getTime() - start.getTime()).toBe(60 * 60 * 1000);
   });
 });

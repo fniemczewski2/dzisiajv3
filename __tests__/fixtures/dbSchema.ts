@@ -1,6 +1,6 @@
 // __tests__/fixtures/dbSchema.ts
 //
-// Zamrożona migawka schematu bazy (supabase/introspect_schema.sql, 2026-11-03; uzupełniona o migracje 2026-11-05_poll_signups, 2026-11-20_brief_feed_tickets i 2026-11-22_dashboard_layout): nazwy wszystkich tabel schematu public,
+// Zamrożona migawka schematu bazy (supabase/introspect_schema.sql, 2026-11-03; uzupełniona o migracje 2026-11-05_poll_signups, 2026-11-20_brief_feed_tickets, 2026-11-22_dashboard_layout i 2026-11-22_series_occurrence_exceptions): nazwy wszystkich tabel schematu public,
 // kubełki Storage i kolumny tabel czytanych przez aplikację. Po zmianie schematu uruchom introspekcję ponownie
 // i zaktualizuj ten plik – testy w __tests__/config pilnują wtedy listy kolumn, eksportu i usuwania konta.
 
@@ -14,6 +14,7 @@ export const DB_TABLES = [
   "day_schema_choices",
   "day_schemas",
   "errors",
+  "event_overrides",
   "events",
   "finance_profiles",
   "health_daily",
@@ -114,6 +115,20 @@ export const DB_COLUMNS: Record<string, readonly string[]> = {
   daily_overrides: ["id", "user_id", "date", "schema_id", "created_at", "new_time", "is_hidden"],
   day_schema_choices: ["user_id", "date", "schema_id", "created_at"],
   day_schemas: ["id", "name", "days", "entries", "created_at", "user_id", "is_default"],
+  event_overrides: [
+    "id",
+    "user_id",
+    "event_id",
+    "occurrence_date",
+    "start_time",
+    "end_time",
+    "rule_start_time",
+    "rule_end_time",
+    "canceled",
+    "shared",
+    "created_at",
+    "updated_at",
+  ],
   events: [
     "id",
     "title",
@@ -348,6 +363,7 @@ export const DB_COLUMNS: Record<string, readonly string[]> = {
     "repeat_days",
     "recurring_until",
     "recurrence",
+    "recurrence_anchor",
     "recurring_bill_id",
     "bill_due_date",
   ],

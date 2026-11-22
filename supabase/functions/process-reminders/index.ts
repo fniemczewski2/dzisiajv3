@@ -17,6 +17,8 @@ interface RecurringTask {
   repeat_days: number | null;
   recurring_until: string | null;
   recurrence?: unknown;
+  /** Dzień, od którego liczona jest siatka reguły (tasks.recurrence_anchor). */
+  recurrence_anchor?: string | null;
 }
 
 type RollOutcome = "skipped" | "finished" | "rolled" | "failed";
@@ -31,9 +33,14 @@ function resolveBaseDate(doneDate: string | null, dueDate: string | null): strin
  * Reguła „dzień miesiąca” bez zapisanego dnia dostaje go z obecnego terminu,
  * zanim termin się przesunie (inaczej „31.” po lutym zostałoby „28.”).
  */
+/** Kotwica siatki reguły; zadania sprzed jej wprowadzenia liczą się od bieżącego terminu. */
+function anchorOf(task: RecurringTask): string | null {
+  return task.recurrence_anchor ?? task.due_date;
+}
+
 function taskRule(task: RecurringTask): RecurrenceRule | null {
   const rule = normalizeRule(task.recurrence);
-  if (rule) return rule.monthDay ? rule : withMonthDay(rule, task.due_date);
+  if (rule) return rule.monthDay ? rule : withMonthDay(rule, anchorOf(task));
   if (task.repeat_days && task.repeat_days > 0) {
     return { freq: "daily", interval: task.repeat_days, until: task.recurring_until };
   }
@@ -41,9 +48,10 @@ function taskRule(task: RecurringTask): RecurrenceRule | null {
 }
 
 /**
- * Następny termin po wykonaniu. Kotwicą reguły jest dotychczasowy termin
- * (to wystąpienie reguły), a szukamy po dniu późniejszym z: terminu i dnia
- * wykonania – zadanie zrobione z opóźnieniem nie „nadrabia” zaległych terminów.
+ * Następny termin po wykonaniu. Kotwicą reguły jest `recurrence_anchor` (a dla starszych zadań
+ * bieżący termin), więc przeniesienie jednego zadania na inny dzień nie przestawia kolejnych
+ * wystąpień. Szukamy po dniu późniejszym z: terminu i dnia wykonania – zadanie zrobione
+ * z opóźnieniem nie „nadrabia” zaległych terminów.
  */
 export function nextDueDate(task: RecurringTask): string | null | undefined {
   const rule = taskRule(task);
@@ -51,7 +59,7 @@ export function nextDueDate(task: RecurringTask): string | null | undefined {
   const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
   const base = resolveBaseDate(doneDate, task.due_date);
   if (!base) return undefined;
-  return nextOccurrenceAfter(task.due_date ?? base, rule, base);
+  return nextOccurrenceAfter(anchorOf(task) ?? base, rule, base);
 }
 
 async function rollRecurringTask(supabase: SupabaseClient, task: RecurringTask): Promise<RollOutcome> {

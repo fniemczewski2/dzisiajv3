@@ -14,6 +14,12 @@ interface DayEventsProps {
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
   userOptions: string[];
+  /** Odwołanie jednego terminu serii. */
+  onCancelOccurrence?: (event: Event, occurrenceDate: string) => Promise<void> | void;
+  /** Powrót wystąpienia na termin z reguły. */
+  onRestoreOccurrence?: (event: Event, occurrenceDate: string) => Promise<void> | void;
+  /** Czy wystąpienie ma wyjątek terminu (wtedy pokazujemy „Przywróć”). */
+  isOccurrenceChanged?: (event: Event) => boolean;
 }
 
 export function DayEvents({
@@ -24,6 +30,9 @@ export function DayEvents({
   onDeleteEvent,
   onEventsChange,
   userOptions,
+  onCancelOccurrence,
+  onRestoreOccurrence,
+  isOccurrenceChanged,
 }: Readonly<DayEventsProps>) {
   if (fetchingEvents) {
     return (
@@ -45,6 +54,9 @@ export function DayEvents({
           onDeleteEvent={onDeleteEvent}
           onEventsChange={onEventsChange}
           userOptions={userOptions}
+          onCancelOccurrence={onCancelOccurrence}
+          onRestoreOccurrence={onRestoreOccurrence}
+          occurrenceChanged={isOccurrenceChanged?.(event) ?? false}
         />
       ))}
       {events.length === 0 && <NoResultsState text="wydarzeń" />}

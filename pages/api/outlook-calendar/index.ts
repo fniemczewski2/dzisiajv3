@@ -398,6 +398,75 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (action === "export") return handleExport(req, res, supabase, user);
   if (action === "disconnect") return handleDisconnect(req, res, supabase, user);
   if (action === "delete-remote") return handleDeleteRemote(req, res, supabase, user);
+  if (action === "sync-occurrence") return handleSyncOccurrence(req, res, supabase, user);
 
   return res.status(404).json({ error: "Nieznana akcja." });
+}
+
+/**
+ * Wyjątek jednego terminu serii w kalendarzu Outlook. Graph wystawia wystąpienia serii pod
+ * /events/{id}/instances – zmieniamy to jedno wystąpienie (albo je usuwamy przy odwołaniu terminu),
+ * reguła serii zostaje nietknięta.
+ */
+async function handleSyncOccurrence(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Metoda niedozwolona." });
+  try {
+    const { eventId, occurrenceDate, startTime, endTime, canceled } = req.body ?? {};
+    if (typeof eventId !== "string" || !eventId)
+      return res.status(400).json({ error: "Brak identyfikatora wydarzenia." });
+    if (typeof occurrenceDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate)) {
+      return res.status(400).json({ error: "Brak dnia wystąpienia." });
+    }
+
+    const { data: ev } = await supabase
+      .from("events")
+      .select("id, google_event_id, calendar_id")
+      .eq("id", eventId)
+      .eq("user_id", user.id)
+      .maybeSingle<{ id: string; google_event_id: string | null; calendar_id: string | null }>();
+    if (!ev) return res.status(404).json({ error: "Nie znaleziono wydarzenia." });
+    if (!ev.google_event_id || !ev.calendar_id) return res.json({ synced: false, linked: false });
+
+    const target = await resolveExportTarget(supabase, user.id, "outlook", ev.calendar_id);
+    if (!target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
+    const { data: mainAcc } = await supabase
+      .from("connected_calendars")
+      .select(cols("connected_calendars"))
+      .eq("user_id", user.id)
+      .eq("provider", "outlook")
+      .eq("google_calendar_id", "@account_connection")
+      .eq("account_email", target.accountEmail)
+      .limit(1)
+      .maybeSingle<ConnectedCalendarRow>();
+    if (!mainAcc) return res.status(400).json({ error: "Brak podłączonego konta Microsoft" });
+
+    const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
+    const instancesUrl =
+      `https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(ev.google_event_id)}/instances` +
+      `?startDateTime=${encodeURIComponent(`${occurrenceDate}T00:00:00`)}` +
+      `&endDateTime=${encodeURIComponent(`${occurrenceDate}T23:59:59`)}`;
+    const listed = await fetch(instancesUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!listed.ok) return res.status(502).json({ error: "Outlook nie zwrócił wystąpień serii." });
+    const instances = (await listed.json()) as { value?: Array<{ id?: string }> };
+    const instanceId = instances.value?.[0]?.id;
+    if (!instanceId) return res.json({ synced: false, linked: true });
+
+    const instanceUrl = `https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(instanceId)}`;
+    const r = canceled
+      ? await fetch(instanceUrl, { method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` } })
+      : await fetch(instanceUrl, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            start: { dateTime: warsawNaiveToRFC3339(String(startTime)), timeZone: "Europe/Warsaw" },
+            end: { dateTime: warsawNaiveToRFC3339(String(endTime)), timeZone: "Europe/Warsaw" },
+          }),
+        });
+    if (!r.ok && !(canceled && r.status === 404)) {
+      return res.status(502).json({ error: "Outlook odrzucił zmianę terminu." });
+    }
+    return res.json({ synced: true, linked: true });
+  } catch {
+    return res.status(500).json({ error: "Błąd zmiany terminu w kalendarzu Outlook" });
+  }
 }

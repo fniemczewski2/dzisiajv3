@@ -7,7 +7,7 @@
 
 import { MAX_TASK_OCCURRENCES } from "@/config/limits";
 import type { Task } from "@/types/tasks";
-import { taskRule } from "./taskRecurrence";
+import { taskAnchor, taskRule } from "./taskRecurrence";
 import { occurrencesBetween, withMonthDay } from "@/shared/recurrence";
 
 export interface TaskOccurrencePreview {
@@ -36,11 +36,13 @@ export function projectTaskOccurrences(
     if (!task.due_date || task.status === "waiting_for_acceptance") continue;
     const rule = taskRule(task);
     if (!rule) continue;
-    const anchored = rule.monthDay ? rule : withMonthDay(rule, task.due_date);
+    const anchorDay = taskAnchor(task) ?? task.due_date;
+    const anchored = rule.monthDay ? rule : withMonthDay(rule, anchorDay);
     if (!anchored) continue;
 
     const after = task.due_date > today ? task.due_date : today;
-    const days = occurrencesBetween(task.due_date, anchored, from, to)
+    // Siatkę liczymy od kotwicy: przeniesienie jednego terminu nie przestawia kolejnych wystąpień.
+    const days = occurrencesBetween(anchorDay, anchored, from, to)
       .filter((day) => day > after)
       .slice(0, MAX_TASK_OCCURRENCES);
     for (const date of days) previews.push({ key: `${task.id}@${date}`, date, task });

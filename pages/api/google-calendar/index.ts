@@ -339,6 +339,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action === "export" && req.method === "POST") return await handleExport(req, res, auth);
     if (action === "disconnect" && req.method === "DELETE") return await handleDisconnect(req, res, auth);
     if (action === "delete-remote" && req.method === "POST") return await handleDeleteRemote(req, res, auth);
+    if (action === "sync-occurrence" && req.method === "POST") return await handleSyncOccurrence(req, res, auth);
     return res.status(404).json({ error: "Nieznana akcja." });
   } catch (error) {
     console.error("[google-calendar] Nieoczekiwany błąd:", error);
@@ -443,4 +444,58 @@ async function handleDeleteRemote(req: NextApiRequest, res: NextApiResponse, aut
     return res.status(502).json({ error: "Kalendarz Google odrzucił usunięcie wydarzenia." });
   }
   return res.json({ deleted: true, linked: true });
+}
+
+/**
+ * Wyjątek jednego terminu serii w Kalendarzu Google. Google trzyma wystąpienia serii jako osobne
+ * zasoby (instances) z własnym id – zmieniamy to jedno wystąpienie, reguła serii zostaje nietknięta.
+ * `canceled` → status "cancelled" (Google nie usuwa wystąpienia, tylko je odwołuje).
+ */
+async function handleSyncOccurrence(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const { eventId, occurrenceDate, startTime, endTime, canceled } = req.body ?? {};
+  if (typeof eventId !== "string" || !eventId)
+    return res.status(400).json({ error: "Brak identyfikatora wydarzenia." });
+  if (typeof occurrenceDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate)) {
+    return res.status(400).json({ error: "Brak dnia wystąpienia." });
+  }
+
+  const sb = userSupabase(auth.token);
+  const { data: ev } = await sb
+    .from("events")
+    .select("id, google_event_id, calendar_id")
+    .eq("id", eventId)
+    .eq("user_id", auth.user.id)
+    .maybeSingle<{ id: string; google_event_id: string | null; calendar_id: string | null }>();
+  if (!ev) return res.status(404).json({ error: "Nie znaleziono wydarzenia." });
+  if (!ev.google_event_id || !ev.calendar_id) return res.json({ synced: false, linked: false });
+
+  const target = await resolveExportTarget(sb, auth.user.id, "google", ev.calendar_id);
+  if (!target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
+  const accessToken = await getValidGoogleToken(auth, target.rowId);
+  if (!accessToken) return res.status(400).json({ error: "Brak połączenia z Kalendarzem Google." });
+
+  // Wystąpienie z dnia siatki reguły – szukamy po oknie jednej doby tego dnia.
+  const instancesUrl = new URL(`${buildGoogleEventsUrl(target.calendarId, ev.google_event_id)}/instances`);
+  instancesUrl.searchParams.set("timeMin", warsawNaiveToRFC3339(`${occurrenceDate}T00:00:00`));
+  instancesUrl.searchParams.set("timeMax", warsawNaiveToRFC3339(`${occurrenceDate}T23:59:59`));
+  instancesUrl.searchParams.set("maxResults", "5");
+  const listed = await fetch(instancesUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!listed.ok) return res.status(502).json({ error: "Kalendarz Google nie zwrócił wystąpień serii." });
+  const instances = (await listed.json()) as GoogleEventsListResponse;
+  const instance = instances.items?.[0];
+  if (!instance?.id) return res.json({ synced: false, linked: true });
+
+  const body = canceled
+    ? { status: "cancelled" }
+    : {
+        start: { dateTime: warsawNaiveToRFC3339(String(startTime)), timeZone: "Europe/Warsaw" },
+        end: { dateTime: warsawNaiveToRFC3339(String(endTime)), timeZone: "Europe/Warsaw" },
+      };
+  const patched = await fetch(buildGoogleEventsUrl(target.calendarId, instance.id), {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!patched.ok) return res.status(502).json({ error: "Kalendarz Google odrzucił zmianę terminu." });
+  return res.json({ synced: true, linked: true });
 }

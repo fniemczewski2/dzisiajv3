@@ -59,21 +59,30 @@ const eventTimes = (event: Event): string => {
 
 interface WeekEventItemProps {
   event: Event;
-  /** Wystąpienie serii lub urodziny – bez przenoszenia w widoku tygodnia. */
+  /** Urodziny lub imieniny z kontaktu – bez przenoszenia w widoku tygodnia. */
   locked: boolean;
+  /** Wystąpienie serii – przeniesienie dotyczy tylko tego jednego terminu. */
+  recurring?: boolean;
 }
 
-export const WeekEventItem = React.memo(({ event, locked }: Readonly<WeekEventItemProps>) => (
+export const WeekEventItem = React.memo(({ event, locked, recurring = false }: Readonly<WeekEventItemProps>) => (
   <div className={CARD}>
     <Calendar aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
     <div className="min-w-0 flex-1">
       <p className={TITLE}>{event.title}</p>
       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
         <span>{eventTimes(event)}</span>
-        {locked && (
-          <span className="inline-flex items-center gap-1" title="Wydarzenie cykliczne – przeniesiesz je w kalendarzu">
+        {(locked || recurring) && (
+          <span
+            className="inline-flex items-center gap-1"
+            title={
+              locked
+                ? "Urodziny lub imieniny – zmienisz je w kontakcie"
+                : "Wydarzenie cykliczne – przeniesienie dotyczy tylko tego terminu"
+            }
+          >
             <Repeat aria-hidden="true" className="h-3 w-3" />
-            <span className="sr-only">Wydarzenie cykliczne</span>
+            <span className="sr-only">{locked ? "Z kontaktu" : "Wydarzenie cykliczne"}</span>
           </span>
         )}
       </p>

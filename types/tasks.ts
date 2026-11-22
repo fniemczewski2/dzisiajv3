@@ -21,4 +21,9 @@ export interface Task {
   repeat_days?: number | null;
   recurring_until?: string | null;
   recurrence?: RecurrenceRule | null;
+  /**
+   * Dzień, od którego liczona jest siatka reguły. Przeniesienie pojedynczego zadania zmienia `due_date`,
+   * a kotwica zostaje – kolejne wystąpienia wypadają tam, gdzie dotąd.
+   */
+  recurrence_anchor?: string | null;
 }

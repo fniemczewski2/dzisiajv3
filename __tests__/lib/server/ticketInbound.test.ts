@@ -14,8 +14,9 @@ const TEXT = [
   "Miejsca: 14 ś Przy stoliku",
 ].join("\n");
 
-function fakeAdmin(existing: unknown[]) {
-  const insert = vi.fn(async () => ({ error: null }));
+function fakeAdmin(existing: unknown[], insertErrors: ({ code: string } | null)[] = []) {
+  let call = 0;
+  const insert = vi.fn(async () => ({ error: insertErrors[call++] ?? null }));
   const select = {
     eq: () => select,
     in: async () => ({ data: existing, error: null }),
@@ -42,7 +43,8 @@ describe("importTicketMail", () => {
   it("dodaje odcinek z PDF", async () => {
     const { admin, insert } = fakeAdmin([]);
     const result = await importTicketMail(admin, "u1", message(["QQ=="]), async () => TEXT);
-    expect(result).toEqual({ added: 1, duplicates: 0, unreadable: 0 });
+    expect(result).toMatchObject({ added: 1, duplicates: 0, unreadable: 0 });
+    expect(result.addedRows).toHaveLength(1);
     expect(insert).toHaveBeenCalledWith([expect.objectContaining({ train_number: "6112", needs_review: true })]);
   });
 
@@ -51,7 +53,7 @@ describe("importTicketMail", () => {
       { date: "2026-11-26", train_number: "6112", departure_time: "06:36", wagon: "15", seat: "14" },
     ]);
     const result = await importTicketMail(admin, "u1", message(["QQ==", "QQ=="]), async () => TEXT);
-    expect(result).toEqual({ added: 0, duplicates: 2, unreadable: 0 });
+    expect(result).toMatchObject({ added: 0, duplicates: 2, unreadable: 0 });
     expect(insert).not.toHaveBeenCalled();
   });
 
@@ -59,6 +61,21 @@ describe("importTicketMail", () => {
     const { admin } = fakeAdmin([]);
     const failing = vi.fn().mockResolvedValueOnce("Faktura").mockRejectedValueOnce(new Error("pdf"));
     const result = await importTicketMail(admin, "u1", message(["QQ==", "QQ=="]), failing);
-    expect(result).toEqual({ added: 0, duplicates: 0, unreadable: 2 });
+    expect(result).toMatchObject({ added: 0, duplicates: 0, unreadable: 2 });
+  });
+
+  it("godzina z bazy w formacie HH:MM:SS liczy się jako duplikat", async () => {
+    const { admin, insert } = fakeAdmin([
+      { date: "2026-11-26", train_number: "6112", departure_time: "06:36:00", wagon: "15", seat: "14" },
+    ]);
+    const result = await importTicketMail(admin, "u1", message(["QQ=="]), async () => TEXT);
+    expect(result).toMatchObject({ added: 0, duplicates: 1 });
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("kolizja z indeksem dedupe nie przepada jako błąd", async () => {
+    const { admin } = fakeAdmin([], [{ code: "23505" }]);
+    const result = await importTicketMail(admin, "u1", message(["QQ=="]), async () => TEXT);
+    expect(result).toMatchObject({ added: 0, duplicates: 1, unreadable: 0 });
   });
 });

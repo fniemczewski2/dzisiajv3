@@ -13,7 +13,11 @@ import type { Event } from "@/types/events";
 import { useToast } from "@/providers/ToastProvider";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { useConfirmedMove } from "@/hooks/useConfirmedMove";
+import { useOccurrenceScope } from "@/hooks/useOccurrenceScope";
 import { isMovableEvent, moveEventToDay, moveTaskToDay, parseDay, parseDayDropId } from "@/lib/weekPlan";
+import { seriesOccurrence } from "@/lib/eventUtils";
+import { parseEventDate } from "@/lib/dateUtils";
+import type { EventOverride } from "@/types/events";
 
 type EditOptions = { silent?: boolean };
 
@@ -29,6 +33,18 @@ interface UseWeekDndProps {
   events: Event[];
   editTask: (task: Task & { shared_with_email?: string }, options?: EditOptions) => Promise<boolean>;
   editEvent: (event: Event & { shared_with_email?: string }, options?: EditOptions) => Promise<boolean>;
+  /** Nowy termin jednego wystąpienia serii (hooks/db/useEventOverrides.ts). */
+  moveOccurrence: (
+    event: Event,
+    occurrenceDate: string,
+    start: Date,
+    end: Date,
+    options?: { shared?: boolean }
+  ) => Promise<boolean>;
+  /** Powrót wystąpienia na termin z reguły. */
+  resetOccurrence: (event: Event, occurrenceDate: string) => Promise<boolean>;
+  /** Obecny wyjątek wystąpienia – potrzebny do cofnięcia przeniesienia. */
+  overrideFor: (eventId: string, occurrenceDate: string) => EventOverride | undefined;
 }
 
 export interface DraggedWeekItem {
@@ -48,9 +64,18 @@ const dragDataOf = (event: DragStartEvent | DragEndEvent): WeekDragData | null =
   return { kind: data.kind, itemId: data.itemId, day: data.day };
 };
 
-export function useWeekDnd({ tasks, events, editTask, editEvent }: Readonly<UseWeekDndProps>) {
+export function useWeekDnd({
+  tasks,
+  events,
+  editTask,
+  editEvent,
+  moveOccurrence,
+  resetOccurrence,
+  overrideFor,
+}: Readonly<UseWeekDndProps>) {
   const { toast } = useToast();
   const confirmMove = useConfirmedMove();
+  const askScope = useOccurrenceScope();
   const [dragged, setDragged] = useState<DraggedWeekItem | null>(null);
 
   // Cofnięcie działa na aktualnym stanie, nie na migawce z chwili przeniesienia.
@@ -89,12 +114,56 @@ export function useWeekDnd({ tasks, events, editTask, editEvent }: Readonly<UseW
     [tasks, editTask, confirmMove, tasksRef]
   );
 
+  /**
+   * Jedno wystąpienie serii przeniesione do innej kolumny: zapis idzie do wyjątku terminu,
+   * więc reguła i kolejne terminy zostają bez zmian (cotygodniowy poniedziałek raz w środę).
+   */
+  const moveOccurrenceToDay = useCallback(
+    async (instance: Event, occurrence: { seriesId: string; occurrenceDate: string }, toDay: string) => {
+      const moved = moveEventToDay(instance, instance.start_time.slice(0, 10), toDay);
+      if (!moved) {
+        toast.error("Nieprawidłowy czas wydarzenia.");
+        return;
+      }
+      const before = overrideFor(occurrence.seriesId, occurrence.occurrenceDate);
+      const { shared } = await askScope(instance, "move");
+      await confirmMove({
+        title: instance.title,
+        targetLabel: dayLabel(toDay),
+        apply: () =>
+          moveOccurrence(
+            instance,
+            occurrence.occurrenceDate,
+            parseEventDate(moved.start_time),
+            parseEventDate(moved.end_time),
+            { shared }
+          ),
+        revert: () =>
+          before
+            ? moveOccurrence(
+                instance,
+                occurrence.occurrenceDate,
+                parseEventDate(before.start_time),
+                parseEventDate(before.end_time),
+                { shared: Boolean(before.shared) }
+              )
+            : resetOccurrence(instance, occurrence.occurrenceDate),
+      });
+    },
+    [toast, confirmMove, moveOccurrence, resetOccurrence, overrideFor, askScope]
+  );
+
   const moveEvent = useCallback(
     async (eventId: string, fromDay: string, toDay: string) => {
       const current = events.find((e) => String(e.id) === eventId);
       if (!current || fromDay === toDay) return;
+      const occurrence = seriesOccurrence(eventId);
+      if (occurrence) {
+        await moveOccurrenceToDay(current, occurrence, toDay);
+        return;
+      }
       if (!isMovableEvent(current)) {
-        toast.info("Wydarzenie cykliczne lub urodziny przeniesiesz w kalendarzu (edycja całej serii).");
+        toast.info("Urodziny i imieniny zmienisz w kontakcie.");
         return;
       }
       const moved = moveEventToDay(current, fromDay, toDay);
@@ -114,7 +183,7 @@ export function useWeekDnd({ tasks, events, editTask, editEvent }: Readonly<UseW
         },
       });
     },
-    [events, editEvent, toast, confirmMove, eventsRef]
+    [events, editEvent, toast, confirmMove, eventsRef, moveOccurrenceToDay]
   );
 
   const handleDragEnd = useCallback(

@@ -398,6 +398,41 @@
     display: none;
   }
 
+  /*
+   * iOS Safari (także w PWA) nadaje polom daty i czasu szerokość wewnętrzną zależną od formatu
+   * i ignoruje width z kontenera – pole wychodzi poza kartę formularza. Wyłączenie natywnego
+   * wyglądu z min-width: 0 i border-box sprowadza je do szerokości rodzica.
+   */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Wewnętrzny kontener wartości na WebKicie ma własną szerokość i wyśrodkowanie. */
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value,
+  input[type="month"]::-webkit-date-and-time-value,
+  input[type="week"]::-webkit-date-and-time-value {
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Pola złożone z segmentów (dzień, miesiąc, rok) nie mogą rozpychać pola. */
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="datetime-local"]::-webkit-datetime-edit {
+    min-width: 0;
+    padding: 0;
+  }
+
   input:focus,
   textarea:focus,
   select:focus {
@@ -465,7 +500,7 @@
 
 @layer components {
   .input-field {
-    @apply min-h-11 w-full rounded-lg border border-input bg-card px-3 py-2 text-base text-text transition-all focus:border-transparent focus:ring-2 focus:ring-primary/70 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-danger aria-invalid:ring-danger/40;
+    @apply min-h-11 w-full min-w-0 rounded-lg border border-input bg-card px-3 py-2 text-base text-text transition-all focus:border-transparent focus:ring-2 focus:ring-primary/70 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-danger aria-invalid:ring-danger/40;
   }
 
   .form-card {

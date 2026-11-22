@@ -26,11 +26,17 @@ export function DraggablePlanItem({ id, type, children, data }: Readonly<Draggab
       ref={setNodeRef}
       {...(isDraggable ? attributes : {})}
       {...(isDraggable ? listeners : {})}
-      style={{ touchAction: isDraggable ? "none" : "auto" }}
+      // „manipulation” (nie „none”): przewijanie palcem po elemencie działa, a przeciąganie
+      // uruchamia dopiero przytrzymanie (TOUCH_DRAG_DELAY_MS w hooks/useDashboardDnd.ts).
+      style={
+        isDraggable
+          ? { touchAction: "manipulation", WebkitUserSelect: "none", WebkitTouchCallout: "none", userSelect: "none" }
+          : { touchAction: "auto" }
+      }
       className={`${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}`}
     >
       <div
-        className={`pointer-events-auto relative transition-all duration-200 ${
+        className={`pointer-events-auto relative transition-[opacity,transform] duration-200 ${
           isDragging ? "scale-[0.98] opacity-40" : "scale-100 opacity-100"
         }`}
       >

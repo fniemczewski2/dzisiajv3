@@ -13,7 +13,15 @@ import EventCategorySelect from "./EventCategorySelect";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { eventRule } from "@/lib/eventUtils";
 import { describeRule, legacyRepeatFor } from "@/shared/recurrence";
-import { EditButton, DeleteButton, FormButtons, DownloadButton } from "../ui/CommonButtons";
+import {
+  EditButton,
+  DeleteButton,
+  FormButtons,
+  DownloadButton,
+  CancelOccurrenceButton,
+  RestoreOccurrenceButton,
+} from "../ui/CommonButtons";
+import { seriesOccurrence } from "@/lib/eventUtils";
 import { linkifyText } from "@/lib/noteFormatting";
 import { sanitizeHref } from "@/lib/sanitize";
 
@@ -24,6 +32,12 @@ interface EventItemProps {
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
   userOptions: string[];
+  /** Odwołanie tego jednego terminu serii (wystąpienie, nie cała seria). */
+  onCancelOccurrence?: (event: Event, occurrenceDate: string) => Promise<void> | void;
+  /** Powrót wystąpienia na termin z reguły; pokazywane tylko dla zmienionego terminu. */
+  onRestoreOccurrence?: (event: Event, occurrenceDate: string) => Promise<void> | void;
+  /** Czy to wystąpienie ma już wyjątek terminu. */
+  occurrenceChanged?: boolean;
 }
 
 export default function EventItem({
@@ -33,7 +47,12 @@ export default function EventItem({
   onDeleteEvent,
   onEventsChange,
   userOptions,
+  onCancelOccurrence,
+  onRestoreOccurrence,
+  occurrenceChanged = false,
 }: Readonly<EventItemProps>) {
+  // Wystąpienie serii ma id „<id serii>_<yyyy-MM-dd>” – dla niego działa odwołanie i przywrócenie terminu.
+  const occurrence = seriesOccurrence(String(event.id));
   const { supabase } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
@@ -279,6 +298,18 @@ export default function EventItem({
           }}
           fileFormat=".ics"
         />
+        {occurrence && onCancelOccurrence && (
+          <CancelOccurrenceButton
+            onClick={() => void onCancelOccurrence(event, occurrence.occurrenceDate)}
+            loading={loading}
+          />
+        )}
+        {occurrence && occurrenceChanged && onRestoreOccurrence && (
+          <RestoreOccurrenceButton
+            onClick={() => void onRestoreOccurrence(event, occurrence.occurrenceDate)}
+            loading={loading}
+          />
+        )}
         <EditButton onClick={handleEdit} />
         <DeleteButton onClick={handleDelete} />
       </div>

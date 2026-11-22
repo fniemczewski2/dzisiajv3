@@ -18,6 +18,7 @@ import { encryptToken } from "@/lib/server/tokenCrypto";
 import { hashForwardingToken, isForwardingConfirmation, parseForwardingRecipient } from "@/lib/mail/forwarding";
 import { parseInboundPayload, type InboundMessage } from "@/lib/mail/inbound";
 import { importTicketMail } from "@/lib/server/ticketInbound";
+import { notifyTicketImport } from "@/lib/server/ticketNotify";
 
 /** Wiadomość z biletami w PDF (base64) jest większa niż domyślny limit 1 MB; Vercel przyjmuje do 4,5 MB. */
 export const config = { api: { bodyParser: { sizeLimit: "4mb" } }, maxDuration: 30 };
@@ -57,10 +58,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (result.added > 0 || result.duplicates > 0) {
         // Bilet dotarł – przekazywanie działa, bufor nie jest już potrzebny.
         if (!address.buffer_closed_at) await closeTicketBuffer(admin, address.id);
-        return res.status(202).json(result);
+        await notifyTicketImport(admin, address.user_id, message.subject, { ok: true, result });
+        const { addedRows: _rows, ...summary } = result;
+        return res.status(202).json(summary);
+      }
+      // Bufor zamknięty: wiadomość na adres biletów bez biletu nie trafia już do Poczty – informujemy mailem.
+      if (address.buffer_closed_at) {
+        await notifyTicketImport(admin, address.user_id, message.subject, { ok: true, result });
       }
     } catch (err) {
-      console.error("[mail/inbound] bilety:", err instanceof Error ? err.message : "nieznany błąd");
+      const reason = err instanceof Error ? err.message : "nieznany błąd";
+      console.error("[mail/inbound] bilety:", reason);
+      await notifyTicketImport(admin, address.user_id, message.subject, { ok: false, reason });
       return res.status(500).json({ error: "Nie udało się zapisać biletu." });
     }
     if (address.buffer_closed_at) {

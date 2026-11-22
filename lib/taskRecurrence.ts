@@ -19,13 +19,22 @@ function legacyRepeatDays(rule: RecurrenceRule): number | null {
  * miesiąca, żeby zadanie „31.” po krótszym miesiącu wracało na 31.
  */
 export function taskRecurrenceFields(rule: RecurrenceRule | null, dueDate?: string | null): Partial<Task> {
-  if (!rule) return { is_recurring: false, recurrence: null, repeat_days: null, recurring_until: null };
+  if (!rule)
+    return { is_recurring: false, recurrence: null, repeat_days: null, recurring_until: null, recurrence_anchor: null };
   return {
     is_recurring: true,
     recurrence: withMonthDay(rule, dueDate),
     repeat_days: legacyRepeatDays(rule),
     recurring_until: rule.until ?? null,
+    // Kotwica siatki reguły. Ustawiana przy włączeniu lub zmianie reguły; samo przeniesienie
+    // terminu jej nie rusza, więc kolejne wystąpienia wypadają tam, gdzie dotąd.
+    ...(dueDate ? { recurrence_anchor: dueDate } : {}),
   };
+}
+
+/** Dzień, od którego liczona jest siatka reguły: kotwica, a dla zadań sprzed jej wprowadzenia – termin. */
+export function taskAnchor(task: Pick<Task, "recurrence_anchor" | "due_date">): string | null {
+  return task.recurrence_anchor ?? task.due_date ?? null;
 }
 
 /** Reguła zadania: `recurrence`, a dla starszych zadań – co `repeat_days` dni. */

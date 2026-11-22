@@ -13,6 +13,7 @@ import type { Task } from "@/types/tasks";
 import type { Event } from "@/types/events";
 import type { TaskOccurrencePreview } from "@/lib/taskOccurrences";
 import { dayDropId, isMovableEvent, parseDay } from "@/lib/weekPlan";
+import { seriesOccurrence } from "@/lib/eventUtils";
 import { weekEventDragId, weekTaskDragId, type WeekDragData } from "@/hooks/useWeekDnd";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import { WeekEventItem, WeekTaskItem } from "./WeekItem";
@@ -81,11 +82,12 @@ export const WeekDayColumn = React.memo(
         ) : (
           <div className="flex flex-1 flex-col gap-2">
             {events.map((event) => {
-              const locked = !isMovableEvent(event);
+              const occurrence = seriesOccurrence(String(event.id));
+              const locked = !occurrence && !isMovableEvent(event);
               const data: WeekDragData = { kind: "event", itemId: String(event.id), day };
               return (
                 <DraggablePlanItem key={event.id} id={weekEventDragId(day, event.id)} type="event" data={data}>
-                  <WeekEventItem event={event} locked={locked} />
+                  <WeekEventItem event={event} locked={locked} recurring={Boolean(occurrence)} />
                 </DraggablePlanItem>
               );
             })}

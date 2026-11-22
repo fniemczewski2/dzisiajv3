@@ -14,6 +14,11 @@ import { useEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { useDashboardDnd, usePlanSensors } from "@/hooks/useDashboardDnd";
+import { useOccurrenceScope } from "@/hooks/useOccurrenceScope";
+import { useCalendarProviders } from "@/hooks/db/useCalendarProviders";
+import { seriesOccurrence } from "@/lib/eventUtils";
+import { useToast } from "@/providers/ToastProvider";
+import type { Event } from "@/types/events";
 import { useConfirmedMove } from "@/hooks/useConfirmedMove";
 import { usePlanByHour } from "@/hooks/usePlanByHour";
 import { useDragAutoscroll } from "@/hooks/useDragAutoscroll";
@@ -102,7 +107,14 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     editEvent,
     fetching: fetchingEvents,
     loading: loadingEvents,
+    moveOccurrence,
+    cancelOccurrence,
+    resetOccurrence,
+    overrideFor,
   } = useEvents(dateStr, dateStr);
+  const askOccurrenceScope = useOccurrenceScope();
+  const calendarProviderOf = useCalendarProviders();
+  const { toast } = useToast();
   const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
   const { schemas } = useDaySchemas();
   const { workLogs } = useWorkLogs(dateStr);
@@ -129,6 +141,45 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     [schemas, currentDayOfWeek, schemaChoice]
   );
 
+  /** Czy wystąpienie serii ma już własny termin (wtedy da się go przywrócić). */
+  const isOccurrenceChanged = useCallback(
+    (event: Event) => {
+      const occurrence = seriesOccurrence(String(event.id));
+      return Boolean(occurrence && overrideFor(occurrence.seriesId, occurrence.occurrenceDate));
+    },
+    [overrideFor]
+  );
+
+  /** Odwołanie jednego terminu serii: pytamy o potwierdzenie, a przy wydarzeniu dzielonym – o zakres. */
+  const handleCancelOccurrence = useCallback(
+    async (event: Event, occurrenceDate: string) => {
+      // Outlook nie zna odwołanego wystąpienia – Graph usuwa je z serii i aplikacja go już nie odtworzy.
+      const outlookWarning =
+        calendarProviderOf(event) === "outlook"
+          ? " Wydarzenie jest powiązane z Outlookiem: ten termin zostanie tam usunięty z serii i nie da się go przywrócić z aplikacji."
+          : "";
+      const ok = await toast.confirm(
+        `Odwołać ten jeden termin „${event.title}”? Kolejne terminy zostają.${outlookWarning}`,
+        {
+          confirmLabel: "Odwołaj termin",
+          cancelLabel: "Zostaw",
+        }
+      );
+      if (!ok) return;
+      const { shared } = await askOccurrenceScope(event, "cancel");
+      if (await cancelOccurrence(event, occurrenceDate, { shared })) toast.success("Termin odwołany");
+    },
+    [toast, askOccurrenceScope, cancelOccurrence, calendarProviderOf]
+  );
+
+  /** Powrót wystąpienia na termin z reguły. */
+  const handleRestoreOccurrence = useCallback(
+    async (event: Event, occurrenceDate: string) => {
+      if (await resetOccurrence(event, occurrenceDate)) toast.success("Przywrócono termin z serii");
+    },
+    [resetOccurrence, toast]
+  );
+
   const { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd } = useDashboardDnd({
     tasks,
     events,
@@ -136,6 +187,9 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     date,
     editTask,
     editEvent,
+    moveOccurrence,
+    resetOccurrence,
+    overrideFor,
   });
 
   const sensors = usePlanSensors();
@@ -455,6 +509,9 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                     onDeleteEvent={deleteEvent}
                     onEventsChange={fetchEvents}
                     userOptions={userOptions}
+                    onCancelOccurrence={handleCancelOccurrence}
+                    onRestoreOccurrence={handleRestoreOccurrence}
+                    isOccurrenceChanged={isOccurrenceChanged}
                   />
                 </section>
 

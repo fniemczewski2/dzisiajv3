@@ -74,6 +74,9 @@ export default function WeekView({ date, onDateChange }: Readonly<WeekViewProps>
     editEvent,
     loading: loadingEvents,
     fetching: fetchingEvents,
+    moveOccurrence,
+    resetOccurrence,
+    overrideFor,
   } = useEvents(from, to);
   const previews = useRecurringTaskPreviews(from, to, tasks);
 
@@ -97,6 +100,9 @@ export default function WeekView({ date, onDateChange }: Readonly<WeekViewProps>
     events,
     editTask,
     editEvent,
+    moveOccurrence,
+    resetOccurrence,
+    overrideFor,
   });
   const sensors = usePlanSensors();
   useDragAutoscroll(Boolean(dragged));

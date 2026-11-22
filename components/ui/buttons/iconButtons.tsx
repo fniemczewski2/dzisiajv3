@@ -20,6 +20,8 @@ import {
   Copy,
   ListPlus,
   RefreshCw,
+  CalendarX,
+  Undo2,
 } from "lucide-react";
 import { actionButton, actionIcon, ACTION_LABEL_CLASS } from "./actionButtonVariants";
 
@@ -335,5 +337,35 @@ export const RefreshButton = ({ onClick, small = false }: { onClick: () => void;
   >
     <RefreshCw className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Przywróć</span>}
+  </button>
+);
+
+/** Odwołanie jednego terminu serii – seria biegnie dalej. */
+export const CancelOccurrenceButton = ({ onClick, loading }: { onClick: () => void; loading?: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    disabled={loading}
+    className={actionButton({ color: "warning" })}
+    aria-label="Odwołaj ten termin"
+    title="Odwołaj ten jeden termin (seria zostaje)"
+  >
+    <CalendarX className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>Odwołaj</span>
+  </button>
+);
+
+/** Powrót wystąpienia na termin wynikający z reguły serii. */
+export const RestoreOccurrenceButton = ({ onClick, loading }: { onClick: () => void; loading?: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    disabled={loading}
+    className={actionButton({ color: "info" })}
+    aria-label="Przywróć pierwotny termin"
+    title="Przywróć termin z reguły serii"
+  >
+    <Undo2 className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>Przywróć</span>
   </button>
 );

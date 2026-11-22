@@ -9,7 +9,7 @@ import { addDays, format } from "date-fns";
 import { parseEventDate } from "@/lib/dateUtils";
 import { expandRepeatingEvents } from "@/lib/eventUtils";
 import { resolveActiveSchema } from "@/lib/daySchemas";
-import type { Event } from "@/types/events";
+import type { Event, EventOverride } from "@/types/events";
 import type { Task } from "@/types/tasks";
 import type { DailyOverride, Schema } from "@/types/schemas";
 
@@ -124,6 +124,8 @@ export interface FeedInput {
   schemaChoices: ReadonlyMap<string, string | null>;
   /** Wyjątki rutyn (daily_overrides) według daty. */
   overrides: ReadonlyMap<string, readonly DailyOverride[]>;
+  /** Wyjątki terminów serii (event_overrides) z zakresu kanału. */
+  eventOverrides?: readonly EventOverride[];
   /** Pierwszy i ostatni dzień kanału (yyyy-MM-dd). */
   from: string;
   to: string;
@@ -135,7 +137,7 @@ export interface FeedInput {
 function eventEntries(input: FeedInput): FeedEntry[] {
   const start = new Date(`${input.from}T00:00:00`);
   const end = new Date(`${input.to}T23:59:59`);
-  return expandRepeatingEvents([...input.events], start, end).map((ev) => ({
+  return expandRepeatingEvents([...input.events], start, end, input.eventOverrides ?? []).map((ev) => ({
     uid: `event-${ev.id}@${input.uidDomain}`,
     summary: ev.title,
     description: ev.description,

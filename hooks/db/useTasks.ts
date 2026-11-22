@@ -1,5 +1,6 @@
 // hooks/db/useTasks.ts
 
+import { format } from "date-fns";
 import { useQueryState } from "@/hooks/useQueryState";
 import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
 import { NotSignedInError } from "@/lib/errors";
@@ -54,10 +55,14 @@ const createSortFunction = (sortOrder: string, getPriority: (task: Task) => numb
   }
 };
 
+/**
+ * Termin zadania to dzień kalendarzowy. toISOString() liczy w UTC, więc data wzięta z lokalnej
+ * północy (strefa Europe/Warsaw, UTC+1/+2) cofała się o jeden dzień – stąd format z lokalnych pól.
+ */
 const formatDate = (date: string | Date | undefined): string | undefined => {
   if (!date) return undefined;
   if (typeof date === "string") return date;
-  return date.toISOString().split("T")[0];
+  return format(date, "yyyy-MM-dd");
 };
 
 const getPriority = (task: Task): number => (task.status === "waiting_for_acceptance" ? 0 : 1);

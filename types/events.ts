@@ -24,6 +24,24 @@ export interface Event {
   calendar_id?: string | null;
 }
 
+/**
+ * Wyjątek jednego terminu serii (tabela event_overrides). `occurrence_date` to dzień z siatki reguły –
+ * zostaje kluczem nawet wtedy, gdy termin przeniesiono na inny dzień.
+ */
+export interface EventOverride {
+  event_id: string;
+  occurrence_date: string;
+  start_time: string;
+  end_time: string;
+  /** Termin z reguły, sprzed pierwszej zmiany tego wystąpienia. */
+  rule_start_time?: string | null;
+  rule_end_time?: string | null;
+  /** Ten jeden termin się nie odbywa. */
+  canceled?: boolean;
+  /** Wyjątek obowiązuje obie strony wydarzenia współdzielonego. */
+  shared?: boolean;
+}
+
 export interface ConnectedAccount {
   id: string;
   provider: "google" | "outlook";

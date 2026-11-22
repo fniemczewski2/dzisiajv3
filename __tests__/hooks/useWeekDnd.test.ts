@@ -42,10 +42,24 @@ beforeEach(() => {
   h.confirm.mockResolvedValue(true);
 });
 
+const occ = {
+  move: vi.fn(async () => true),
+  reset: vi.fn(async () => true),
+  find: vi.fn(() => undefined),
+};
+/** Zapis wyjątku terminu serii – podstawiany we wszystkich wywołaniach hooka. */
+const occurrenceProps: Pick<Parameters<typeof useWeekDnd>[0], "moveOccurrence" | "resetOccurrence" | "overrideFor"> = {
+  moveOccurrence: occ.move,
+  resetOccurrence: occ.reset,
+  overrideFor: occ.find,
+};
+
 describe("useWeekDnd", () => {
   it("zadanie na inny dzień: nowy termin, ta sama godzina, toast z „Cofnij”", async () => {
     const editTask = vi.fn(async () => true);
-    const { result } = renderHook(() => useWeekDnd({ tasks: [task], events: [], editTask, editEvent: vi.fn() }));
+    const { result } = renderHook(() =>
+      useWeekDnd({ tasks: [task], events: [], editTask, editEvent: vi.fn(), ...occurrenceProps })
+    );
     await act(async () => {
       await result.current.handleDragEnd(drop("task", "7", "2026-11-19", "day-2026-11-21"));
     });
@@ -61,7 +75,9 @@ describe("useWeekDnd", () => {
 
   it("„Cofnij” przywraca poprzedni termin i godzinę", async () => {
     const editTask = vi.fn(async () => true);
-    const { result } = renderHook(() => useWeekDnd({ tasks: [task], events: [], editTask, editEvent: vi.fn() }));
+    const { result } = renderHook(() =>
+      useWeekDnd({ tasks: [task], events: [], editTask, editEvent: vi.fn(), ...occurrenceProps })
+    );
     await act(async () => {
       await result.current.handleDragEnd(drop("task", "7", "2026-11-19", "day-2026-11-21"));
     });
@@ -77,7 +93,9 @@ describe("useWeekDnd", () => {
 
   it("wydarzenie na inny dzień: przesunięcie o różnicę dni, godziny bez zmian", async () => {
     const editEvent = vi.fn(async () => true);
-    const { result } = renderHook(() => useWeekDnd({ tasks: [], events: [event], editTask: vi.fn(), editEvent }));
+    const { result } = renderHook(() =>
+      useWeekDnd({ tasks: [], events: [event], editTask: vi.fn(), editEvent, ...occurrenceProps })
+    );
     await act(async () => {
       await result.current.handleDragEnd(drop("event", "e1", "2026-11-19", "day-2026-11-18"));
     });
@@ -87,20 +105,29 @@ describe("useWeekDnd", () => {
     );
   });
 
-  it("wystąpienie serii: bez zapisu i bez pytania, komunikat informacyjny", async () => {
+  it("wystąpienie serii: wyjątek terminu zamiast zapisu wiersza serii", async () => {
     const editEvent = vi.fn(async () => true);
-    const { result } = renderHook(() => useWeekDnd({ tasks: [], events: [series], editTask: vi.fn(), editEvent }));
+    const { result } = renderHook(() =>
+      useWeekDnd({ tasks: [], events: [series], editTask: vi.fn(), editEvent, ...occurrenceProps })
+    );
     await act(async () => {
       await result.current.handleDragEnd(drop("event", "s1_2026-11-19", "2026-11-19", "day-2026-11-20"));
     });
     expect(editEvent).not.toHaveBeenCalled();
-    expect(h.confirm).not.toHaveBeenCalled();
-    expect(h.info).toHaveBeenCalled();
+    expect(occ.move).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "s1_2026-11-19" }),
+      "2026-11-19",
+      expect.any(Date),
+      expect.any(Date),
+      { shared: false }
+    );
   });
 
   it("ten sam dzień, upuszczenie poza kolumną lub odmowa: brak zapisu", async () => {
     const editTask = vi.fn(async () => true);
-    const { result } = renderHook(() => useWeekDnd({ tasks: [task], events: [], editTask, editEvent: vi.fn() }));
+    const { result } = renderHook(() =>
+      useWeekDnd({ tasks: [task], events: [], editTask, editEvent: vi.fn(), ...occurrenceProps })
+    );
     await act(async () => {
       await result.current.handleDragEnd(drop("task", "7", "2026-11-19", "day-2026-11-19"));
       await result.current.handleDragEnd(drop("task", "7", "2026-11-19", "slot-09:00"));

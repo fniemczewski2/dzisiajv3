@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
 import { Person } from "@/types/people";
 import { expandRepeatingEvents } from "@/lib/eventUtils";
+import { useEventOverrides } from "@/hooks/db/useEventOverrides";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
@@ -164,12 +165,18 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
     if (hasRange) await refetchEvents();
   }, [hasRange, refetchEvents]);
 
+  // Wyjątki terminów serii: jedno wystąpienie z własną godziną lub dniem (hooks/db/useEventOverrides.ts).
+  const { overrides, overrideFor, moveOccurrence, cancelOccurrence, resetOccurrence } = useEventOverrides(
+    rangeStart,
+    rangeEnd
+  );
+
   const events = useMemo(() => {
     if (!rangeStart || !rangeEnd) return rawEvents;
     const start = new Date(`${rangeStart}T00:00:00`);
     const end = new Date(`${rangeEnd}T23:59:59`);
-    return expandRepeatingEvents([...rawEvents, ...virtualEvents], start, end);
-  }, [rawEvents, virtualEvents, rangeStart, rangeEnd]);
+    return expandRepeatingEvents([...rawEvents, ...virtualEvents], start, end, overrides);
+  }, [rawEvents, virtualEvents, rangeStart, rangeEnd, overrides]);
 
   useEffect(() => {
     const handleRefresh = () => {
@@ -320,5 +327,17 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
     [supabase, userId, rawEvents, toast, withRetry, setRawEvents, markOtherRangesStale]
   );
 
-  return { events, loading, fetching, addEvent, editEvent, deleteEvent, fetchEvents };
+  return {
+    events,
+    loading,
+    fetching,
+    addEvent,
+    editEvent,
+    deleteEvent,
+    fetchEvents,
+    overrideFor,
+    moveOccurrence,
+    cancelOccurrence,
+    resetOccurrence,
+  };
 }

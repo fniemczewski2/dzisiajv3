@@ -29,6 +29,7 @@ export const USER_TABLES: readonly UserTable[] = [
   { table: "slack_deleted_tasks", label: "Slack, zadania do usunięcia", owner: "user_id", stage: 1 },
   { table: "day_schema_choices", label: "Wybrane schematy dnia", owner: "user_id", stage: 1 },
   { table: "daily_overrides", label: "Wyjątki od schematów dnia", owner: "user_id", stage: 1 },
+  { table: "event_overrides", label: "Zmienione terminy wydarzeń cyklicznych", owner: "user_id", stage: 1 },
   { table: "quick_notes", label: "Szybkie notatki", owner: "user_id", stage: 1 },
   { table: "app_usage_days", label: "Dni korzystania z aplikacji", owner: "user_id", stage: 1 },
   { table: "notifications", label: "Powiadomienia", owner: "user_id", stage: 1 },

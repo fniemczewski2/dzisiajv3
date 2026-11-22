@@ -89,3 +89,48 @@ export async function syncLinkedEventChange(
       : await deleteEventFromCalendar(calendar, event.id, session.access_token);
   return { linked: true, ok, label };
 }
+
+/**
+ * Wyjątek jednego terminu serii przeniesiony do powiązanego kalendarza zewnętrznego
+ * (Google / Outlook zmieniają samo wystąpienie, nie regułę serii). Tylko wydarzenia właściciela –
+ * udostępnione mu nie są jego wpisami u dostawcy. Niepowiązane: { linked: false, ok: true }.
+ */
+export async function syncLinkedOccurrenceChange(
+  supabase: SupabaseClient,
+  event: { id: string; user_id?: string; google_event_id?: string | null; calendar_id?: string | null },
+  occurrence: { occurrenceDate: string; startTime: string; endTime: string; canceled?: boolean },
+  userId: string
+): Promise<LinkedEventSyncResult> {
+  if (!event.google_event_id || !event.calendar_id || (event.user_id && event.user_id !== userId)) {
+    return { linked: false, ok: true };
+  }
+  const { data: calendar } = await supabase
+    .from("connected_calendars")
+    .select("id, provider, google_calendar_id, calendar_name")
+    .eq("id", event.calendar_id)
+    .maybeSingle<CalendarTarget>();
+  if (!calendar) return { linked: true, ok: false };
+  const label = calendarTargetLabel(calendar);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return { linked: true, ok: false, label };
+
+  const endpoint = calendar.provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
+  try {
+    const response = await fetch(`${endpoint}?action=sync-occurrence`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({
+        eventId: event.id,
+        occurrenceDate: occurrence.occurrenceDate,
+        startTime: occurrence.startTime,
+        endTime: occurrence.endTime,
+        canceled: Boolean(occurrence.canceled),
+      }),
+    });
+    return { linked: true, ok: response.ok, label };
+  } catch {
+    return { linked: true, ok: false, label };
+  }
+}

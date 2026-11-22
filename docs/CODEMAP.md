@@ -3,7 +3,7 @@
 # Mapa kodu Dzisiaj.Fun
 
 Format wpisu: `ścieżka` – opis z nagłówka · exp: eksporty · http: metody · db: tabele Supabase · rpc: funkcje.
-Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
+Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [ARCHITECTURE.md](ARCHITECTURE.md), API: [API.md](API.md).
 
 ## (root)
 
@@ -238,7 +238,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `buttons/addSpecificButton.tsx` – exp: AddSpecificButton
 - `buttons/copyButtonSmall.tsx` – exp: CopyButtonSmall
 - `buttons/formButtons.tsx` – exp: AddButton, CloseButton, SaveButton, CancelButton, FormButtons
-- `buttons/iconButtons.tsx` – exp: ConfirmButton, DeleteButton, NotifyButton, EditButton, FavButton, RescheduleButton, TimerButton, ShareButton, +10
+- `buttons/iconButtons.tsx` – Odwołanie jednego terminu serii – seria biegnie dalej. · exp: ConfirmButton, DeleteButton, NotifyButton, EditButton, FavButton, RescheduleButton, TimerButton, ShareButton, +12
 - `buttons/secondaryFullButton.tsx` – exp: SecondaryFullButton
 - `buttons/toggles.tsx` – exp: IconActionButton, ToggleChip, ToggleSwitch
 - `CommonButtons.tsx`
@@ -314,6 +314,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `useMoodConsent.ts` – Wyraźna zgoda na zapis nastroju (art. 9 ust. 2 lit. a RODO – nastrój może ujawniać informacje o zdrowiu). · db: mood_entries
 - `useNews.ts` – Wiadomości z kanałów RSS (TanStack Query – powrót na stronę nie pobiera ich od nowa). · exp: useNews, checkCustomFeed
 - `useNow.ts` – Bieżący czas jako stan zewnętrzny (useSyncExternalStore) – render pozostaje czysty (bez new Date() w trakcie renderu), a komponent odświeża się co…
+- `useOccurrenceScope.ts` – Zakres wyjątku terminu przy wydarzeniu współdzielonym: wyjątek może obowiązywać tylko autora albo obie strony.
 - `usePlanByHour.ts` – Extracted from DayView.tsx: builds the hour -> plan-items map that DailyPlan renders, and (for today only) trims hours that are fully in the past with nothing…
 - `usePublicMeetingPoll.ts`
 - `usePublicSignup.ts` – Publiczny formularz zapisów: zajętość slotów (odświeżana po powrocie do karty i po błędzie „termin zajęty”) oraz wysłanie zapisu.
@@ -332,12 +333,14 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `useBudgetCategories.ts` – db: budget_categories
 - `useBudgetSummary.ts` – Zaplanowane wydatki: terminy rachunków stałych od dziś do końca roku, z pominięciem miesięcy, w których rachunek ma już powiązaną płatność. · exp: plannedBillRows, useBudgetSummary · db: transactions
+- `useCalendarProviders.ts` – Dostawca kalendarza, z którym powiązane jest wydarzenie (events.calendar_id → connected_calendars). · db: connected_calendars
 - `useConnectedCalendars.ts` – exp: fetchProviderCalendars, useConnectedCalendars · db: connected_calendars
 - `useCrudResource.ts`
 - `useDailyHabits.ts` – db: daily_habits
 - `useDailyOverrides.ts` – db: daily_overrides
 - `useDaySchemaChoice.ts` – Ręczny wybór schematu na konkretny dzień (tabela day_schema_choices). · db: day_schema_choices, daily_overrides
 - `useDaySchemas.ts`
+- `useEventOverrides.ts` – Wyjątki pojedynczych terminów serii (tabela event_overrides): przeniesienie albo odwołanie jednego wystąpienia nie rusza reguły, więc kolejne terminy wypadają… · db: event_overrides
 - `useEvents.ts` – exp: useVirtualBirthdayEvents, useEvents · db: people, events
 - `useFinance.ts` – Dane Finansów: profile, rachunki stałe i transakcje. Zmiany zapisują się od razu (optymistycznie), a błędy cofają stan i pokazują komunikat. · exp: useFinanceProfiles, useRecurringBills, useTransactions, useCategoryNameMap · db: finance_profiles, recurring_bills, tasks, transactions
 - `useHealthData.ts` – Dane o zdrowiu (Skróty iOS i wpisy ręczne): dzień (kroki), treningi, rejestr tętna, fazy snu. · exp: useHealthDays, useHealthWorkouts, useHeartRateDay, useSleepNight, useWorkoutMutations · db: health_daily, health_workouts, health_heart_rate, health_sleep_segments
@@ -374,7 +377,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `billSplit.ts` – Tekst podziału kosztów do wysłania (schowek, udostępnianie, e-mail). Zawiera wyłącznie kwoty i procenty; dochody netto nie są częścią wiadomości. · exp: BILL_SPLIT_SUBJECT, formatBillSplit, buildMailtoHref
 - `budgetUtils.ts` – exp: calculateExpectedYearlyLimit, propagateMonthlyLimits
 - `bulkEvents.ts` – Masowe dodawanie wydarzeń z wklejonej listy. Każda linia to wydarzenie: data albo zakres dat (formaty jak w zjazdyParser), opcjonalnie godziny („10:00–12:00”… · exp: parseBulkEvents, eventEndTime
-- `calendarExport.ts` – Przeniesienie edycji lub usunięcia wydarzenia z aplikacji do powiązanego kalendarza zewnętrznego. · exp: calendarTargetLabel, exportEventToCalendar, syncLinkedEventChange · db: connected_calendars
+- `calendarExport.ts` – Przeniesienie edycji lub usunięcia wydarzenia z aplikacji do powiązanego kalendarza zewnętrznego. · exp: calendarTargetLabel, exportEventToCalendar, syncLinkedEventChange, syncLinkedOccurrenceChange · db: connected_calendars
 - `calendarFeed.ts` – Kanał kalendarza (.ics, subskrypcja WebCal): wydarzenia (z wystąpieniami cyklicznymi), zadania z terminem i rutyny planu dnia. · exp: FEED_PAST_DAYS, FEED_FUTURE_DAYS, escapeIcsText, foldLine, buildCalendarFeed, feedRange
 - `categoryColors.ts` – Kolory kategorii. Paleta jest zamknięta (bez dowolnego HEX-a), bo na pasku wydarzenia w kalendarzu leży biały tekst: każdy kolor ma kontrast co najmniej 4.5:1… · exp: CATEGORY_PALETTE, isPaletteColor, paletteColorName, normalizeCategoryColors, remapCategoryColors
 - `cn.ts` – Combines conditional classes (clsx) and resolves conflicting Tailwind utilities in favor of the last one (tailwind-merge) - e.g.
@@ -390,7 +393,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `errorUtils.ts` – exp: getErrorMessage, getPostgresErrorCode
 - `eventConflicts.ts` – Wykrywanie nakładających się terminów. Zasady: - kolizja to część wspólna dwóch wydarzeń z godziną (stykające się, np. · exp: isAllDayEvent, rangesOverlap, findConflicts, overlappingEventIds, formatConflictRange
 - `eventTimes.ts` – exp: LOCAL_DATE_FORMAT, QUICK_EVENT_DURATIONS, addMinutesToLocal, durationBetween, defaultTimedStart
-- `eventUtils.ts` – Reguła wydarzenia: nowe pole 'recurrence', a przy starszych wpisach – 'repeat'. · exp: eventRule, expandRepeatingEvents, getEventsForDay
+- `eventUtils.ts` – Reguła wydarzenia: nowe pole 'recurrence', a przy starszych wpisach – 'repeat'. · exp: eventRule, OCCURRENCE_OVERRIDE_WINDOW_DAYS, seriesOccurrence, expandRepeatingEvents, getEventsForDay
 - `finance.ts` – Logika finansów bez dostępu do bazy (łatwa do testowania): - terminy rachunków stałych (ten sam silnik reguł co zadania i wydarzenia), - prognoza rachunków na… · exp: billOccurrences, nextBillDue, monthRange, nextMonthKey, forecastMonth, billMonthStatus, merchantKey, suggestBillLink, +6
 - `financeShortcut.ts` – Treść żądania z automatyzacji Skrótów iOS „Transakcja” (Apple Pay): wyłącznie kwota i nazwa sprzedawcy. · exp: parseAmount, parseFinanceShortcutPayload
 - `fonts.ts` – Jedyny krój aplikacji. Klasa 'variable' trafia na <html> (pages/_document.tsx), więc zmienna --font-atkinson jest dostępna w całym dokumencie, także w oknach i… · exp: atkinson
@@ -437,8 +440,8 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `stopGroupKeys.ts` – Starsza wersja funkcji 'transport-departures' nie zwraca pola 'key'. Bez niego ulubione nie pasują do żadnej grupy, a React dostaje zduplikowane klucze. · exp: withFavoriteKeys, withNearbyKeys
 - `taskCategories.ts` – Kategorie zadań: użytkownik ustala własną listę w Ustawieniach (kolumna settings.task_categories). · exp: SYSTEM_TASK_CATEGORIES, DEFAULT_USER_TASK_CATEGORIES, resolveUserTaskCategories, taskCategoryOptions, defaultTaskCategory, normalizeTaskCategoryName, validateTaskCategoryName
 - `taskOccurrences.ts` – Podgląd przyszłych wystąpień zadań cyklicznych. Zadanie cykliczne to jeden wiersz z bieżącym terminem – kolejne wystąpienia liczymy tym samym silnikiem reguł… · exp: projectTaskOccurrences, groupPreviewsByDate
-- `taskRecurrence.ts` – Pola zadania cyklicznego. Nowa reguła trafia do 'recurrence'; stare pola (repeat_days, recurring_until) wypełniamy zgodnie z nią, żeby starsze miejsca w kodzie… · exp: taskRecurrenceFields, taskRule
-- `taskReminders.ts` – Przypomnienia o zadaniu (tabela task_reminders). W formularzu trzymamy je jako wartości pola datetime-local („2026-10-12T09:00”, czas lokalny), w bazie jako… · exp: toLocalInput, reminderPresets, validateReminders, fetchPendingReminders, replacePendingReminders · db: task_reminders
+- `taskRecurrence.ts` – Pola zadania cyklicznego. Nowa reguła trafia do 'recurrence'; stare pola (repeat_days, recurring_until) wypełniamy zgodnie z nią, żeby starsze miejsca w kodzie… · exp: taskRecurrenceFields, taskAnchor, taskRule
+- `taskReminders.ts` – Przypomnienia o zadaniu (tabela task_reminders). W formularzu trzymamy je jako wartości pola datetime-local („2026-10-12T09:00”), ale TA WARTOŚĆ JEST ZAWSZE… · exp: warsawDateTimeToUTC, toLocalInput, reminderPresets, validateReminders, fetchPendingReminders, replacePendingReminders · db: task_reminders
 - `text.ts` – Liniowe operacje na tekście zamiast wyrażeń regularnych z nawracaniem (np. · exp: trimWhere, trimChars, isSimpleEmail
 - `themeScriptHash.mjs` – Skrót SHA-256 skryptu, który next-themes wstawia w treść strony (ustawia motyw przed pierwszym renderem).
 - `ticketParser.ts` – Odczyt biletu PKP Intercity z tekstu PDF (pdf-parse): stacje, data, godzina, pociąg, wagon, miejsce. Bilet z przesiadką ma kilka odcinków („1. odcinek:”, „2. · exp: extractStationNames, extractRoute, parseTicketData, parseTicketLegs, ticketDateToIso
@@ -564,7 +567,8 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `slackSync/taskMapping.ts` – Pola puste w aplikacji, a wypełnione w Slacku (np. termin dodany do mapowania po pierwszym imporcie). · exp: withBuiltInColumns, missingFieldsFromItem, todayInPoland, isWithinImportHorizon, fingerprint, buildFields, itemToTaskPatch, itemChangedSince, +3
 - `slackSync/types.ts`
 - `supabaseAdmin.ts` – Klient Supabase z kluczem service_role – omija RLS, więc wolno go używać wyłącznie po stronie serwera i tylko po własnym sprawdzeniu, czy zasób należy do…
-- `ticketInbound.ts` – Bilety z poczty: wiadomość przekierowana na adres b-<token>@… (np. potwierdzenie zakupu PKP Intercity). · exp: legToRow, importTicketMail · db: user_trains
+- `ticketInbound.ts` – Bilety z poczty: wiadomość przekierowana na adres b-<token>@… (np. potwierdzenie zakupu PKP Intercity). · exp: legToRow, describeRow, importTicketMail · db: user_trains
+- `ticketNotify.ts` – Potwierdzenie importu biletu: po każdej wiadomości na adres biletów (b-…) aplikacja wysyła jedną wiadomość na adres podłączonego konta poczty – lista dodanych… · exp: ticketNoticeSubject, ticketNoticeBody, notifyTicketImport · db: mail_accounts
 - `ticketPdf.ts` – Tekst z PDF biletu (pdf-parse). Tylko serwer: wymaga atrapy canvas (lib/server/pdfCanvasGlobals.ts). · exp: PdfReadError, extractPdfText
 - `tokenCrypto.ts` – exp: encryptToken, decryptToken
 - `turnstile.ts` – Weryfikacja tokenu Cloudflare Turnstile po stronie serwera (publiczne formularze ankiet). · exp: enforceTurnstile
@@ -622,7 +626,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 ## pages/api/calendar
 
 - `feed-token.ts` – Token kanału kalendarza: POST – nowy token (poprzedni przestaje działać), DELETE – wyłączenie kanału. Jawny token zwracany jest tylko raz; w bazie skrót. · http: DELETE · db: calendar_feed_tokens
-- `feed/[token].ts` – Kanał kalendarza .ics do subskrypcji (webcal://…/api/calendar/feed/<token>.ics) w Kalendarzu Apple, Thunderbirdzie i innych. · db: calendar_feed_tokens, events, tasks, day_schemas, day_schema_choices, daily_overrides
+- `feed/[token].ts` – Kanał kalendarza .ics do subskrypcji (webcal://…/api/calendar/feed/<token>.ics) w Kalendarzu Apple, Thunderbirdzie i innych. · db: calendar_feed_tokens, events, tasks, day_schemas, day_schema_choices, daily_overrides, event_overrides
 - `sync-calendars.ts` – http: GET · db: events, connected_calendars
 
 ## pages/api/finance
@@ -775,6 +779,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `config.ts` – Limity i ustawienia funkcji Edge (Deno). Pliki z config/ są poza bundlem funkcji, dlatego wartości używane także w aplikacji (np. · exp: MAX_INTERVAL, MAX_COUNT, MAX_STEPS, MAX_SHARED_NOTIFY_TEXT, MAX_ERROR_CONTEXT, MAX_ERROR_MESSAGE, MAX_ERROR_STACK, MAX_MINUTES_AHEAD, +3
 - `contacts.ts` – Progi przypomnień o kontakcie według priorytetu osoby – jedno źródło dla aplikacji (usePeople, briefing) i funkcji process-notifications. · exp: CONTACT_THRESHOLD_DAYS, daysSinceContact, isContactOverdue
 - `errors.ts` – exp: getErrorMessage
+- `keys.ts` – Nowy system kluczy API Supabase: publishable (sb_publishable_...) zamiast anon, secret (sb_secret_...) zamiast service_role. · exp: getSecretKey, getPublishableKey
 - `notificationTime_test.ts`
 - `notificationTime.ts` – Obliczenia czasu dla powiadomień – wydzielone, żeby dało się je testować. · exp: weekdayIndexPL, plDayBoundsUTC, REMINDER_TOLERANCE_MS, warsawWallClockToInstant, warsawWallClockNow, isAllDayStored, wallClockDayBounds, eventReminderType
 - `recurrence.ts` – 0 = poniedziałek … 6 = niedziela. · exp: parseDay, formatDay, weekdayOf, weekdayPosition, normalizeRule, ruleFromLegacyRepeat, withMonthDay, legacyRepeatFor, +4
@@ -798,7 +803,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## supabase/functions/process-reminders
 
-- `index.ts` – Następny termin po wykonaniu. Kotwicą reguły jest dotychczasowy termin (to wystąpienie reguły), a szukamy po dniu późniejszym z: terminu i dnia wykonania –… · exp: nextDueDate · db: tasks, recurring_bills, transactions
+- `index.ts` – Następny termin po wykonaniu. Kotwicą reguły jest 'recurrence_anchor' (a dla starszych zadań bieżący termin), więc przeniesienie jednego zadania na inny dzień… · exp: nextDueDate · db: tasks, recurring_bills, transactions
 
 ## supabase/functions/send-love
 
@@ -830,6 +835,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-21_ticket_buffer.sql` – Wydanie 1.45.0 (uzupełnienie): adres biletów przyjmuje wiadomości bez biletu do bufora Poczty tylko do chwili potwierdzenia przekazywania (mail weryfikacyjny…
 - `2026-11-21_vault_root_and_import_decisions.sql` – Vault Obsidiana w folderze wskazanym przez użytkownika (np. „Apps/remotely-save/Zeszyt” – Remotely Save) oraz decyzje o duplikatach przy imporcie osób z vaultu… · obj: vault_import_decisions, vault_import_decisions_own
 - `2026-11-22_dashboard_layout.sql` – Układ planu na ekranie głównym: jeden dzień albo tydzień (wczoraj, dzień widoku i 5 kolejnych dni). Skrypt idempotentny – można go uruchomić ponownie.
+- `2026-11-22_series_occurrence_exceptions.sql` – Wyjątki pojedynczych terminów serii. 1. Wydarzenia: tabela event_overrides – jedno wystąpienie reguły (dzień z siatki) może mieć własny początek i koniec,… · obj: event_overrides, can_access_event, event_overrides_select_own, event_overrides_insert_own, event_overrides_update_own, event_overrides_delete_own
 
 ## supabase/tests
 
@@ -840,7 +846,7 @@ Testy (259 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 - `bills.ts`
 - `connectedCalendars.ts`
-- `events.ts`
+- `events.ts` – Wyjątek jednego terminu serii (tabela event_overrides). 'occurrence_date' to dzień z siatki reguły – zostaje kluczem nawet wtedy, gdy termin przeniesiono na…
 - `finance.ts` – Finanse (od 1.40): profile, rachunki stałe (zaplanowane, z regułą powtarzania) i transakcje (faktyczne wpływy/wydatki).
 - `googleCalendar.ts`
 - `habits.ts` – Nawyk zdefiniowany przez użytkownika (max 8). 'id' dawnych nawyków = ich HabitKey.

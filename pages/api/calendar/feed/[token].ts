@@ -10,14 +10,21 @@ import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { feedTokenFromPath, hashFeedToken } from "@/lib/server/calendarFeedTokens";
 import { buildCalendarFeed, feedRange } from "@/lib/calendarFeed";
+import { OCCURRENCE_OVERRIDE_WINDOW_DAYS } from "@/lib/eventUtils";
 import { getAppDate } from "@/lib/dateUtils";
 import { cols } from "@/lib/db/columns";
 import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
-import type { Event } from "@/types/events";
+import type { Event, EventOverride } from "@/types/events";
 import type { Task } from "@/types/tasks";
 import type { DailyOverride, Schema } from "@/types/schemas";
 
 const UID_DOMAIN = "dzisiaj.fun";
+
+/** Dzień „yyyy-MM-dd” przesunięty o `days` (arytmetyka w UTC – chodzi o samą datę). */
+function shiftDay(day: string, days: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!allowMethods(req, res, ["GET", "HEAD"])) return;
@@ -43,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { from, to } = feedRange(today);
   try {
     const owned = ownedOrSharedFilter("user_id", "shared_with_id", userId);
-    const [events, tasks, schemas, choices, overrides] = await Promise.all([
+    const [events, tasks, schemas, choices, overrides, eventOverrides] = await Promise.all([
       // Wydarzenia cykliczne mogą zaczynać się przed zakresem – bez dolnej granicy startu.
       admin.from("events").select(cols("events")).or(owned).lte("start_time", `${to}T23:59:59+00`),
       admin
@@ -65,8 +72,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("user_id", userId)
         .gte("date", from)
         .lte("date", to),
+      // Wyjątki terminów serii: szerzej niż zakres, bo termin mógł zostać przeniesiony w głąb kanału.
+      admin
+        .from("event_overrides")
+        .select("event_id, occurrence_date, start_time, end_time")
+        .eq("user_id", userId)
+        .gte("occurrence_date", shiftDay(from, -OCCURRENCE_OVERRIDE_WINDOW_DAYS))
+        .lte("occurrence_date", shiftDay(to, OCCURRENCE_OVERRIDE_WINDOW_DAYS)),
     ]);
-    const failed = [events, tasks, schemas, choices, overrides].find((r) => r.error);
+    const failed = [events, tasks, schemas, choices, overrides, eventOverrides].find((r) => r.error);
     if (failed?.error) throw failed.error;
 
     const overridesByDay = new Map<string, DailyOverride[]>();
@@ -81,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ((choices.data ?? []) as Array<{ date: string; schema_id: string | null }>).map((c) => [c.date, c.schema_id])
       ),
       overrides: overridesByDay,
+      eventOverrides: (eventOverrides.data ?? []) as EventOverride[],
       from,
       to,
       now: new Date(),

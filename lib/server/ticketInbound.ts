@@ -44,16 +44,21 @@ export function legToRow(userId: string, leg: ParsedTicket): TrainRow | null {
   };
 }
 
+/** Postgres zwraca kolumnę `time` jako „HH:MM:SS”, parser biletu daje „HH:MM” – klucz porównujemy w jednym formacie. */
+const hhmm = (time: string): string => time.slice(0, 5);
+
 const rowKey = (r: Pick<TrainRow, "date" | "train_number" | "departure_time" | "wagon" | "seat">) =>
-  [r.date, r.train_number, r.departure_time, r.wagon, r.seat].join("|");
+  [r.date, r.train_number, hhmm(r.departure_time), r.wagon, r.seat].join("|");
 
 /** PDF z wiadomości w limitach (liczba plików i łączny rozmiar). */
 function ticketPdfs(message: InboundMessage): string[] {
   const out: string[] = [];
   let total = 0;
   for (const a of message.attachments) {
-    if (!a.pdfBase64 || out.length >= MAX_INBOUND_PDFS) continue;
-    if (total + a.pdfBase64.length > MAX_INBOUND_PDF_TOTAL_BASE64) break;
+    if (!a.pdfBase64) continue;
+    if (out.length >= MAX_INBOUND_PDFS) break;
+    // Za duży załącznik pomijamy, ale kolejne (mniejsze) bilety z tej samej wiadomości nadal sprawdzamy.
+    if (total + a.pdfBase64.length > MAX_INBOUND_PDF_TOTAL_BASE64) continue;
     total += a.pdfBase64.length;
     out.push(a.pdfBase64);
   }
@@ -65,6 +70,43 @@ export interface TicketImportResult {
   duplicates: number;
   /** PDF bez rozpoznanego biletu lub z błędem odczytu. */
   unreadable: number;
+  /** Odcinki faktycznie zapisane – treść wiadomości zwrotnej (lib/server/ticketNotify.ts). */
+  addedRows: TrainRow[];
+}
+
+/** Odcinek w wiadomości zwrotnej: „IC 6112 Lech, 26.11.2026 06:36, Poznań Główny → Warszawa Centralna, wagon 15, miejsce 14”. */
+export function describeRow(row: TrainRow): string {
+  const train = [row.train_number, row.train_name].filter(Boolean).join(" ");
+  const seat = [row.wagon && `wagon ${row.wagon}`, row.seat && `miejsce ${row.seat}`].filter(Boolean).join(", ");
+  const route = `${row.from_station} → ${row.to_station}`;
+  return [train, `${row.date} ${hhmm(row.departure_time)}`, route, seat].filter(Boolean).join(", ");
+}
+
+/** Naruszenie unikalnego indeksu user_trains_mail_dedupe (ten sam bilet przekierowany drugi raz). */
+function isDuplicateError(error: { code?: string | null } | null): boolean {
+  return error?.code === "23505";
+}
+
+/**
+ * Zapis odcinków. Przy kolizji z indeksem dedupe wstawka zbiorcza przepada w całości,
+ * więc powtarzamy ją wiersz po wierszu – jeden duplikat nie blokuje pozostałych biletów.
+ */
+async function insertRows(admin: SupabaseClient, rows: TrainRow[]): Promise<{ added: TrainRow[]; duplicates: number }> {
+  const { error } = await admin.from("user_trains").insert(rows);
+  if (!error) return { added: rows, duplicates: 0 };
+  if (!isDuplicateError(error) || rows.length === 1) {
+    if (isDuplicateError(error)) return { added: [], duplicates: 1 };
+    throw error;
+  }
+  const added: TrainRow[] = [];
+  let duplicates = 0;
+  for (const row of rows) {
+    const { error: rowError } = await admin.from("user_trains").insert([row]);
+    if (!rowError) added.push(row);
+    else if (isDuplicateError(rowError)) duplicates++;
+    else throw rowError;
+  }
+  return { added, duplicates };
 }
 
 export async function importTicketMail(
@@ -86,7 +128,7 @@ export async function importTicketMail(
       unreadable++;
     }
   }
-  if (rows.length === 0) return { added: 0, duplicates: 0, unreadable };
+  if (rows.length === 0) return { added: 0, duplicates: 0, unreadable, addedRows: [] };
 
   const dates = [...new Set(rows.map((r) => r.date))];
   const { data: existing, error: readError } = await admin
@@ -102,9 +144,13 @@ export async function importTicketMail(
     known.add(key);
     return true;
   });
-  if (fresh.length > 0) {
-    const { error } = await admin.from("user_trains").insert(fresh);
-    if (error) throw error;
-  }
-  return { added: fresh.length, duplicates: rows.length - fresh.length, unreadable };
+  if (fresh.length === 0) return { added: 0, duplicates: rows.length, unreadable, addedRows: [] };
+
+  const { added, duplicates } = await insertRows(admin, fresh);
+  return {
+    added: added.length,
+    duplicates: rows.length - fresh.length + duplicates,
+    unreadable,
+    addedRows: added,
+  };
 }
