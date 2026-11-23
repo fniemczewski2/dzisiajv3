@@ -78,6 +78,10 @@ export interface Settings {
   daily_spending_limit?: number | null;
   daily_steps_goal?: number | null;
 
+  /** Poranny briefing włączony (karta na planie dnia). */
+  brief_morning_enabled?: boolean;
+  /** Wieczorny briefing włączony. */
+  brief_evening_enabled?: boolean;
   /** Godzina porannego briefingu „HH:mm” (karta na planie dnia i push). */
   brief_morning_time?: string;
   /** Godzina wieczornego briefingu „HH:mm”. */

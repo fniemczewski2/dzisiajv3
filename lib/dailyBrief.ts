@@ -33,16 +33,29 @@ export interface BriefVisibility {
 
 type BriefSettings = Pick<
   Settings,
-  "brief_morning_time" | "brief_evening_time" | "brief_dismissed_morning" | "brief_dismissed_evening"
+  | "brief_morning_enabled"
+  | "brief_evening_enabled"
+  | "brief_morning_time"
+  | "brief_evening_time"
+  | "brief_dismissed_morning"
+  | "brief_dismissed_evening"
 >;
 
-/** Karta widoczna od ustawionej godziny do zamknięcia (zamknięcie dotyczy tylko bieżącego dnia). */
+/** Brak wartości = włączone (zachowanie sprzed dodania włączników). */
+const enabled = (value: boolean | undefined): boolean => value !== false;
+
+/**
+ * Karta widoczna, gdy jest włączona w ustawieniach, od ustawionej godziny do zamknięcia
+ * (zamknięcie dotyczy tylko bieżącego dnia).
+ */
 export function briefVisibility(settings: BriefSettings, today: string, nowHm: string): BriefVisibility {
   const morningAt = normalizeHm(settings.brief_morning_time, DEFAULT_MORNING_TIME);
   const eveningAt = normalizeHm(settings.brief_evening_time, DEFAULT_EVENING_TIME);
   return {
-    morning: nowHm >= morningAt && settings.brief_dismissed_morning !== today,
-    evening: nowHm >= eveningAt && settings.brief_dismissed_evening !== today,
+    morning:
+      enabled(settings.brief_morning_enabled) && nowHm >= morningAt && settings.brief_dismissed_morning !== today,
+    evening:
+      enabled(settings.brief_evening_enabled) && nowHm >= eveningAt && settings.brief_dismissed_evening !== today,
   };
 }
 

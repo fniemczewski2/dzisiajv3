@@ -77,3 +77,23 @@ describe("billsDue", () => {
     expect(out.overdue.map((b) => b.id)).toEqual(["2"]);
   });
 });
+
+describe("briefVisibility – włączniki", () => {
+  const base = { brief_morning_time: "07:00", brief_evening_time: "21:00" } as never;
+
+  it("wyłączona karta nie pojawia się mimo godziny", () => {
+    const out = briefVisibility({ ...(base as object), brief_morning_enabled: false } as never, "2026-11-22", "08:00");
+    expect(out.morning).toBe(false);
+    expect(out.evening).toBe(false); // 08:00 < 21:00
+  });
+
+  it("brak wartości znaczy włączone (zachowanie sprzed zmiany)", () => {
+    expect(briefVisibility(base, "2026-11-22", "08:00").morning).toBe(true);
+  });
+
+  it("wieczorna karta wyłączona osobno", () => {
+    const out = briefVisibility({ ...(base as object), brief_evening_enabled: false } as never, "2026-11-22", "22:00");
+    expect(out.morning).toBe(true);
+    expect(out.evening).toBe(false);
+  });
+});

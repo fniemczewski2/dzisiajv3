@@ -1,6 +1,8 @@
 // components/dashboard/DailyBrief.tsx
 //
 // Briefing dnia na planie dnia (tylko dziś): poranny od brief_morning_time, wieczorny od brief_evening_time
+// (każdy można wyłączyć: brief_morning_enabled / brief_evening_enabled). Pozycja bez treści (np. dzień bez
+// wydarzeń) nie jest pokazywana wcale; gdy pusta jest cała karta, nie pojawia się nawet jej nagłówek.
 // (podsumowanie dnia, plan na jutro albo oba – brief_evening_mode). Karta zostaje do zamknięcia przyciskiem;
 // zamknięcie zapisuje się w ustawieniach i dotyczy bieżącego dnia. Pociągi bez statusu PKP PLK – dane z bazy.
 // Każda część pobiera swoje dane dopiero, gdy jest widoczna.
@@ -36,6 +38,13 @@ interface Props {
 
 const timeOf = (ev: Event) => format(parseEventDate(ev.start_time), "HH:mm");
 
+/** Pozycja briefingu: pokazywana tylko wtedy, gdy ma treść. */
+interface BriefRow {
+  key: string;
+  label: string;
+  content: React.ReactNode;
+}
+
 function Row({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div className="grid grid-cols-[7rem_1fr] gap-2 py-1.5 text-sm sm:grid-cols-[9rem_1fr]">
@@ -45,8 +54,22 @@ function Row({ label, children }: Readonly<{ label: string; children: React.Reac
   );
 }
 
-function names(items: readonly string[], empty: string): string {
-  return items.length > 0 ? items.join(", ") : empty;
+/** Pozycja z listy nazw; pusta lista = brak pozycji w briefingu. */
+function listRow(key: string, label: string, items: readonly string[]): BriefRow | null {
+  if (items.length === 0) return null;
+  return { key, label: `${label} (${items.length})`, content: items.join(", ") };
+}
+
+function BriefRows({ rows }: Readonly<{ rows: readonly BriefRow[] }>) {
+  return (
+    <>
+      {rows.map((row) => (
+        <Row key={row.key} label={row.label}>
+          {row.content}
+        </Row>
+      ))}
+    </>
+  );
 }
 
 function trainLine(t: TrackedTrain): string {
@@ -58,8 +81,10 @@ function BriefCard({
   Icon,
   onDismiss,
   busy,
-  children,
-}: Readonly<{ title: string; Icon: typeof Sun; onDismiss: () => void; busy: boolean; children: React.ReactNode }>) {
+  rows,
+}: Readonly<{ title: string; Icon: typeof Sun; onDismiss: () => void; busy: boolean; rows: readonly BriefRow[] }>) {
+  // Karta bez treści nie ma czego pokazać – lepiej jej nie rysować niż wypełniać słowem „brak”.
+  if (rows.length === 0) return null;
   const headingId = `brief-${title.replaceAll(/\s+/g, "-").toLowerCase()}`;
   return (
     <section aria-labelledby={headingId} className="card w-full max-w-none p-4 sm:p-5">
@@ -79,7 +104,9 @@ function BriefCard({
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
-      <dl className="divide-y divide-line">{children}</dl>
+      <dl className="divide-y divide-line">
+        <BriefRows rows={rows} />
+      </dl>
     </section>
   );
 }
@@ -125,114 +152,119 @@ function MorningBrief({
 
   const pending = tasks.filter((t) => t.status !== "done" && t.due_date === today);
   const todayIdx = forecast?.daily.time.indexOf(today) ?? -1;
-  let weather = "Brak danych (włącz lokalizację w ustawieniach).";
+  // Pusty łańcuch = brak pozycji „Pogoda” (brak danych albo wyłączona lokalizacja).
+  let weather = "";
   if (weatherLoading) weather = "Wczytywanie…";
   else if (forecast && todayIdx >= 0 && !weatherError) {
     const d = forecast.daily;
     weather = `${Math.round(forecast.current_weather.temperature)}°C teraz, ${Math.round(d.temperature_2m_min[todayIdx])}–${Math.round(d.temperature_2m_max[todayIdx])}°C, opady ${d.precipitation_sum[todayIdx]} mm`;
   }
 
-  return (
-    <BriefCard title="Poranny briefing" Icon={Sun} onDismiss={onDismiss} busy={busy}>
-      <Row label="Pogoda">
+  const rows: BriefRow[] = [];
+  // Pogoda tylko wtedy, gdy są dane – komunikat o ich braku nie jest treścią briefingu.
+  if (weather)
+    rows.push({
+      key: "weather",
+      label: "Pogoda",
+      content: (
         <Link href="/weather" className="underline-offset-2 hover:underline">
           {weather}
         </Link>
-      </Row>
-      <Row label={`Zadania (${pending.length})`}>
-        {names(
-          pending.map((t) => t.title),
-          "brak na dziś"
-        )}
-      </Row>
-      <Row label={`Zaległe (${overdue.length})`}>
-        {names(
-          overdue.map((t) => `${t.title} (${t.due_date})`),
-          "brak"
-        )}
-      </Row>
-      <Row label={`Spotkania (${events.length})`}>
-        {names(
-          events.map((e) => `${timeOf(e)} ${e.title}`),
-          "brak"
-        )}
-      </Row>
-      <Row label="Rachunki">
-        {due.dueToday.length + due.overdue.length === 0
-          ? "brak płatności na dziś"
-          : [
-              ...due.dueToday.map((b) => `${b.name} ${formatPln(b.amount)} (dziś)`),
-              ...due.overdue.map((b) => `${b.name} ${formatPln(b.amount)} (zaległy)`),
-            ].join(", ")}
-      </Row>
-      <Row label={`Pociągi (${trains.length})`}>{names(trains.map(trainLine), "brak")}</Row>
-      <Row label="Kontakt">
-        {names(
-          getPeopleToContact.slice(0, 5).map((p) => `${p.first_name} ${p.last_name}`.trim()),
-          "nikt nie czeka na kontakt"
-        )}
-      </Row>
-    </BriefCard>
+      ),
+    });
+  const taskRow = listRow(
+    "tasks",
+    "Zadania",
+    pending.map((t) => t.title)
   );
+  if (taskRow) rows.push(taskRow);
+  const overdueRow = listRow(
+    "overdue",
+    "Zaległe",
+    overdue.map((t) => `${t.title} (${t.due_date})`)
+  );
+  if (overdueRow) rows.push(overdueRow);
+  const eventRow = listRow(
+    "events",
+    "Spotkania",
+    events.map((e) => `${timeOf(e)} ${e.title}`)
+  );
+  if (eventRow) rows.push(eventRow);
+  const billItems = [
+    ...due.dueToday.map((b) => `${b.name} ${formatPln(b.amount)} (dziś)`),
+    ...due.overdue.map((b) => `${b.name} ${formatPln(b.amount)} (zaległy)`),
+  ];
+  const billRow = listRow("bills", "Rachunki", billItems);
+  if (billRow) rows.push(billRow);
+  const trainRow = listRow("trains", "Pociągi", trains.map(trainLine));
+  if (trainRow) rows.push(trainRow);
+  const contactRow = listRow(
+    "contact",
+    "Kontakt",
+    getPeopleToContact.slice(0, 5).map((p) => `${p.first_name} ${p.last_name}`.trim())
+  );
+  if (contactRow) rows.push(contactRow);
+
+  return <BriefCard title="Poranny briefing" Icon={Sun} onDismiss={onDismiss} busy={busy} rows={rows} />;
 }
 
-function TomorrowRows({ today }: Readonly<{ today: string }>) {
+/** Pozycje „Jutro” – puste pomijamy, więc dzień bez planów nie dokłada pustych wierszy. */
+function useTomorrowRows(today: string, enabled: boolean): BriefRow[] {
   const tomorrow = format(addDays(new Date(`${today}T12:00:00`), 1), "yyyy-MM-dd");
-  const { tasks } = useTasks(tomorrow, tomorrow);
-  const { events } = useEvents(tomorrow, tomorrow);
-  const { trains } = useTrainsForDate(tomorrow);
+  const { tasks } = useTasks(enabled ? tomorrow : "", enabled ? tomorrow : "");
+  const { events } = useEvents(enabled ? tomorrow : "", enabled ? tomorrow : "");
+  const { trains } = useTrainsForDate(enabled ? tomorrow : "");
+  if (!enabled) return [];
   const pending = tasks.filter((t) => t.status !== "done");
-  return (
-    <>
-      <Row label={`Jutro: zadania (${pending.length})`}>
-        {names(
-          pending.map((t) => t.title),
-          "brak"
-        )}
-      </Row>
-      <Row label={`Jutro: spotkania (${events.length})`}>
-        {names(
-          events.map((e) => `${timeOf(e)} ${e.title}`),
-          "brak"
-        )}
-      </Row>
-      <Row label={`Jutro: pociągi (${trains.length})`}>{names(trains.map(trainLine), "brak")}</Row>
-    </>
-  );
+  return [
+    listRow(
+      "tomorrow-tasks",
+      "Jutro: zadania",
+      pending.map((t) => t.title)
+    ),
+    listRow(
+      "tomorrow-events",
+      "Jutro: spotkania",
+      events.map((e) => `${timeOf(e)} ${e.title}`)
+    ),
+    listRow("tomorrow-trains", "Jutro: pociągi", trains.map(trainLine)),
+  ].filter((row): row is BriefRow => row !== null);
 }
 
 function EveningBrief({ today, tasks, events, onDismiss, busy }: Props & { onDismiss: () => void; busy: boolean }) {
   const { settings } = useSettings();
   const parts = eveningParts(settings.brief_evening_mode);
   const todays = tasks.filter((t) => t.due_date === today);
-  const done = todays.filter((t) => t.status === "done");
-  const left = todays.filter((t) => t.status !== "done");
+  const tomorrowRows = useTomorrowRows(today, parts.tomorrow);
+
+  const summaryRows = parts.summary
+    ? [
+        listRow(
+          "done",
+          "Zrobione",
+          todays.filter((t) => t.status === "done").map((t) => t.title)
+        ),
+        listRow(
+          "left",
+          "Do zrobienia",
+          todays.filter((t) => t.status !== "done").map((t) => t.title)
+        ),
+        listRow(
+          "events",
+          "Spotkania",
+          events.map((e) => e.title)
+        ),
+      ].filter((row): row is BriefRow => row !== null)
+    : [];
+
   return (
-    <BriefCard title="Wieczorny briefing" Icon={Moon} onDismiss={onDismiss} busy={busy}>
-      {parts.summary && (
-        <>
-          <Row label={`Zrobione (${done.length})`}>
-            {names(
-              done.map((t) => t.title),
-              "brak"
-            )}
-          </Row>
-          <Row label={`Do zrobienia (${left.length})`}>
-            {names(
-              left.map((t) => t.title),
-              "brak"
-            )}
-          </Row>
-          <Row label={`Spotkania (${events.length})`}>
-            {names(
-              events.map((e) => e.title),
-              "brak"
-            )}
-          </Row>
-        </>
-      )}
-      {parts.tomorrow && <TomorrowRows today={today} />}
-    </BriefCard>
+    <BriefCard
+      title="Wieczorny briefing"
+      Icon={Moon}
+      onDismiss={onDismiss}
+      busy={busy}
+      rows={[...summaryRows, ...tomorrowRows]}
+    />
   );
 }
 

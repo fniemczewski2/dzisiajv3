@@ -468,12 +468,22 @@ Pole `notice` (temat + treść) bramka wysyła jako **reply** na przekierowaną 
 automatycznego przekazywania w Gmailu i dla ręcznego „Przekaż dalej”. Adres z koperty, a nie z nagłówka `From`:
 przy przekazywaniu automatycznym `From` zostaje przewoźnika, więc odpowiedź trafiłaby do PKP Intercity.
 
-Cloudflare dopuszcza `From` tylko z domeny obsługiwanej przez Email Routing na tym koncie. Jeśli w logach Workera
-widać `reply: mail from is not from the correct domain`, domena adresów biletów nie jest tam zarejestrowana
-(same rekordy MX kierujące na Cloudflare nie wystarczą). Wyjścia: włączyć Email Routing dla tej domeny lub
-subdomeny, przenieść adresy biletów na domenę już obsługiwaną (`MAIL_FORWARDING_DOMAIN` w Vercelu + nowy adres
-w Ustawieniach + przepięcie filtra w Gmailu), albo odkomentować binding `[[send_email]]` w `wrangler.toml`
-(wymaga zweryfikowanego adresu docelowego) – bramka użyje go, gdy `message.reply()` zawiedzie.
+Cloudflare dopuszcza `From` tylko z domeny obsługiwanej przez Email Routing na tym koncie. Bramka próbuje po kolei
+trzech nadawców i poprzestaje na pierwszym, który przejdzie:
+
+1. `REPLY_FROM` z `wrangler.toml` (jeśli ustawiony),
+2. adres biletów, na który wiadomość przyszła (`b-<token>@poczta.…`),
+3. `no-reply@<domena nadrzędna>` – gdy Email Routing obsługuje tylko domenę główną.
+
+Każda próba ma jeszcze wariant przez binding `[[send_email]]` (zakomentowany w `wrangler.toml`), który działa
+wyłącznie dla zweryfikowanych adresów docelowych, więc przy wielu użytkownikach nie zastępuje `message.reply()` –
+jest zapasem dla własnych skrzynek. Gdy żadna próba nie przejdzie, w logach pojawia się
+`reply: nie udało się wysłać odpowiedzi` z powodami wszystkich prób; wtedy ustaw `REPLY_FROM` na adres z domeny
+głównej albo przenieś adresy biletów na tę domenę (`MAIL_FORWARDING_DOMAIN` w Vercelu, nowy adres w Ustawieniach,
+przepięcie filtra w Gmailu).
+
+Odpowiedź dostaje każdy nadawca, bez względu na domenę – `message.reply()` nie wymaga weryfikacji adresata.
+Wyjątkiem jest mail weryfikacyjny przekazywania w Gmailu: na niego aplikacja celowo nie odpowiada.
 Przy nierozpoznanym bilecie treść zawiera inwentarz załączników, które dotarły do aplikacji (nazwa, typ MIME, czy miały
 treść PDF) – to rozstrzyga, czy problem jest w bramce, czy w parserze. Reply wymaga Workera w wersji z `message.reply()`
 (`docs/mail-gateway/worker.js`), więc po tej zmianie konieczny jest `npm run deploy` bramki.

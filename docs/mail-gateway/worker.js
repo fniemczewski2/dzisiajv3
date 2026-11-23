@@ -83,16 +83,6 @@ export default {
       ...mapped.filter((a) => !a.icsText && !a.pdfBase64),
     ].slice(0, 20);
 
-    console.log(
-      "inbound",
-      JSON.stringify({
-        to: message.to,
-        tickets,
-        parsed: (parsed.attachments ?? []).map((a) => ({ n: a.filename, m: a.mimeType })),
-        sent: attachments.map((a) => ({ n: a.filename, m: a.mimeType, pdf: Boolean(a.pdfBase64) })),
-      })
-    );
-
     const res = await fetch(env.INBOUND_URL, {
       method: "POST",
       headers: { "content-type": "application/json", "x-mail-inbound-secret": env.MAIL_INBOUND_SECRET },
@@ -163,45 +153,104 @@ function encodeBody(body) {
   return btoa(binary).replaceAll(/(.{76})/g, "$1\r\n");
 }
 
+/** Domena nadrzędna adresu: b-…@poczta.dzisiaj.fun → dzisiaj.fun (zapasowy nadawca odpowiedzi). */
+function parentDomain(address) {
+  const domain = String(address).split("@")[1] ?? "";
+  const labels = domain.split(".");
+  return labels.length > 2 ? labels.slice(1).join(".") : domain;
+}
+
 /**
- * Odpowiedź do skrzynki, która wiadomość przekazała, wysłana z adresu biletów.
+ * Kandydaci na nadawcę odpowiedzi, w kolejności prób. Cloudflare dopuszcza w polu From wyłącznie adres
+ * z domeny obsługiwanej przez Email Routing na tym koncie; inaczej message.reply() zgłasza
+ * „mail from is not from the correct domain”. Próbujemy po kolei, bo konfiguracje domen bywają różne:
+ *   1. REPLY_FROM – jawnie ustawiony adres (wrangler.toml → [vars]), ma pierwszeństwo,
+ *   2. adres biletów, na który wiadomość przyszła (naturalny nadawca odpowiedzi),
+ *   3. no-reply@<domena nadrzędna> – gdy Email Routing obsługuje tylko domenę główną, nie subdomenę.
+ */
+function replySenders(message, env) {
+  const candidates = [env.REPLY_FROM, message.to, `no-reply@${parentDomain(message.to)}`];
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+/** Wartość nagłówka z przetworzonej wiadomości (postal-mime zwraca listę par klucz–wartość). */
+function headerValue(parsed, name) {
+  const needle = name.toLowerCase();
+  const found = (parsed.headers ?? []).find((h) => String(h.key ?? "").toLowerCase() === needle);
+  return found?.value ?? "";
+}
+
+/**
+ * Łańcuch References odpowiedzi: cały łańcuch oryginału plus jego Message-ID, w tej kolejności.
+ * Cloudflare sprawdza tę wartość co do znaku i odrzuca odpowiedź komunikatem
+ * „provided References header is invalid; expected …”.
+ */
+function referencesChain(parsed) {
+  const previous = String(headerValue(parsed, "references") || "")
+    .split(/\s+/)
+    .filter((id) => id.startsWith("<"));
+  const own = parsed.messageId ? [headerSafe(parsed.messageId)] : [];
+  return [...new Set([...previous, ...own])].join(" ");
+}
+
+/** Wiadomość RFC 822 z odpowiedzią (treść tekstowa, UTF-8). */
+function buildReply(from, to, parsed, notice, domain) {
+  const inReplyTo = parsed.messageId ? headerSafe(parsed.messageId) : "";
+  const references = referencesChain(parsed);
+  return (
+    `From: ${headerSafe(from)}\r\n` +
+    `To: ${headerSafe(to)}\r\n` +
+    `Subject: ${encodeSubject(notice.subject)}\r\n` +
+    `Message-ID: <${crypto.randomUUID()}@${domain}>\r\n` +
+    (inReplyTo ? `In-Reply-To: ${inReplyTo}\r\n` : "") +
+    (references ? `References: ${references}\r\n` : "") +
+    `MIME-Version: 1.0\r\n` +
+    `Content-Type: text/plain; charset="utf-8"\r\n` +
+    `Content-Transfer-Encoding: base64\r\n\r\n` +
+    encodeBody(notice.body)
+  );
+}
+
+/**
+ * Odpowiedź z wynikiem do skrzynki, która wiadomość przekazała. Każdy użytkownik, niezależnie od adresu,
+ * ma dostać zwrotkę. Cloudflare dopuszcza jedną odpowiedź na wiadomość, więc message.reply() wykonujemy raz,
+ * pierwszym nadawcą z listy; binding send_email (jeśli włączony) jest zapasem dla zweryfikowanych adresów.
  *
  * Adresat: nadawca koperty SMTP (`message.from`). Przy automatycznym przekazywaniu w Gmailu nagłówek From
  * zostaje przewoźnika (bilet@intercity.pl) – odpowiedź na ten adres trafiłaby do PKP Intercity, dlatego
  * bierzemy kopertę. Przy ręcznym „Przekaż dalej” oba adresy są tą samą skrzynką.
- *
- * Nadawca: adres biletów, na który wiadomość przyszła. Cloudflare dopuszcza taki From tylko wtedy, gdy jego
- * domena jest obsługiwana przez Email Routing na tym koncie – inaczej message.reply() zgłasza
- * „mail from is not from the correct domain”. Zob. docs/RUNBOOK.md, „Odpowiedzi na wiadomości z biletami”.
  */
 async function reply(message, parsed, notice, env) {
   if (!notice) return;
   const to = message.from || parsed.from?.address;
-  if (!to) return;
-  const messageId = `<${crypto.randomUUID()}@${message.to.split("@")[1]}>`;
-  const original = parsed.messageId ? headerSafe(parsed.messageId) : "";
-  const raw =
-    `From: ${headerSafe(message.to)}\r\n` +
-    `To: ${headerSafe(to)}\r\n` +
-    `Subject: ${encodeSubject(notice.subject)}\r\n` +
-    `Message-ID: ${messageId}\r\n` +
-    (original ? `In-Reply-To: ${original}\r\nReferences: ${original}\r\n` : "") +
-    `MIME-Version: 1.0\r\n` +
-    `Content-Type: text/plain; charset="utf-8"\r\n` +
-    `Content-Transfer-Encoding: base64\r\n\r\n` +
-    encodeBody(notice.body);
+  if (!to) {
+    console.error("reply: brak adresu zwrotnego");
+    return;
+  }
+  const domain = String(message.to).split("@")[1] ?? "localhost";
+  const errors = [];
+  const senders = replySenders(message, env);
 
+  // Odpowiedzieć na wiadomość można tylko raz („mail has already been replied to”), więc reply()
+  // próbujemy wyłącznie pierwszym nadawcą; pozostali kandydaci idą przez binding send_email.
+  const [primary, ...rest] = senders;
   try {
-    await message.reply(new EmailMessage(message.to, to, raw));
+    await message.reply(new EmailMessage(primary, to, buildReply(primary, to, parsed, notice, domain)));
     return;
   } catch (err) {
-    console.error("reply:", err?.message ?? err);
+    errors.push(`${primary}: ${err?.message ?? err}`);
   }
-  // Zapasowo binding send_email (wrangler.toml → [[send_email]] name = "NOTIFY"), gdy reply nie przechodzi.
-  if (!env.NOTIFY) return;
-  try {
-    await env.NOTIFY.send(new EmailMessage(message.to, to, raw));
-  } catch (err) {
-    console.error("send_email:", err?.message ?? err);
+
+  if (env.NOTIFY) {
+    for (const from of [primary, ...rest]) {
+      try {
+        await env.NOTIFY.send(new EmailMessage(from, to, buildReply(from, to, parsed, notice, domain)));
+        return;
+      } catch (err) {
+        errors.push(`send_email ${from}: ${err?.message ?? err}`);
+      }
+    }
   }
+  // Brak odpowiedzi to utrata wyniku dla użytkownika – zostawiamy ślad w logach z powodami wszystkich prób.
+  console.error("reply: nie udało się wysłać odpowiedzi", JSON.stringify(errors));
 }

@@ -40,7 +40,7 @@ Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 
 ## components/dashboard
 
-- `DailyBrief.tsx` – Briefing dnia na planie dnia (tylko dziś): poranny od brief_morning_time, wieczorny od brief_evening_time (podsumowanie dnia, plan na jutro albo oba –… · db: tasks
+- `DailyBrief.tsx` – Briefing dnia na planie dnia (tylko dziś): poranny od brief_morning_time, wieczorny od brief_evening_time (każdy można wyłączyć: brief_morning_enabled /… · db: tasks
 - `DailyPlan.tsx`
 - `DayEvents.tsx`
 - `DayHeader.tsx`
@@ -834,6 +834,7 @@ Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-20_brief_feed_tickets.sql` – Wydanie 1.45.0: briefing dnia, kanał .ics (WebCal), płatności ze Skrótów (Apple Pay), bilety z poczty, skrzynki do wyszukiwania potwierdzeń ePUAP / e-Doręczeń. · obj: calendar_feed_tokens, calendar_feed_tokens_select_own, user_trains_update_own
 - `2026-11-21_ticket_buffer.sql` – Wydanie 1.45.0 (uzupełnienie): adres biletów przyjmuje wiadomości bez biletu do bufora Poczty tylko do chwili potwierdzenia przekazywania (mail weryfikacyjny…
 - `2026-11-21_vault_root_and_import_decisions.sql` – Vault Obsidiana w folderze wskazanym przez użytkownika (np. „Apps/remotely-save/Zeszyt” – Remotely Save) oraz decyzje o duplikatach przy imporcie osób z vaultu… · obj: vault_import_decisions, vault_import_decisions_own
+- `2026-11-22_brief_toggles.sql` – Włączniki briefingu dnia: każdą kartę (poranną i wieczorną) można wyłączyć niezależnie. Domyślnie włączone, czyli zachowanie sprzed zmiany. Skrypt idempotentny.
 - `2026-11-22_dashboard_layout.sql` – Układ planu na ekranie głównym: jeden dzień albo tydzień (wczoraj, dzień widoku i 5 kolejnych dni). Skrypt idempotentny – można go uruchomić ponownie.
 - `2026-11-22_series_occurrence_exceptions.sql` – Wyjątki pojedynczych terminów serii. 1. Wydarzenia: tabela event_overrides – jedno wystąpienie reguły (dzień z siatki) może mieć własny początek i koniec,… · obj: event_overrides, can_access_event, event_overrides_select_own, event_overrides_insert_own, event_overrides_update_own, event_overrides_delete_own
 

@@ -340,11 +340,33 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         {...common}
         id="briefing"
         title="Briefing dnia"
-        description="Karta na planie dnia od wybranej godziny do zamknięcia; powiadomienie push o tej samej porze (Powiadomienia → Poranny i Wieczorny briefing)."
-        keys={["brief_morning_time", "brief_evening_time", "brief_evening_mode"] as const}
+        description="Karta na planie dnia od wybranej godziny do zamknięcia; powiadomienie push o tej samej porze (Powiadomienia → Poranny i Wieczorny briefing). Przełączniki dotyczą karty – powiadomienia push wyłączysz w sekcji Powiadomienia. Pozycje bez treści (np. dzień bez wydarzeń) nie są pokazywane, a pusta karta nie pojawia się wcale."
+        keys={
+          [
+            "brief_morning_enabled",
+            "brief_evening_enabled",
+            "brief_morning_time",
+            "brief_evening_time",
+            "brief_evening_mode",
+          ] as const
+        }
       >
         {(d, set) => (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="sm:col-span-3">
+              <Switch
+                id="brief_morning_enabled"
+                label="Pokaż poranny briefing (karta)"
+                checked={on(d.brief_morning_enabled ?? true)}
+                onChange={(v) => set("brief_morning_enabled", v)}
+              />
+              <Switch
+                id="brief_evening_enabled"
+                label="Pokaż wieczorny briefing (karta)"
+                checked={on(d.brief_evening_enabled ?? true)}
+                onChange={(v) => set("brief_evening_enabled", v)}
+              />
+            </div>
             <div>
               <label htmlFor="brief_morning_time" className="form-label">
                 Poranny briefing
