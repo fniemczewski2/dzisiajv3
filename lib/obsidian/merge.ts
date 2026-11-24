@@ -6,8 +6,10 @@
 
 import { parseFrontMatter, stringifyFrontMatter, type FrontMatter } from "@/lib/obsidian/frontMatter";
 
-const asList = (v: FrontMatter[string] | undefined): string[] =>
-  Array.isArray(v) ? v : typeof v === "string" && v ? [v] : [];
+function asList(v: FrontMatter[string] | undefined): string[] {
+  if (Array.isArray(v)) return v;
+  return typeof v === "string" && v ? [v] : [];
+}
 
 /** Porównanie dat ISO po pierwszych 19 znakach (RRRR-MM-DDTHH:mm:ss) – formaty z aplikacji i z Lintera się różnią. */
 function later(a: FrontMatter[string] | undefined, b: FrontMatter[string] | undefined): FrontMatter[string] {

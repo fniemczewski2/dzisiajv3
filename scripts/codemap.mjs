@@ -13,9 +13,9 @@ const SKIP = [/^__tests__\//, /^public\//, /^docs\//, /\.d\.ts$/, /^next-env\.d\
 const MAX_DESC = 160;
 const MAX_EXPORTS = 8;
 
-// NOSONAR: git jest celowo wywoływany z PATH (narzędzie deweloperskie uruchamiane lokalnie i w CI).
 // Pliki śledzone i nowe (jeszcze niedodane), bez usuniętych z dysku – wynik nie zależy od `git add`.
-const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" })
+// git celowo z PATH: to narzędzie deweloperskie uruchamiane lokalnie i w CI, nie kod produkcyjny.
+const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" }) // NOSONAR
   .split("\n")
   .filter((f) => f && SRC.test(f) && !SKIP.some((r) => r.test(f)) && existsSync(f))
   .sort((a, b) => a.localeCompare(b));
@@ -150,9 +150,9 @@ for (const f of files) {
   groups.get(g).push(f);
 }
 
-// NOSONAR: j.w., git z PATH.
+// git z PATH jak wyżej.
 const testCount = new Set(
-  execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "__tests__"], { encoding: "utf8" })
+  execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "__tests__"], { encoding: "utf8" }) // NOSONAR
     .split("\n")
     .filter((f) => f && existsSync(f))
 ).size;

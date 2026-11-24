@@ -441,10 +441,11 @@ async function handleSyncOccurrence(req: NextApiRequest, res: NextApiResponse, s
     if (!mainAcc) return res.status(400).json({ error: "Brak podłączonego konta Microsoft" });
 
     const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
+    const dayStart = encodeURIComponent(`${occurrenceDate}T00:00:00`);
+    const dayEnd = encodeURIComponent(`${occurrenceDate}T23:59:59`);
     const instancesUrl =
       `https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(ev.google_event_id)}/instances` +
-      `?startDateTime=${encodeURIComponent(`${occurrenceDate}T00:00:00`)}` +
-      `&endDateTime=${encodeURIComponent(`${occurrenceDate}T23:59:59`)}`;
+      `?startDateTime=${dayStart}&endDateTime=${dayEnd}`;
     const listed = await fetch(instancesUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
     if (!listed.ok) return res.status(502).json({ error: "Outlook nie zwrócił wystąpień serii." });
     const instances = (await listed.json()) as { value?: Array<{ id?: string }> };

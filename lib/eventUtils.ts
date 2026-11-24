@@ -94,38 +94,45 @@ export function expandRepeatingEvents(
   const searchEnd = byKey.size > 0 ? addDays(rangeEnd, OCCURRENCE_OVERRIDE_WINDOW_DAYS) : rangeEnd;
 
   const result: Event[] = [];
-
   for (const event of events) {
-    const originalStart = parseEventDate(event.start_time);
-    const originalEnd = parseEventDate(event.end_time);
     const rule = eventRule(event);
-
     if (!rule) {
-      if (originalEnd >= rangeStart && originalStart <= rangeEnd) {
-        result.push(event);
-      }
-    } else {
-      const repeatingInstances = generateRepeatingInstances(
-        event,
-        rule,
-        originalStart,
-        originalEnd,
-        searchStart,
-        searchEnd
-      );
-      for (const instance of repeatingInstances) {
-        const override = byKey.get(instance.id);
-        // Odwołany termin nie pojawia się w widoku ani w kanale .ics.
-        if (override?.canceled) continue;
-        const resolved = override
-          ? { ...instance, start_time: override.start_time, end_time: override.end_time }
-          : instance;
-        if (byKey.size === 0 || overlapsRange(resolved, rangeStart, rangeEnd)) result.push(resolved);
-      }
+      if (overlapsRange(event, rangeStart, rangeEnd)) result.push(event);
+      continue;
     }
+    const instances = generateRepeatingInstances(
+      event,
+      rule,
+      parseEventDate(event.start_time),
+      parseEventDate(event.end_time),
+      searchStart,
+      searchEnd
+    );
+    result.push(...applyOverrides(instances, byKey, rangeStart, rangeEnd));
   }
-
   return result;
+}
+
+/**
+ * Wystąpienia serii po nałożeniu wyjątków: odwołany termin znika, przeniesiony dostaje nowy czas,
+ * a po przesunięciu zostają tylko te, które nadal mieszczą się w widoku.
+ */
+function applyOverrides(
+  instances: readonly Event[],
+  byKey: ReadonlyMap<string, EventOverride>,
+  rangeStart: Date,
+  rangeEnd: Date
+): Event[] {
+  const out: Event[] = [];
+  for (const instance of instances) {
+    const override = byKey.get(instance.id);
+    if (override?.canceled) continue;
+    const resolved = override
+      ? { ...instance, start_time: override.start_time, end_time: override.end_time }
+      : instance;
+    if (byKey.size === 0 || overlapsRange(resolved, rangeStart, rangeEnd)) out.push(resolved);
+  }
+  return out;
 }
 
 export const getEventsForDay = (events: Event[], day: Date): Event[] => {

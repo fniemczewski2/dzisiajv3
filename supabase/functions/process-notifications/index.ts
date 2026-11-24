@@ -702,9 +702,8 @@ async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
       const done = tasks.filter((t) => t.status === "done").length;
       const pending = tasks.length - done;
       if (tasks.length > 0) {
-        lines.push(
-          `Zrealizowano ${countLabel(done, "zadanie", "zadania", "zadań")}${pending > 0 ? `, zostało ${pending}` : ""}.`
-        );
+        const left = pending > 0 ? `, zostało ${pending}` : "";
+        lines.push(`Zrealizowano ${countLabel(done, "zadanie", "zadania", "zadań")}${left}.`);
       }
     }
     if (mode !== "summary") {

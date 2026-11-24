@@ -94,7 +94,7 @@ export function useProductPrices() {
       if (!userId) return false;
       const name = input.name.replaceAll(/\s+/g, " ").trim().slice(0, PRODUCT_NAME_MAX_LENGTH);
       const key = nameKey(name);
-      if (!key || !(input.avg_price >= 0)) {
+      if (!key || Number.isNaN(input.avg_price) || input.avg_price < 0) {
         toast.error("Podaj nazwę i cenę produktu.");
         return false;
       }

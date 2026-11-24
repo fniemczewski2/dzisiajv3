@@ -11,7 +11,6 @@ import { isAllDayEvent } from "@/lib/eventConflicts";
 import ConflictNotice from "./ConflictNotice";
 import EventCategorySelect from "./EventCategorySelect";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
-import { eventRule } from "@/lib/eventUtils";
 import { describeRule, legacyRepeatFor } from "@/shared/recurrence";
 import {
   EditButton,
@@ -21,7 +20,7 @@ import {
   CancelOccurrenceButton,
   RestoreOccurrenceButton,
 } from "../ui/CommonButtons";
-import { seriesOccurrence } from "@/lib/eventUtils";
+import { eventRule, seriesOccurrence } from "@/lib/eventUtils";
 import { linkifyText } from "@/lib/noteFormatting";
 import { sanitizeHref } from "@/lib/sanitize";
 

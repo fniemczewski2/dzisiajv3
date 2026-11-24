@@ -14,8 +14,7 @@ import {
   type ReviewRow,
   type ReviewSession,
 } from "@/lib/prices/importPlan";
-import { formatPln } from "@/lib/prices/text";
-import { nameKey } from "@/lib/prices/text";
+import { formatPln, nameKey } from "@/lib/prices/text";
 import { PRICE_UNITS, type ConflictDecision, type PriceUnit, type ProductPrice } from "@/types/prices";
 import { CancelButton, SaveButton } from "../ui/CommonButtons";
 
@@ -83,7 +82,7 @@ export default function PriceImportReview({
               checked={mismatchConfirmed}
               onChange={(e) => setMismatchConfirmed(e.target.checked)}
               className="h-5 w-5 accent-primary"
-            />
+            />{" "}
             Sprawdziłem pozycje i chcę je zapisać
           </label>
         </div>

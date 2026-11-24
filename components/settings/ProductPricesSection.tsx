@@ -37,7 +37,21 @@ const STAGE_LABELS: Record<OcrProgress["stage"], string> = {
 };
 
 let sessionCounter = 0;
-const nextSessionId = () => `session-${(sessionCounter += 1)}`;
+/** Tytuł sesji weryfikacji paragonu: sklep, opcjonalna data, nazwa pliku. */
+function receiptTitle(receipt: { store: keyof typeof STORE_LABELS; date: string | null }, fileName: string): string {
+  const date = receipt.date ? `, ${receipt.date}` : "";
+  return `${STORE_LABELS[receipt.store]}${date}: ${fileName}`;
+}
+
+/** Dopisek o pominiętych pozycjach (pusty, gdy nic nie pominięto). */
+function skippedNote(skipped: number): string {
+  return skipped ? `, pominięto: ${skipped}` : "";
+}
+
+function nextSessionId(): string {
+  sessionCounter += 1;
+  return `session-${sessionCounter}`;
+}
 
 const isAllowedReceipt = (file: File) =>
   file.type.startsWith("image/") || file.type === "application/pdf" || /\.pdf$/i.test(file.name);
@@ -129,7 +143,7 @@ export default function ProductPricesSection() {
           created.push({
             id: nextSessionId(),
             kind: "receipt",
-            title: `${STORE_LABELS[receipt.store]}${receipt.date ? `, ${receipt.date}` : ""}: ${fileName}`,
+            title: receiptTitle(receipt, fileName),
             rows: buildReceiptRows(receipt, context),
             notes: [
               `Odczytano ${receipt.items.length} pozycji; suma pozycji ${receipt.itemsSum.toFixed(2).replace(".", ",")} zł` +
@@ -158,9 +172,7 @@ export default function ProductPricesSection() {
       const changes = buildChanges(rows, prices);
       const result = await commitChanges(changes, fingerprint);
       if (result === "saved") {
-        toast.success(
-          `Zapisano ceny: ${changes.upserts.length}${changes.skipped ? `, pominięto: ${changes.skipped}` : ""}.`
-        );
+        toast.success(`Zapisano ceny: ${changes.upserts.length}${skippedNote(changes.skipped)}.`);
       } else if (result === "duplicate") {
         toast.error("Ten paragon został już zaimportowany, więc nie zmieniam cen.");
       } else {

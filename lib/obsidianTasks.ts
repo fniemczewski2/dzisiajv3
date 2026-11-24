@@ -15,7 +15,7 @@ const PRIORITY_EMOJI: Record<string, number> = { "🔺": 1, "⏫": 2, "🔼": 3,
 const PRIORITY_TO_EMOJI: Record<number, string> = { 1: "🔺", 2: "⏫", 4: "🔽", 5: "⏬" };
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-const CHECKBOX = /^\s*[-*+]\s+\[( |x|X)\]\s+/;
+const CHECKBOX = /^\s*[-*+]\s+\[([ xX])\]\s+/;
 const DUE = /📅\s*(\d{4}-\d{2}-\d{2})/u;
 const TAG = /(?:^|\s)#([\p{L}\p{N}_/-]+)/u;
 // Pozostałe znaczniki Tasks (start, zaplanowane, utworzone, ukończone, powtarzanie) usuwamy z tytułu.
@@ -38,7 +38,7 @@ const validDate = (v: string): boolean => {
 /** Jedna linia Markdown → zadanie; null dla linii pustej, ukończonej albo bez tytułu. */
 export function parseTaskLine(line: string, today: string): ObsidianTaskDraft | null {
   const box = CHECKBOX.exec(line);
-  if (box && box[1].toLowerCase() === "x") return null;
+  if (box?.[1].toLowerCase() === "x") return null;
   let rest = box ? line.slice(box[0].length) : line.replace(/^\s*[-*+]\s+/, "");
 
   const due = DUE.exec(rest)?.[1];
@@ -101,7 +101,10 @@ export function dayPlanMarkdown(
 ): string {
   const ev = [...events]
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
-    .map((e) => `- ${hhmm(e.start_time)}–${hhmm(e.end_time)} ${e.title}${e.place ? ` (${e.place})` : ""}`);
+    .map((e) => {
+      const place = e.place ? ` (${e.place})` : "";
+      return `- ${hhmm(e.start_time)}–${hhmm(e.end_time)} ${e.title}${place}`;
+    });
   const ts = [...tasks].sort((a, b) => a.priority - b.priority).map(taskToLine);
   return [
     `## Kalendarz (${date})`,

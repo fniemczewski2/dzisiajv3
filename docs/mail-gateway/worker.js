@@ -33,11 +33,12 @@ const DEFAULT_MAX_PDF_BYTES = 2_000_000;
 const MAX_TOTAL_PDF_BYTES = 2_900_000;
 const MAX_PDFS = 5;
 
+/** Bajty → base64. Wartości są zawsze z zakresu 0–255, więc fromCodePoint daje ten sam wynik co fromCharCode. */
 function toBase64(bytes) {
   let binary = "";
   const chunk = 0x8000;
   for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    binary += String.fromCodePoint(...bytes.subarray(i, i + chunk));
   }
   return btoa(binary);
 }
@@ -140,7 +141,7 @@ function headerSafe(value) {
 function encodeSubject(subject) {
   const bytes = new TextEncoder().encode(subject);
   let binary = "";
-  for (const b of bytes) binary += String.fromCharCode(b);
+  for (const b of bytes) binary += String.fromCodePoint(b);
   return `=?UTF-8?B?${btoa(binary)}?=`;
 }
 
@@ -149,7 +150,7 @@ function encodeBody(body) {
   const bytes = new TextEncoder().encode(body);
   let binary = "";
   const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCodePoint(...bytes.subarray(i, i + chunk));
   return btoa(binary).replaceAll(/(.{76})/g, "$1\r\n");
 }
 

@@ -59,9 +59,8 @@ export function briefVisibility(settings: BriefSettings, today: string, nowHm: s
   };
 }
 
-export function eveningParts(mode: BriefEveningMode | undefined): { summary: boolean; tomorrow: boolean } {
-  const m = mode ?? "both";
-  return { summary: m !== "tomorrow", tomorrow: m !== "summary" };
+export function eveningParts(mode: BriefEveningMode = "both"): { summary: boolean; tomorrow: boolean } {
+  return { summary: mode !== "tomorrow", tomorrow: mode !== "summary" };
 }
 
 export interface BillsDue {

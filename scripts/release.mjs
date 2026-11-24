@@ -3,13 +3,17 @@
 // Wydanie: sprawdzenie (format, lint, typecheck, testy, knip, deno check, build), podbicie wersji w package.json
 // i package-lock.json, podsumowanie, opis commita i – po potwierdzeniu – git commit oraz git push.
 //
-// Użycie:
-//   node scripts/release.mjs                 # patch (1.43.0 → 1.43.1), pyta o potwierdzenie
-//   node scripts/release.mjs --minor         # 1.43.0 → 1.44.0
-//   node scripts/release.mjs --major         # 1.43.0 → 2.0.0
-//   node scripts/release.mjs --yes           # bez pytania o potwierdzenie
-//   node scripts/release.mjs --dry-run       # tylko kontrole i podsumowanie; bez zmian w plikach, commita i push
-//   node scripts/release.mjs --only lint,test  # wybrane kontrole (do diagnozy; wydanie wymaga wszystkich)
+// Użycie (działa tak samo przez `npm run release -- --minor` i `npm run release --minor`):
+//   npm run release                    # patch (1.43.0 → 1.43.1), pyta o potwierdzenie
+//   npm run release --minor            # 1.43.0 → 1.44.0
+//   npm run release --major            # 1.43.0 → 2.0.0
+//   npm run release --patch            # jawnie patch
+//   npm run release --yes              # bez pytania o potwierdzenie
+//   npm run release --dry-run          # tylko kontrole i podsumowanie; bez zmian w plikach, commita i push
+//   npm run release --only=lint,test   # wybrane kontrole (do diagnozy; wydanie wymaga wszystkich)
+//
+// npm zjada flagi podane bez `--` i zamienia je na zmienne npm_config_* – skrypt czyta oba źródła,
+// więc nie trzeba pamiętać o podwójnym myślniku.
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -18,17 +22,53 @@ import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
-const args = new Set(process.argv.slice(2));
-const onlyArg = process.argv.find((a) => a.startsWith("--only="))?.slice("--only=".length);
-const ONLY = onlyArg ? new Set(onlyArg.split(",")) : null;
-const DRY_RUN = args.has("--dry-run");
-const ASSUME_YES = args.has("--yes");
+const argv = process.argv.slice(2);
+const args = new Set(argv);
+
+/** Flaga z wiersza poleceń albo z npm_config_* (npm przenosi tam flagi podane bez `--`). */
+function hasFlag(name) {
+  if (args.has(`--${name}`)) return true;
+  const fromNpm = process.env[`npm_config_${name.replaceAll("-", "_")}`];
+  return fromNpm === "true" || fromNpm === "";
+}
+
+/** Wartość flagi: `--only=a,b`, `--only a,b` albo npm_config_only. */
+function flagValue(name) {
+  const inline = argv.find((a) => a.startsWith(`--${name}=`));
+  if (inline) return inline.slice(`--${name}=`.length);
+  const index = argv.indexOf(`--${name}`);
+  const next = index >= 0 ? argv[index + 1] : undefined;
+  if (next && !next.startsWith("--")) return next;
+  const fromNpm = process.env[`npm_config_${name}`];
+  return fromNpm && fromNpm !== "true" ? fromNpm : null;
+}
+
+const onlyArg = flagValue("only");
+const ONLY = onlyArg
+  ? new Set(
+      onlyArg
+        .split(",")
+        .map((name) => name.trim())
+        .filter(Boolean)
+    )
+  : null;
+const DRY_RUN = hasFlag("dry-run");
+const ASSUME_YES = hasFlag("yes");
+
 function bumpKind() {
-  if (args.has("--major")) return "major";
-  if (args.has("--minor")) return "minor";
-  return "patch";
+  const selected = ["major", "minor", "patch"].filter((kind) => hasFlag(kind));
+  if (selected.length > 1) throw new Error(`Sprzeczne flagi wersji: ${selected.map((k) => `--${k}`).join(", ")}`);
+  return selected[0] ?? "patch";
 }
 const BUMP = bumpKind();
+
+const KNOWN_CHECK_NAMES = ["format", "lint", "typecheck", "test", "knip", "deno", "build"];
+if (ONLY) {
+  const unknown = [...ONLY].filter((name) => !KNOWN_CHECK_NAMES.includes(name));
+  if (unknown.length) {
+    throw new Error(`Nieznane kontrole w --only: ${unknown.join(", ")}. Dostępne: ${KNOWN_CHECK_NAMES.join(", ")}`);
+  }
+}
 
 // Kody kolorów terminala (ESC[…m) usuwane z wyjścia narzędzi.
 const ESC = String.fromCodePoint(27);
@@ -70,11 +110,18 @@ const runAsync = (command, { cwd, env = {}, onLine = null, heartbeat = true } = 
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", collect);
     child.stderr.on("data", collect);
-    const timer = heartbeat
-      ? setInterval(() => say(`      … trwa ${Math.round((Date.now() - started) / 1000)} s`), HEARTBEAT_MS)
-      : null;
+    // Znak życia: w terminalu interaktywnym odświeżana jedna linia, w logu (CI) kolejne wiersze.
+    const tick = () => {
+      const text = `      … trwa ${Math.round((Date.now() - started) / 1000)} s`;
+      if (stdout.isTTY) stdout.write(`\r${text.padEnd(TEST_LINE_WIDTH)}`);
+      else say(text);
+    };
+    const timer = heartbeat ? setInterval(tick, HEARTBEAT_MS) : null;
     const finish = (code, text) => {
-      if (timer) clearInterval(timer);
+      if (timer) {
+        clearInterval(timer);
+        if (stdout.isTTY) stdout.write(`\r${" ".repeat(TEST_LINE_WIDTH)}\r`);
+      }
       if (onLine && pending) onLine(pending.replace(ANSI_COLOR, ""));
       resolve({ code, output: text.replace(ANSI_COLOR, ""), ms: Date.now() - started });
     };
@@ -204,6 +251,12 @@ function edgeFunctionEntryPoints() {
 
 const TEST_TOTAL_FILE = ".git/RELEASE_TEST_TOTAL";
 const TEST_PROGRESS_INTERVAL_MS = 2000;
+/** Odświeżanie linii postępu w terminalze interaktywnym – na tyle często, żeby licznik rósł płynnie. */
+const TEST_PAINT_INTERVAL_MS = 120;
+/** Szerokość linii postępu: stała, żeby nadpisanie kasowało poprzednią treść w całości. */
+const TEST_LINE_WIDTH = 100;
+/** Linia pliku w reporterze verbose: „✓ __tests__/lib/x.test.ts (12 tests) 34ms”. */
+const TEST_FILE_LINE = /^\s*[✓×↓]\s+(\S+\.test\.[cm]?tsx?)\s/;
 // Linia wyniku jednego testu w reporterze verbose: „✓ plik > opis 12ms” (× = nieudany, ↓ = pominięty).
 const TEST_RESULT_LINE = /^\s*(✓|×|↓)\s+\S.*\s>\s/;
 
@@ -226,30 +279,83 @@ function saveTestTotal(total) {
   writeFileSync(TEST_TOTAL_FILE, `${total}\n`);
 }
 
-/** Licznik na żywo: wykonane, nieudane i pozostałe testy, wypisywany najwyżej co TEST_PROGRESS_INTERVAL_MS. */
+/**
+ * Licznik na żywo. W terminalu interaktywnym odświeża jedną linię (\r), więc postęp rośnie płynnie
+ * zamiast zasypywać ekran kolejnymi wierszami; poza terminalem (CI, przekierowanie do pliku) wypisuje
+ * wiersz co TEST_PROGRESS_INTERVAL_MS, bo \r w logu nic nie daje.
+ */
 function createTestProgress(total) {
+  const interactive = Boolean(stdout.isTTY);
   let done = 0;
   let failed = 0;
+  let file = "";
   let lastPrint = 0;
-  const print = () => {
-    // Szacunek z `vitest list` pomija testy parametryzowane; po jego przekroczeniu liczba pozostałych jest nieznana.
-    const left = done > total ? "nieznane (więcej niż szacowano)" : `~${total - done}`;
-    const of = done > total ? "" : `/${total}`;
-    say(`      testy: wykonano ${done}${of}, pozostało ${left}, nieudanych ${failed}`);
+
+  const line = () => {
+    const share = total > 0 && done <= total ? ` (${Math.round((done / total) * 100)}%)` : "";
+    const of = done > total ? "+" : `/${total}`;
+    const failedPart = failed > 0 ? `  nieudanych ${failed}` : "";
+    return `      testy ${done}${of}${share}${failedPart}${file ? `  ${file}` : ""}`;
+  };
+
+  const paint = () => {
+    const text = line();
+    // Dopełnienie spacjami kasuje ogon dłuższej poprzedniej linii (nazwy plików mają różną długość).
+    stdout.write(`\r${text.padEnd(TEST_LINE_WIDTH).slice(0, TEST_LINE_WIDTH)}`);
     lastPrint = Date.now();
   };
+
+  const log = () => {
+    say(line());
+    lastPrint = Date.now();
+  };
+
   return {
-    onLine(line) {
-      const match = TEST_RESULT_LINE.exec(line);
-      if (!match) return;
-      done += 1;
-      if (match[1] === "×") failed += 1;
-      if (Date.now() - lastPrint >= TEST_PROGRESS_INTERVAL_MS) print();
+    onLine(incoming) {
+      const fileMatch = TEST_FILE_LINE.exec(incoming);
+      if (fileMatch) file = fileMatch[1].replace(/^__tests__\//, "");
+      const match = TEST_RESULT_LINE.exec(incoming);
+      if (match) {
+        done += 1;
+        if (match[1] === "×") failed += 1;
+      }
+      if (!match && !fileMatch) return;
+      const due = Date.now() - lastPrint >= (interactive ? TEST_PAINT_INTERVAL_MS : TEST_PROGRESS_INTERVAL_MS);
+      if (!due) return;
+      if (interactive) paint();
+      else log();
     },
     finish() {
-      print();
+      if (interactive) {
+        paint();
+        stdout.write("\n");
+      } else {
+        log();
+      }
     },
   };
+}
+
+// ---------------------------------------------------------------- formatowanie
+
+/** Rozszerzenia, które prettier w tym repozytorium obsługuje (reszta i tak wypadłaby na --ignore-unknown). */
+const FORMAT_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".css", ".md", ".yml", ".yaml"];
+/** Ile ścieżek w jednym wywołaniu – limit długości wiersza poleceń w cmd.exe to ~8 tys. znaków. */
+const FORMAT_BATCH = 40;
+
+const quoteArg = (value) => (/[\s"]/.test(value) ? `"${value.replaceAll('"', '\\"')}"` : value);
+
+function chunk(list, size) {
+  const out = [];
+  for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+  return out;
+}
+
+/** Zmienione pliki, które prettier ma sformatować: istniejące (bez usuniętych) i o obsługiwanym rozszerzeniu. */
+function formatTargets() {
+  return changedFiles().filter(
+    (file) => existsSync(file) && FORMAT_EXTENSIONS.some((ext) => file.toLowerCase().endsWith(ext))
+  );
 }
 
 // ---------------------------------------------------------------- kontrole
@@ -257,16 +363,32 @@ function createTestProgress(total) {
 const checks = [
   {
     name: "format",
-    label: "format:check (prettier)",
+    label: "format (prettier, zmienione pliki)",
     run: async () => {
-      await runAsync("npx prettier --write .");
-      const r = await runAsync("npx prettier --check .");
-      const warned = r.output.split("\n").filter((l) => l.startsWith("[warn]") && !l.includes("Code style"));
+      // Tylko pliki zmienione w tym wydaniu i tylko jeden przebieg: `--write` sam zgłasza błędy składni,
+      // więc osobny `--check` całego repozytorium (kilkadziesiąt sekund) niczego nie dokłada.
+      const targets = formatTargets();
+      if (targets.length === 0) return { ok: true, summary: "brak plików do sformatowania", ms: 0, detail: "" };
+      const results = [];
+      for (const batch of chunk(targets, FORMAT_BATCH)) {
+        // NOSONAR: partie muszą iść po kolei – jeden proces prettiera na raz, żeby nie zająć całego procesora.
+        results.push(await runAsync(`npx prettier --write --ignore-unknown ${batch.map(quoteArg).join(" ")}`));
+      }
+      const output = results.map((r) => r.output).join("\n");
+      const ms = results.reduce((sum, r) => sum + r.ms, 0);
+      const code = results.find((r) => r.code !== 0)?.code ?? 0;
+      // Pliki z .prettierignore nie dają żadnej linii, więc liczymy to, co prettier faktycznie przetworzył.
+      const processedLines = output.split("\n").filter((l) => /\b\d+ms\b/.test(l));
+      const reformatted = processedLines.filter((l) => !l.includes("(unchanged)")).length;
+      const processed = processedLines.length;
       return {
-        ok: r.code === 0,
-        summary: r.code === 0 ? "zgodny z regułami" : `${warned.length} plik(ów) do sformatowania`,
-        ms: r.ms,
-        detail: warned.slice(0, 10).join("\n"),
+        ok: code === 0,
+        summary:
+          code === 0
+            ? `${processed} ${plural(processed, "plik", "pliki", "plików")}, poprawiono ${reformatted}`
+            : "prettier zgłosił błąd",
+        ms,
+        detail: code === 0 ? "" : output.slice(-1500),
       };
     },
   },
@@ -403,12 +525,20 @@ function assertRepository() {
   return branch;
 }
 
+/**
+ * Zmienione pliki z `git status --porcelain`. Nie używamy tu gitOut(): obcina on początkową spację
+ * pierwszego wiersza (status „ M”), przez co pierwsza nazwa traciła pierwszą literę.
+ * Format wiersza: dwa znaki statusu, spacja, ścieżka; przy zmianie nazwy „stara -> nowa”.
+ */
 function changedFiles() {
-  const status = gitOut("status --porcelain=v1 -uall");
-  return status
-    .split("\n")
+  return git("status --porcelain=v1 -uall")
+    .output.split("\n")
+    .map((line) => /^(..) (.+)$/.exec(line.replace(/\r$/, "")))
     .filter(Boolean)
-    .map((line) => line.slice(3).replace(/^"|"$/g, ""));
+    .map(([, , path]) => {
+      const renamed = path.split(" -> ");
+      return (renamed.at(-1) ?? path).replace(/^"|"$/g, "");
+    });
 }
 
 function findSecretLikeFiles(files) {

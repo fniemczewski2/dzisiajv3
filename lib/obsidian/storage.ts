@@ -112,11 +112,14 @@ export function createOneDriveVault(
       ).text();
     },
     async write(path, content, fileId) {
-      const url = fileId
-        ? `${GRAPH}/items/${encodeURIComponent(fileId)}/content`
-        : rootPath
-          ? `${GRAPH}/root:/${encodePath(`${rootPath}/${path}`)}:/content`
-          : `${GRAPH}/special/approot:/${encodePath(path)}:/content`;
+      // Trzy warianty adresu: znany identyfikator pliku, ścieżka w katalogu głównym, katalog aplikacji.
+      let url = `${GRAPH}/special/approot:/${encodePath(path)}:/content`;
+      if (fileId) {
+        url = `${GRAPH}/items/${encodeURIComponent(fileId)}/content`;
+      } else if (rootPath) {
+        const encoded = encodePath(`${rootPath}/${path}`);
+        url = `${GRAPH}/root:/${encoded}:/content`;
+      }
       const res = ok(
         await fetchImpl(url, {
           method: "PUT",

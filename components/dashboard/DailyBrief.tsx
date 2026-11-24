@@ -73,7 +73,8 @@ function BriefRows({ rows }: Readonly<{ rows: readonly BriefRow[] }>) {
 }
 
 function trainLine(t: TrackedTrain): string {
-  return `${t.departureTime} ${t.trainNumber}${t.trainName ? ` ${t.trainName}` : ""}, ${t.from} → ${t.to}`;
+  const train = [t.trainNumber, t.trainName].filter(Boolean).join(" ");
+  return `${t.departureTime} ${train}, ${t.from} → ${t.to}`;
 }
 
 function BriefCard({

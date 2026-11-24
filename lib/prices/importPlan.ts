@@ -110,7 +110,11 @@ export function suggestProductName(
 }
 
 let rowCounter = 0;
-const nextId = () => `row-${(rowCounter += 1)}`;
+// Przypisanie poza wyrażeniem (czytelność, reguła S1121): licznik rośnie w osobnej instrukcji.
+function nextId(): string {
+  rowCounter += 1;
+  return `row-${rowCounter}`;
+}
 
 /** Wiersze do weryfikacji z paragonu: jeden na pozycję. */
 export function buildReceiptRows(receipt: ParsedReceipt, context: CatalogContext): ReviewRow[] {
@@ -183,7 +187,7 @@ export function buildCsvRows(rows: readonly CsvPriceRow[], { catalog }: CatalogC
 export function rowIssues(row: ReviewRow): string | null {
   if (!row.name.trim()) return "brak nazwy";
   if (row.name.trim().length > PRODUCT_NAME_MAX_LENGTH) return "nazwa za długa";
-  if (row.price === null || !(row.price > 0)) return "brak ceny";
+  if (row.price === null || Number.isNaN(row.price) || row.price <= 0) return "brak ceny";
   if (row.unit === null) return "brak jednostki";
   return null;
 }

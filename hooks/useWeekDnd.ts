@@ -9,7 +9,6 @@ import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import type { Task } from "@/types/tasks";
-import type { Event } from "@/types/events";
 import { useToast } from "@/providers/ToastProvider";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { useConfirmedMove } from "@/hooks/useConfirmedMove";
@@ -17,7 +16,7 @@ import { useOccurrenceScope } from "@/hooks/useOccurrenceScope";
 import { isMovableEvent, moveEventToDay, moveTaskToDay, parseDay, parseDayDropId } from "@/lib/weekPlan";
 import { seriesOccurrence } from "@/lib/eventUtils";
 import { parseEventDate } from "@/lib/dateUtils";
-import type { EventOverride } from "@/types/events";
+import type { Event, EventOverride } from "@/types/events";
 
 type EditOptions = { silent?: boolean };
 

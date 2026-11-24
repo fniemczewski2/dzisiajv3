@@ -1,6 +1,6 @@
 {
   "name": "dzisiaj.fun",
-  "version": "1.45.12",
+  "version": "1.45.13",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -80,5 +80,13 @@
   },
   "allowScripts": {
     "tesseract.js@7.0.0": true
-  }
+  },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 115",
+    "safari >= 16.4",
+    "ios_saf >= 16.4",
+    "not dead"
+  ]
 }

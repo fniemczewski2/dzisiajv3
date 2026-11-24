@@ -155,13 +155,7 @@ export function useEventOverrides(rangeStart: string, rangeEnd: string) {
 
   /** Nowy termin jednego wystąpienia serii. Reguła i pozostałe terminy bez zmian. */
   const moveOccurrence = useCallback(
-    async (
-      event: Event,
-      occurrenceDate: string,
-      start: Date,
-      end: Date,
-      options: OccurrenceOptions = {}
-    ): Promise<boolean> =>
+    (event: Event, occurrenceDate: string, start: Date, end: Date, options: OccurrenceOptions = {}): Promise<boolean> =>
       writeOverride(
         event,
         {
@@ -179,7 +173,7 @@ export function useEventOverrides(rangeStart: string, rangeEnd: string) {
 
   /** Odwołanie jednego terminu: tego razu wydarzenia nie ma, seria biegnie dalej. */
   const cancelOccurrence = useCallback(
-    async (event: Event, occurrenceDate: string, options: OccurrenceOptions = {}): Promise<boolean> =>
+    (event: Event, occurrenceDate: string, options: OccurrenceOptions = {}): Promise<boolean> =>
       writeOverride(
         event,
         {

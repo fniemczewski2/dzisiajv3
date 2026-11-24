@@ -132,6 +132,10 @@ export default function QuickNotes({
         {announcement}
       </p>
 
+      {/* Miejsce na listę rezerwujemy już w trakcie pobierania: dopisanie notatek po fakcie
+          przesuwało całą zawartość pod spodem (CLS). */}
+      {fetching && <div aria-hidden="true" className="mt-4 min-h-24" />}
+
       {!fetching && notes.length > 0 && (
         <ul className="mt-4 list-none divide-y divide-line">
           {notes.map((note) => (

@@ -126,45 +126,67 @@ async function insertRows(admin: SupabaseClient, rows: TrainRow[]): Promise<{ ad
   return { added, duplicates };
 }
 
+/** Inwentarz załączników, gdy nie dotarł żaden PDF – odróżnia problem bramki od problemu parsera. */
+function describeMissingPdfs(message: InboundMessage): string[] {
+  const header =
+    message.attachments.length === 0
+      ? "Bramka nie przekazała żadnego załącznika. Jeśli w wiadomości były PDF, Worker ich nie dołączył (stara wersja worker.js albo adres nierozpoznany jako adres biletów)."
+      : `Bramka przekazała ${message.attachments.length} załączników, ale żaden nie miał treści PDF:`;
+  const list = message.attachments.map(
+    (a) => `- ${a.filename || "(bez nazwy)"} [${a.mimeType}] ${a.pdfBase64 ? "treść PDF obecna" : "bez treści PDF"}`
+  );
+  return [header, ...list];
+}
+
+/** Odczyt wszystkich PDF z wiadomości: odcinki biletów plus powody niepowodzeń. */
+async function readTicketRows(
+  userId: string,
+  message: InboundMessage,
+  readText: (pdf: Buffer) => Promise<string>
+): Promise<{ rows: TrainRow[]; unreadable: number; diagnostics: string[] }> {
+  const pdfs = ticketPdfs(message);
+  if (pdfs.length === 0) return { rows: [], unreadable: 0, diagnostics: describeMissingPdfs(message) };
+
+  const rows: TrainRow[] = [];
+  const diagnostics: string[] = [];
+  let unreadable = 0;
+  for (const [index, pdf] of pdfs.entries()) {
+    // NOSONAR: PDF czytamy po kolei – każdy odczyt zajmuje pamięć i procesor funkcji serverless.
+    const outcome = await readOneTicket(userId, pdf, index, readText);
+    unreadable += outcome.unreadable;
+    if (outcome.diagnostic) diagnostics.push(outcome.diagnostic);
+    rows.push(...outcome.rows);
+  }
+  return { rows, unreadable, diagnostics };
+}
+
+/** Jeden PDF: odcinki albo powód, dla którego nic z niego nie wyszło. */
+async function readOneTicket(
+  userId: string,
+  pdf: string,
+  index: number,
+  readText: (pdf: Buffer) => Promise<string>
+): Promise<{ rows: TrainRow[]; unreadable: number; diagnostic: string | null }> {
+  try {
+    const text = await readText(Buffer.from(pdf, "base64"));
+    const rows = parseTicketLegs(text)
+      .map((leg) => legToRow(userId, leg))
+      .filter((r): r is TrainRow => r !== null);
+    if (rows.length > 0) return { rows, unreadable: 0, diagnostic: null };
+    return { rows, unreadable: 1, diagnostic: describeUnreadable(index, text) };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : "nieznany";
+    return { rows: [], unreadable: 1, diagnostic: `PDF ${index + 1}: błąd odczytu pliku (${reason}).` };
+  }
+}
+
 export async function importTicketMail(
   admin: SupabaseClient,
   userId: string,
   message: InboundMessage,
   readText: (pdf: Buffer) => Promise<string> = extractPdfText
 ): Promise<TicketImportResult> {
-  const rows: TrainRow[] = [];
-  const diagnostics: string[] = [];
-  let unreadable = 0;
-  const pdfs = ticketPdfs(message);
-  if (pdfs.length === 0) {
-    // Inwentarz tego, co aplikacja faktycznie dostała od bramki – odróżnia problem bramki od parsera.
-    diagnostics.push(
-      message.attachments.length === 0
-        ? "Bramka nie przekazała żadnego załącznika. Jeśli w wiadomości były PDF, Worker ich nie dołączył (stara wersja worker.js albo adres nierozpoznany jako adres biletów)."
-        : `Bramka przekazała ${message.attachments.length} załączników, ale żaden nie miał treści PDF:`
-    );
-    for (const a of message.attachments) {
-      diagnostics.push(
-        `- ${a.filename || "(bez nazwy)"} [${a.mimeType}] ${a.pdfBase64 ? "treść PDF obecna" : "bez treści PDF"}`
-      );
-    }
-  }
-  for (const [index, pdf] of pdfs.entries()) {
-    try {
-      const text = await readText(Buffer.from(pdf, "base64"));
-      const legs = parseTicketLegs(text)
-        .map((leg) => legToRow(userId, leg))
-        .filter((r): r is TrainRow => r !== null);
-      if (legs.length === 0) {
-        unreadable++;
-        diagnostics.push(describeUnreadable(index, text));
-      }
-      rows.push(...legs);
-    } catch (err) {
-      unreadable++;
-      diagnostics.push(`PDF ${index + 1}: błąd odczytu pliku (${err instanceof Error ? err.message : "nieznany"}).`);
-    }
-  }
+  const { rows, unreadable, diagnostics } = await readTicketRows(userId, message, readText);
   if (rows.length === 0) return { added: 0, duplicates: 0, unreadable, addedRows: [], diagnostics };
 
   const dates = [...new Set(rows.map((r) => r.date))];

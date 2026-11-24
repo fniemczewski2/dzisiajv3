@@ -18,7 +18,9 @@ export const DailyPlan = React.memo(
 
     return (
       <section className="lg:col-span-2">
-        <div className="relative">
+        {/* Wysokość planu rezerwujemy z góry – godziny dochodzą po pobraniu danych i bez tego
+            cała strona (łącznie ze stopką) przeskakiwała w dół (CLS). */}
+        <div className="relative min-h-[60vh]">
           <div className="relative z-10 space-y-1">
             {visibleHours.map((timeKey) => {
               const items = planByHour[timeKey] || [];
