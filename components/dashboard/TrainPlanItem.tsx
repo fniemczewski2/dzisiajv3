@@ -1,6 +1,6 @@
 // components/dashboard/TrainPlanItem.tsx
 
-import { describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
+import { describeFinalPunctuality, describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
 import { useNow } from "@/hooks/useNow";
 import { TRAIN_STATUS_REFRESH_MS, TRAIN_PLAN_TICK_MS } from "@/config/timing";
 import React from "react";
@@ -9,7 +9,14 @@ import { ArrowRight, Loader2, TrainFront } from "lucide-react";
 import { useTrainPlanStatus } from "@/hooks/db/useTrains";
 import type { TrackedTrain } from "@/types/transport";
 import { actionButton } from "../ui/CommonButtons";
-import { cleanValue, expectedDeparture, formatHm, isStatusRelevant, plannedDeparture } from "@/lib/trainPlan";
+import {
+  cleanValue,
+  expectedDeparture,
+  formatHm,
+  isStatusRelevant,
+  plannedDeparture,
+  trainTimePhase,
+} from "@/lib/trainPlan";
 
 function Detail({ label, value }: Readonly<{ label: string; value: string | null }>) {
   return (
@@ -69,11 +76,17 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   const title = train.trainName ? train.trainName : train.trainNumber || "Pociąg";
   const timeLabel = isArrival ? `Przyjazd do: ${stop.station}` : `Odjazd z: ${stop.station}`;
 
-  const punctuality = describeTrainPunctuality({
-    status: loading ? "" : status,
-    delay,
-    tracked: relevant || inTransit || arrived,
-  });
+  // Przejazd odbyty: pokazujemy zapisane opóźnienie przyjazdu zamiast odpytywać PKP PLK.
+  // Dane z przejazdu nie znikają po zamknięciu okna ani po przeładowaniu strony.
+  const finished = trainTimePhase(train, now) === "past" || arrived;
+  const punctuality =
+    (finished ? describeFinalPunctuality(train) : null) ??
+    describeTrainPunctuality({
+      status: loading ? "" : status,
+      delay,
+      tracked: relevant || inTransit || arrived,
+      finished,
+    });
   const badge = { text: punctuality.label, cls: BADGE_CLASS[punctuality.kind] };
   return (
     <div className={"group mb-2 rounded-lg border border-line bg-surface p-2 text-text transition-colors"}>

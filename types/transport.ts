@@ -58,6 +58,14 @@ export interface TrackedTrain {
   seat: string;
   /** Planowy przyjazd do stacji docelowej „HH:MM” – zapisywany po pierwszej odpowiedzi PKP PLK. */
   plannedArrival?: string | null;
+  /** Wynik przejazdu zapisany po przyjeździe: opóźnienie w minutach na stacji docelowej. */
+  finalDelay?: number | null;
+  /** Status z ostatniej odpowiedzi PKP PLK przed zamknięciem przejazdu. */
+  finalStatus?: string | null;
+  /** Faktyczny przyjazd „HH:MM”, jeśli PKP PLK go podało. */
+  finalArrival?: string | null;
+  /** Znacznik zapisu wyniku – odróżnia „na czas” (0 min) od braku danych. */
+  finalRecordedAt?: string | null;
   /** Wpis z poczty (adres biletów) do sprawdzenia i zatwierdzenia przez użytkownika. */
   needsReview?: boolean;
   source?: "manual" | "mail";
@@ -65,7 +73,16 @@ export interface TrackedTrain {
 
 export type TrainInput = Omit<
   TrackedTrain,
-  "id" | "userId" | "createdAt" | "plannedArrival" | "needsReview" | "source"
+  | "id"
+  | "userId"
+  | "createdAt"
+  | "plannedArrival"
+  | "needsReview"
+  | "source"
+  | "finalDelay"
+  | "finalStatus"
+  | "finalArrival"
+  | "finalRecordedAt"
 >;
 
 export interface TicketFormData {

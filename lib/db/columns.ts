@@ -49,7 +49,7 @@ export const TABLE_COLUMNS = {
   transactions:
     "id, user_id, profile_id, date, amount, is_income, description, category_id, recurring_bill_id, link_status, source, import_key, created_at",
   user_trains:
-    "id, user_id, train_number, date, departure_time, from_station, to_station, wagon, seat, created_at, train_name, planned_arrival, source, needs_review",
+    "id, user_id, train_number, date, departure_time, from_station, to_station, wagon, seat, created_at, train_name, planned_arrival, source, needs_review, final_delay, final_status, final_arrival, final_recorded_at",
   vcard_profiles:
     "id, user_id, profile_name, full_name, avatar_url, organization, phones, emails, addresses, social_links, business_data, is_public, public_slug, created_at, updated_at, color_light, color_dark",
   work_logs: "id, user_id, description, start_time, end_time, created_at, updated_at",

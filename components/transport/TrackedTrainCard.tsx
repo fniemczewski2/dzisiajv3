@@ -1,6 +1,6 @@
 // components/transport/TrackedTrainCard.tsx
 
-import { describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
+import { describeFinalPunctuality, describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
 import { trainStatusWindow } from "@/lib/trainPlan";
 import React from "react";
 import { MapPin, Loader2, AlertTriangle, Clock, TrainFront, History, ScanLine } from "lucide-react";
@@ -20,6 +20,10 @@ interface TrackedTrainProps {
     seat: string;
     plannedArrival?: string | null;
     needsReview?: boolean;
+    /** Wynik zapisany po przyjeździe (user_trains.final_*). */
+    finalDelay?: number | null;
+    finalStatus?: string | null;
+    finalRecordedAt?: string | null;
   };
   onDelete: (id: string) => void;
   /** Wpis z poczty: zatwierdzenie bez zmian. */
@@ -110,7 +114,8 @@ export const TrackedTrainCard = ({
       );
     }
 
-    const punctuality = describeTrainPunctuality({ status, delay });
+    // Odbyty przejazd ma zapisany wynik (user_trains.final_*) – pokazujemy go zamiast pustego statusu.
+    const punctuality = describeFinalPunctuality(train) ?? describeTrainPunctuality({ status, delay });
     const tone: Record<TrainPunctualityKind, string> = {
       cancelled: "animate-pulse bg-danger-solid",
       delayed: "bg-warning-solid",

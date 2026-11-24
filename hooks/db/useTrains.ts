@@ -36,6 +36,10 @@ function mapDbRowToTrain(row: {
   planned_arrival?: string | null;
   needs_review?: boolean | null;
   source?: "manual" | "mail" | null;
+  final_delay?: number | null;
+  final_status?: string | null;
+  final_arrival?: string | null;
+  final_recorded_at?: string | null;
 }): TrackedTrain {
   return {
     id: row.id,
@@ -52,6 +56,10 @@ function mapDbRowToTrain(row: {
     plannedArrival: row.planned_arrival ?? null,
     needsReview: row.needs_review === true,
     source: row.source ?? "manual",
+    finalDelay: row.final_delay ?? null,
+    finalStatus: row.final_status ?? null,
+    finalArrival: row.final_arrival ?? null,
+    finalRecordedAt: row.final_recorded_at ?? null,
   };
 }
 
@@ -351,6 +359,8 @@ export function useTrainStatus(
     departureTime: string;
     trainName: string;
     plannedArrival?: string | null;
+    /** Wynik już zapisany – wtedy nie nadpisujemy go kolejnymi odpowiedziami. */
+    finalRecordedAt?: string | null;
   },
   options: TrainStatusOptions = {}
 ) {
@@ -399,6 +409,15 @@ export function useTrainStatus(
       if (train.id && !train.plannedArrival && typeof result.plannedArrival === "string" && result.plannedArrival) {
         void savePlannedArrival(train.id, result.plannedArrival);
       }
+      // Przejazd zakończony (PKP PLK zgłasza przyjazd): zapamiętujemy wynik na stałe.
+      const finished = Boolean(result.hide || result.actualArrival);
+      if (train.id && finished && !train.finalRecordedAt) {
+        void saveFinalResult(train.id, {
+          delay: Number(result.arrivalDelay ?? result.delay ?? 0) || 0,
+          status: String(result.status ?? ""),
+          arrival: typeof result.actualArrival === "string" ? result.actualArrival : null,
+        });
+      }
       return {
         delay: result.delay || 0,
         platform: result.platform || "-",
@@ -434,6 +453,36 @@ export function useTrainStatus(
       .update({ planned_arrival: plannedArrival })
       .eq("id", id)
       .is("planned_arrival", null);
+  }
+
+  async function saveFinalResult(id: string, result: { delay: number; status: string; arrival: string | null }) {
+    // Najpierw w pamięci list (działa też przed migracją i przetrwa restart dzięki zapisowi w IndexedDB),
+    // potem w bazie – zapis jednorazowy, kolejne odpowiedzi już go nie nadpisują.
+    const recordedAt = new Date().toISOString();
+    const withResult = (list: TrackedTrain[] | undefined) =>
+      list?.map((t) =>
+        t.id === id && !t.finalRecordedAt
+          ? {
+              ...t,
+              finalDelay: result.delay,
+              finalStatus: result.status,
+              finalArrival: result.arrival,
+              finalRecordedAt: recordedAt,
+            }
+          : t
+      );
+    queryClient.setQueriesData<TrackedTrain[]>({ queryKey: ["trains"] }, withResult);
+    queryClient.setQueriesData<TrackedTrain[]>({ queryKey: ["trains-for-date"] }, withResult);
+    await supabase
+      .from("user_trains")
+      .update({
+        final_delay: result.delay,
+        final_status: result.status,
+        final_arrival: result.arrival,
+        final_recorded_at: recordedAt,
+      })
+      .eq("id", id)
+      .is("final_recorded_at", null);
   }
 
   if (!active && !query.data) return { ...INITIAL_STATUS, loading: false };

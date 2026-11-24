@@ -448,7 +448,7 @@ Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `timeContext.ts` – exp: getTimeContext
 - `tmdb.ts` – Zamienia wyniki /search/multi na wspólny kształt; pomija osoby i nieznane typy. · exp: translateSeriesStatus, isSafePosterPath, posterUrl, normalizeSearchResults, extractPolishProviders, buildMovieData, searchMedia, fetchMediaDetails
 - `trainPlan.ts` – Okno odpytywania PKP PLK: od 3 h przed planowym odjazdem ze stacji początkowej do 3 h po planowym przyjeździe do stacji docelowej. · exp: plannedDeparture, formatHm, planHourKey, expectedDeparture, trainStatusWindow, trainTimePhase, isStatusRelevant, relativeDeparture, +5
-- `trainPunctuality.ts` – Jeden opis punktualności pociągu dla planu dnia i widoku „Pociągi” – te same słowa i ta sama ocena. · exp: describeTrainPunctuality
+- `trainPunctuality.ts` – Jeden opis punktualności pociągu dla planu dnia i widoku „Pociągi” – te same słowa i ta sama ocena. · exp: describeFinalPunctuality, describeTrainPunctuality
 - `trainRoute.ts` – 4 – ta sama nazwa, 3 – jedna jest początkiem drugiej, 2 – zawiera, 0 – brak. · exp: normalizeStationName, stationMatchScore, resolveRouteStations
 - `trainStatusDetails.ts` – exp: buildStationDetails
 - `trainTicketUtils.ts` – exp: useTicketUpload
@@ -837,6 +837,7 @@ Testy (262 plików): `__tests__/<ta sama ścieżka>.test.ts(x)`. Architektura: [
 - `2026-11-22_brief_toggles.sql` – Włączniki briefingu dnia: każdą kartę (poranną i wieczorną) można wyłączyć niezależnie. Domyślnie włączone, czyli zachowanie sprzed zmiany. Skrypt idempotentny.
 - `2026-11-22_dashboard_layout.sql` – Układ planu na ekranie głównym: jeden dzień albo tydzień (wczoraj, dzień widoku i 5 kolejnych dni). Skrypt idempotentny – można go uruchomić ponownie.
 - `2026-11-22_series_occurrence_exceptions.sql` – Wyjątki pojedynczych terminów serii. 1. Wydarzenia: tabela event_overrides – jedno wystąpienie reguły (dzień z siatki) może mieć własny początek i koniec,… · obj: event_overrides, can_access_event, event_overrides_select_own, event_overrides_insert_own, event_overrides_update_own, event_overrides_delete_own
+- `2026-11-23_train_final_delay.sql` – Wynik przejazdu zapamiętany po przyjeździe na stację docelową.
 
 ## supabase/tests
 

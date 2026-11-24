@@ -38,6 +38,8 @@ const TRAIN_UNKNOWN_ARRIVAL_MS = 12 * 3_600_000;
 export interface TrainWindowInput extends TrainTimeInput {
   /** Planowy przyjazd do stacji docelowej „HH:MM” (zapisany po pierwszej odpowiedzi PKP PLK). */
   plannedArrival?: string | null;
+  /** Wynik przejazdu zapisany po przyjeździe – zamyka okno odpytywania. */
+  finalRecordedAt?: string | null;
 }
 
 /**
@@ -47,6 +49,8 @@ export interface TrainWindowInput extends TrainTimeInput {
  * podaje przyjazd i okno zawęża się do „3 h po przyjeździe”.
  */
 export function trainStatusWindow(t: TrainWindowInput): { start: number; end: number } | null {
+  // Pociąg dojechał i wynik jest zapisany: dalsze pytania nic nie wniosą, a opis bierzemy z zapisu.
+  if (t.finalRecordedAt) return null;
   const departure = plannedDeparture(t);
   if (!departure) return null;
   const start = departure.getTime() - TRAIN_STATUS_MARGIN_MS;

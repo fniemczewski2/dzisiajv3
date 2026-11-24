@@ -9,6 +9,8 @@ import {
   planHourKey,
   plannedDeparture,
   relativeDeparture,
+  trainStatusWindow,
+  trainTimePhase,
 } from "@/lib/trainPlan";
 
 const t = { date: "2026-09-30", departureTime: "14:32" };
@@ -47,5 +49,20 @@ describe("trainPlan", () => {
     expect(cleanValue("-")).toBeNull();
     expect(cleanValue("...")).toBeNull();
     expect(cleanValue(" 3 ")).toBe("3");
+  });
+});
+
+describe("trainStatusWindow – zamknięcie po zapisaniu wyniku", () => {
+  const train = { date: "2026-11-23", departureTime: "06:35", plannedArrival: "08:40" };
+
+  it("bez wyniku okno trwa", () => {
+    expect(trainStatusWindow(train)).not.toBeNull();
+  });
+
+  it("zapisany wynik kończy odpytywanie i przenosi pociąg do odbytych", () => {
+    const done = { ...train, finalRecordedAt: "2026-11-23T08:45:00Z" };
+    expect(trainStatusWindow(done)).toBeNull();
+    expect(trainTimePhase(done, new Date(2026, 10, 23, 7, 0))).toBe("past");
+    expect(isStatusRelevant(done, new Date(2026, 10, 23, 7, 0))).toBe(false);
   });
 });
