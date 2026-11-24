@@ -39,7 +39,13 @@ function WeatherIcon({ code, className = "" }: { readonly code: number; readonly
   return <CloudLightning className={className} />;
 }
 
-function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuality }: Readonly<WeatherdetailsProps>) {
+export function WeatherDetails({
+  currentTemp,
+  dailyMin,
+  dailyMax,
+  weatherCode,
+  airQuality,
+}: Readonly<WeatherdetailsProps>) {
   const router = useRouter();
 
   if (currentTemp != null && dailyMin != null && dailyMax != null && weatherCode != null) {
@@ -48,12 +54,15 @@ function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuali
         onClick={() => router.push("/weather")}
         type="button"
         className="-m-1.5 flex h-full min-h-11 cursor-pointer flex-col items-end justify-between rounded-xl pr-2.5 transition-colors hover:bg-(--header-hover)"
-        aria-label={`Pogoda: ${currentTemp}°C, odczuwalnie od ${dailyMin}° do ${dailyMax}°. Otwórz pełną prognozę`}
       >
+        {/* Nazwa dostępna powstaje z widocznego tekstu i dopisków dla czytnika (WCAG 2.5.3 Etykieta w nazwie):
+            aria-label zastępowałby widoczny tekst, przez co sterowanie głosem nie trafiałoby w ten przycisk. */}
+        <span className="sr-only">Pogoda, teraz</span>
         <div className="mb-1.5 flex items-center gap-1.5 text-2xl leading-none font-semibold tabular-nums sm:text-3xl">
           <WeatherIcon code={weatherCode} className="h-5 w-5 text-(--header-accent) sm:h-6 sm:w-6" />
           <span>{currentTemp}°</span>
         </div>
+        <span className="sr-only">stopni Celsjusza, odczuwalnie od</span>
         <span className="text-xs font-medium whitespace-nowrap text-(--header-muted) tabular-nums sm:text-sm">
           {dailyMin}° / {dailyMax}°
         </span>
@@ -62,6 +71,7 @@ function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuali
             {airQuality}
           </span>
         )}
+        <span className="sr-only">Otwórz pełną prognozę</span>
       </button>
     );
   }
@@ -101,7 +111,6 @@ export default function Header() {
         <button
           onClick={() => router.push("/calendar?reset=true")}
           className="-m-1.5 flex min-w-0 cursor-pointer flex-col items-start rounded-xl px-2.5 py-1.5 transition-colors hover:bg-(--header-hover)"
-          aria-label={`${currentDate}. Otwórz kalendarz`}
           type="button"
         >
           <div
@@ -114,6 +123,7 @@ export default function Header() {
             {currentDate}
           </span>
           <BirthdayIndicator date={todayDateString} />
+          <span className="sr-only">Otwórz kalendarz</span>
         </button>
 
         <div>
