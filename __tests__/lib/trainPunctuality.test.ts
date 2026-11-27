@@ -7,16 +7,16 @@ describe("describeTrainPunctuality – jeden opis dla planu dnia i widoku Pocią
   it("opóźnienie zawsze z jednostką", () => {
     expect(describeTrainPunctuality({ status: "Opóźniony", delay: 12 })).toEqual({
       kind: "delayed",
-      label: "+ 12 min",
+      label: "+12",
     });
   });
 
   it("odwołanie i częściowe odwołanie", () => {
-    expect(describeTrainPunctuality({ status: "Odwołany", delay: 0 }).label).toBe("Odwołany");
+    expect(describeTrainPunctuality({ status: "Odwołany", delay: 0 }).label).toBe("X");
     // Częściowe odwołanie nie ma już osobnego opisu: oba statusy dają „Odwołany”.
     expect(describeTrainPunctuality({ status: "Cz. odwołany", delay: 0 })).toEqual({
       kind: "cancelled",
-      label: "Odwołany",
+      label: "X",
     });
   });
 
@@ -24,24 +24,24 @@ describe("describeTrainPunctuality – jeden opis dla planu dnia i widoku Pocią
     for (const status of ["Brak danych", "Brak danych live", "Nie zidentyfikowano stacji", "Błąd połączenia", ""]) {
       expect(describeTrainPunctuality({ status, delay: 0 })).toEqual({
         kind: "noData",
-        label: "B/d",
+        label: "?",
       });
     }
-    expect(describeTrainPunctuality({ status: "Zbyt wiele zapytań", delay: 0 }).label).toBe("B/d (limit)");
+    expect(describeTrainPunctuality({ status: "Zbyt wiele zapytań", delay: 0 }).label).toBe("?");
   });
 
   it("bez opóźnienia tylko przy statusie przejazdu", () => {
     expect(describeTrainPunctuality({ status: "Nie zaczął", delay: 0 })).toEqual({
       kind: "onTime",
-      label: "Na czas",
+      label: "OK",
     });
-    expect(describeTrainPunctuality({ status: "W trasie", delay: 0 }).label).toBe("W trasie");
+    expect(describeTrainPunctuality({ status: "OK", delay: 0 }).label).toBe("OK");
   });
 
   it("przed oknem śledzenia: informacja zamiast oceny", () => {
     expect(describeTrainPunctuality({ status: "Nie zaczął", delay: 0, tracked: false })).toEqual({
       kind: "notTracked",
-      label: "Wkrótce...",
+      label: "?",
     });
   });
 });
@@ -53,12 +53,12 @@ describe("describeFinalPunctuality", () => {
 
   it("zapisane opóźnienie przyjazdu", () => {
     const out = describeFinalPunctuality({ finalDelay: 12, finalRecordedAt: "2026-11-23T10:00:00Z" });
-    expect(out).toEqual({ kind: "delayed", label: "+ 12 min (przyjazd)" });
+    expect(out).toEqual({ kind: "delayed", label: "+12" });
   });
 
   it("zero minut po zapisie znaczy na czas", () => {
     const out = describeFinalPunctuality({ finalDelay: 0, finalRecordedAt: "2026-11-23T10:00:00Z" });
-    expect(out).toEqual({ kind: "onTime", label: "Na czas (przyjazd)" });
+    expect(out).toEqual({ kind: "onTime", label: "OK" });
   });
 
   it("odwołany pociąg zostaje odwołany", () => {
@@ -70,11 +70,11 @@ describe("describeFinalPunctuality", () => {
 describe("describeTrainPunctuality – przejazd odbyty", () => {
   it("po przejeździe bez danych nie pokazuje „Wkrótce...”", () => {
     const out = describeTrainPunctuality({ status: "", delay: 0, tracked: false, finished: true });
-    expect(out).toEqual({ kind: "noData", label: "B/d" });
+    expect(out).toEqual({ kind: "noData", label: "?" });
   });
 
   it("przed przejazdem nadal „Wkrótce...”", () => {
     const out = describeTrainPunctuality({ status: "", delay: 0, tracked: false });
-    expect(out.label).toBe("Wkrótce...");
+    expect(out.label).toBe("?");
   });
 });

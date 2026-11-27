@@ -126,6 +126,7 @@ export default function FinancePage() {
             onRemove={(id) => void tx.removeTransaction(id)}
             csv={{
               loadHistory: tx.loadHistory,
+              loadForDedup: tx.loadForDedup,
               withSuggestions: tx.withSuggestions,
               importTransactions: tx.importTransactions,
             }}

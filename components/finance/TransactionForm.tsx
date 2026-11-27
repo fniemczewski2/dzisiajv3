@@ -5,6 +5,7 @@ import { FormButtons } from "@/components/ui/CommonButtons";
 import { getAppDate } from "@/lib/dateUtils";
 import type { BudgetCategory } from "@/types/bills";
 import { AmountField, CategorySelect, ProfileSelect } from "@/components/finance/FinanceFields";
+import { applyRefundRules, isRefundCategory } from "@/lib/finance";
 import type { FinanceProfile, NewTransaction, RecurringBill } from "@/types/finance";
 
 interface Props {
@@ -34,7 +35,13 @@ export default function TransactionForm({
   const [categoryId, setCategoryId] = useState("");
   const [billId, setBillId] = useState("");
   const [profileId, setProfileId] = useState(defaultProfileId ?? "");
+  const [refundFrom, setRefundFrom] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Kategoria „Do zwrotu”: wydatek poniesiony za kogoś. Zapisujemy go jako wpływ (zwrot wróci na konto)
+  // i pytamy, od kogo – rodzaj i rachunek stały przestają mieć wtedy znaczenie.
+  const categoryName = categories.find((c) => c.id === categoryId)?.name ?? null;
+  const refund = isRefundCategory(categoryName);
 
   const submit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,19 +49,25 @@ export default function TransactionForm({
     if (!Number.isFinite(value) || value <= 0) return;
     setSaving(true);
     const isIncome = kind === "income";
-    const ok = await onSave({
-      date,
-      amount: Math.round(value * 100) / 100,
-      is_income: isIncome,
-      description: description.trim(),
-      category_id: categoryId || null,
-      profile_id: profileId || null,
-      // Powiązanie wybrane ręcznie – od razu „manual” (uczy kolejne miesiące).
-      recurring_bill_id: !isIncome && billId ? billId : null,
-      link_status: !isIncome && billId ? "manual" : null,
-      source: "manual",
-      import_key: null,
-    });
+    const ok = await onSave(
+      applyRefundRules(
+        {
+          date,
+          amount: Math.round(value * 100) / 100,
+          is_income: isIncome,
+          description: description.trim(),
+          category_id: categoryId || null,
+          profile_id: profileId || null,
+          // Powiązanie wybrane ręcznie – od razu „manual” (uczy kolejne miesiące).
+          recurring_bill_id: !isIncome && billId ? billId : null,
+          link_status: !isIncome && billId ? "manual" : null,
+          source: "manual",
+          import_key: null,
+          refund_from: refundFrom,
+        },
+        categoryName
+      )
+    );
     setSaving(false);
     if (ok) onCancel();
   };
@@ -114,7 +127,22 @@ export default function TransactionForm({
           categories={categories}
           emptyLabel={kind === "expense" ? "Dobierz automatycznie" : "Bez kategorii"}
         />
-        {kind === "expense" && (
+        {refund && (
+          <div>
+            <label htmlFor={`${id}-refund`} className="form-label">
+              Od kogo zwrot:
+            </label>
+            <input
+              id={`${id}-refund`}
+              value={refundFrom}
+              onChange={(e) => setRefundFrom(e.target.value)}
+              className="input-field"
+              maxLength={120}
+              placeholder="np. Fundacja, Ania"
+            />
+          </div>
+        )}
+        {kind === "expense" && !refund && (
           <div>
             <label htmlFor={`${id}-bill`} className="form-label">
               Rachunek stały:
@@ -138,6 +166,9 @@ export default function TransactionForm({
         )}
         <ProfileSelect id={id} value={profileId} onChange={setProfileId} profiles={profiles} />
       </div>
+      {refund && (
+        <p className="text-sm text-text-secondary">Kwota zostanie zapisana jako wpływ (+), bo zwrot wróci na konto.</p>
+      )}
       <FormButtons onClickClose={onCancel} loading={saving} />
     </form>
   );

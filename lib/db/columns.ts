@@ -47,7 +47,7 @@ export const TABLE_COLUMNS = {
   tasks:
     "id, title, description, due_date, category, priority, status, scheduled_time, user_id, for_user_id, created_at, updated_at, done_at, is_recurring, repeat_days, recurring_until, recurrence, recurrence_anchor, recurring_bill_id, bill_due_date",
   transactions:
-    "id, user_id, profile_id, date, amount, is_income, description, category_id, recurring_bill_id, link_status, source, import_key, created_at",
+    "id, user_id, profile_id, date, amount, is_income, description, category_id, recurring_bill_id, link_status, source, import_key, refund_from, created_at",
   user_trains:
     "id, user_id, train_number, date, departure_time, from_station, to_station, wagon, seat, created_at, train_name, planned_arrival, source, needs_review, final_delay, final_status, final_arrival, final_recorded_at",
   vcard_profiles:
@@ -65,3 +65,18 @@ export type KnownTable = keyof typeof TABLE_COLUMNS;
  * jawna lista kolumn. Po wygenerowaniu typów bazy (supabase gen types) można zwrócić tu dokładny literał.
  */
 export const cols = (table: KnownTable): "*" => TABLE_COLUMNS[table] as unknown as "*";
+
+function columnSet(table: KnownTable): ReadonlySet<string> {
+  return new Set(TABLE_COLUMNS[table].split(",").map((c) => c.trim()));
+}
+
+/** Ładunek zapisu ograniczony do kolumn tabeli, bez pól tylko do odczytu. */
+export function pickColumns<T extends Record<string, unknown>>(
+  table: KnownTable,
+  payload: T,
+  readOnly: readonly string[] = []
+): Record<string, unknown> {
+  const allowed = columnSet(table);
+  const blocked = new Set(readOnly);
+  return Object.fromEntries(Object.entries(payload).filter(([key]) => allowed.has(key) && !blocked.has(key)));
+}

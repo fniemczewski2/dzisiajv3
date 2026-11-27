@@ -2,16 +2,18 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  billOccurrences,
+  applyRefundRules,
   billMonthStatus,
+  billOccurrences,
+  dailySpending,
   forecastMonth,
+  importKey,
+  isRefundCategory,
   merchantKey,
+  nextBillDue,
   suggestBillLink,
   suggestCategoryName,
-  dailySpending,
   summarizeMonth,
-  importKey,
-  nextBillDue,
 } from "@/lib/finance";
 import type { RecurringBill, Transaction } from "@/types/finance";
 import type { BudgetCategory } from "@/types/bills";
@@ -146,5 +148,32 @@ describe("D2, wydatki dnia, podsumowanie", () => {
   it("klucz importu rozróżnia identyczne transakcje z tego samego dnia", () => {
     const t = { date: "2026-02-01", amount: 5, is_income: false, description: "Kawa" };
     expect(importKey(t, 0)).not.toBe(importKey(t, 1));
+  });
+});
+
+describe("kategoria „Do zwrotu”", () => {
+  const base = { is_income: false, amount: 20, refund_from: "Ania" };
+
+  it("rozpoznaje nazwę kategorii bez względu na wielkość liter", () => {
+    expect(isRefundCategory("Do zwrotu")).toBe(true);
+    expect(isRefundCategory("  do ZWROTU ")).toBe(true);
+    expect(isRefundCategory("Jedzenie")).toBe(false);
+    expect(isRefundCategory(null)).toBe(false);
+  });
+
+  it("wydatek 20 zł staje się wpływem +20 z informacją od kogo", () => {
+    expect(applyRefundRules(base, "Do zwrotu")).toEqual({ is_income: true, amount: 20, refund_from: "Ania" });
+  });
+
+  it("ujemna kwota wchodzi jako wartość dodatnia", () => {
+    expect(applyRefundRules({ ...base, amount: -20 }, "Do zwrotu").amount).toBe(20);
+  });
+
+  it("inna kategoria nie zmienia kierunku i czyści pole „od kogo”", () => {
+    expect(applyRefundRules(base, "Jedzenie")).toEqual({ is_income: false, amount: 20, refund_from: null });
+  });
+
+  it("puste pole „od kogo” zapisujemy jako brak wartości", () => {
+    expect(applyRefundRules({ ...base, refund_from: "   " }, "Do zwrotu").refund_from).toBeNull();
   });
 });

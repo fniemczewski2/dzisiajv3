@@ -56,7 +56,12 @@ describe("TransactionsSection", () => {
         onUpdate={vi.fn()}
         onLink={onLink}
         onRemove={vi.fn()}
-        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+        csv={{
+          loadForDedup: vi.fn(async () => []),
+          loadHistory: vi.fn(),
+          withSuggestions: vi.fn(),
+          importTransactions: vi.fn(),
+        }}
       />
     );
     expect(screen.getByText(/Sugestia: to płatność/)).toBeTruthy();
@@ -88,7 +93,12 @@ describe("TransactionsSection", () => {
         onUpdate={onUpdate}
         onLink={onLink}
         onRemove={vi.fn()}
-        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+        csv={{
+          loadForDedup: vi.fn(async () => []),
+          loadHistory: vi.fn(),
+          withSuggestions: vi.fn(),
+          importTransactions: vi.fn(),
+        }}
       />
     );
     expect(screen.queryByLabelText("Nazwa:")).toBeNull();
@@ -120,7 +130,12 @@ describe("TransactionsSection", () => {
         onUpdate={vi.fn()}
         onLink={vi.fn()}
         onRemove={vi.fn()}
-        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+        csv={{
+          loadForDedup: vi.fn(async () => []),
+          loadHistory: vi.fn(),
+          withSuggestions: vi.fn(),
+          importTransactions: vi.fn(),
+        }}
       />
     );
     fireEvent.click(screen.getByRole("button", { name: "Edytuj: Apple" }));
@@ -157,7 +172,12 @@ describe("plannedBillRows (budżet)", () => {
         onUpdate={vi.fn()}
         onLink={vi.fn()}
         onRemove={vi.fn()}
-        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+        csv={{
+          loadForDedup: vi.fn(async () => []),
+          loadHistory: vi.fn(),
+          withSuggestions: vi.fn(),
+          importTransactions: vi.fn(),
+        }}
       />
     );
     expect(await a11yViolations(container)).toEqual([]);

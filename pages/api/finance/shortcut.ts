@@ -12,7 +12,7 @@ import { looksLikeShortcutToken } from "@/lib/server/shortcutTokens";
 import { extractShortcutToken, resolveShortcutUser } from "@/lib/server/shortcutAuth";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { parseFinanceShortcutPayload } from "@/lib/financeShortcut";
-import { formatPln, suggestBillLink, suggestCategoryName } from "@/lib/finance";
+import { applyRefundRules, formatPln, suggestBillLink, suggestCategoryName } from "@/lib/finance";
 import { getAppDate } from "@/lib/dateUtils";
 import { cols } from "@/lib/db/columns";
 import type { RecurringBill, Transaction } from "@/types/finance";
@@ -73,19 +73,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       historyRows
     );
 
-    const { error } = await admin.from("transactions").insert({
-      user_id: userId,
-      profile_id: (profiles.data?.[0] as { id: string } | undefined)?.id ?? null,
-      date,
-      amount: parsed.amount,
-      is_income: false,
-      description: parsed.merchant,
-      category_id: category?.id ?? null,
-      recurring_bill_id: billLink?.billId ?? null,
-      link_status: billLink ? "suggested" : null,
-      source: "shortcut",
-      import_key: null,
-    });
+    // Gdy historia podpowiada kategorię „Do zwrotu”, wydatek zapisujemy jako wpływ (lib/finance.ts).
+    const row = applyRefundRules(
+      {
+        user_id: userId,
+        profile_id: (profiles.data?.[0] as { id: string } | undefined)?.id ?? null,
+        date,
+        amount: parsed.amount,
+        is_income: false,
+        description: parsed.merchant,
+        category_id: category?.id ?? null,
+        recurring_bill_id: billLink?.billId ?? null,
+        link_status: billLink ? "suggested" : null,
+        source: "shortcut",
+        import_key: null,
+        refund_from: null,
+      },
+      categoryName
+    );
+    const { error } = await admin.from("transactions").insert(row);
     if (error) throw error;
     res
       .status(201)

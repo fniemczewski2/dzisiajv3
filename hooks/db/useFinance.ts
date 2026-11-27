@@ -17,7 +17,7 @@ import type { BudgetCategory } from "@/types/bills";
 import { type FinanceProfile, type NewTransaction, type RecurringBill, type Transaction } from "@/types/finance";
 
 import { BILL_TASK_CATEGORY, billTaskTitle } from "@/shared/bills";
-import { cols } from "@/lib/db/columns";
+import { cols, pickColumns } from "@/lib/db/columns";
 
 // --- Profile ----------------------------------------------------------------------
 
@@ -296,6 +296,25 @@ export function useTransactions({ from, to }: TransactionsOptions) {
   }, [supabase, userId]);
 
   /**
+   * Wszystkie transakcje z zakresu dat – do rozpoznania wydatków już zapisanych (np. z Apple Pay)
+   * przy imporcie wyciągu. W odróżnieniu od loadHistory nie filtruje po kategorii ani powiązaniu.
+   */
+  const loadForDedup = useCallback(
+    async (from: string, to: string): Promise<Transaction[]> => {
+      if (!userId) return [];
+      const { data } = await supabase
+        .from("transactions")
+        .select(cols("transactions"))
+        .eq("user_id", userId)
+        .gte("date", from)
+        .lte("date", to)
+        .limit(3000);
+      return ((data ?? []) as Transaction[]).map(normalizeTx);
+    },
+    [supabase, userId]
+  );
+
+  /**
    * Uzupełnia transakcję sugestiami: kategorią (D2, gdy brak) i powiązaniem
    * z rachunkiem stałym (D1, oznaczone jako „suggested” do weryfikacji).
    */
@@ -352,7 +371,9 @@ export function useTransactions({ from, to }: TransactionsOptions) {
     async (id: string, patch: Partial<Omit<Transaction, "id" | "user_id">>) => {
       const previous = transactions;
       setTransactions((list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-      const { error } = await supabase.from("transactions").update(patch).eq("id", id);
+      // Tylko kolumny tabeli: pole spoza schematu (np. z niewykonanej migracji) przewróciłoby cały zapis.
+      const payload = pickColumns("transactions", patch, ["id", "user_id", "created_at"]);
+      const { error } = await supabase.from("transactions").update(payload).eq("id", id);
       if (error) {
         setTransactions(previous);
         toast.error("Nie udało się zapisać transakcji.");
@@ -418,6 +439,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
     loading,
     fetchTransactions,
     loadHistory,
+    loadForDedup,
     withSuggestions,
     addTransaction,
     updateTransaction,

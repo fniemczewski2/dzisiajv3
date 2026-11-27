@@ -3,10 +3,12 @@
 // Import wyciągu z banku (CSV, format mBanku i zgodne). Każda transakcja
 // dostaje kategorię (z pliku, a jeśli jej nie ma w budżecie – z historii
 // podobnych transakcji, D2) i sugestię powiązania z rachunkiem stałym (D1).
-// Ponowny import tego samego pliku niczego nie dubluje.
+// Ponowny import tego samego pliku niczego nie dubluje, a wydatki zapisane wcześniej automatycznie
+// (Apple Pay przez Skróty iOS) są rozpoznawane mimo innego opisu i daty księgowania.
 
 import React, { useRef, useState } from "react";
 import { processCsvText, readFileAsText } from "@/lib/csvUtils";
+import { DEDUP_DATE_WINDOW_DAYS, splitByDuplicates } from "@/lib/financeDedup";
 import { useToast } from "@/providers/ToastProvider";
 import type { BudgetCategory } from "@/types/bills";
 import type { NewTransaction, RecurringBill, Transaction } from "@/types/finance";
@@ -26,6 +28,14 @@ interface Props {
     names: ReadonlyMap<string, string>
   ) => NewTransaction;
   importTransactions: (rows: NewTransaction[]) => Promise<{ added: number; skipped: number }>;
+  /** Transakcje z zakresu dat pliku – do rozpoznania wydatków już zapisanych (np. z Apple Pay). */
+  loadForDedup: (from: string, to: string) => Promise<Transaction[]>;
+}
+
+/** Dzień „yyyy-MM-dd” przesunięty o `days` (arytmetyka w UTC – chodzi o samą datę). */
+function shiftDay(day: string, days: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
 
 export default function CsvImport({
@@ -34,6 +44,7 @@ export default function CsvImport({
   bills,
   profileId,
   loadHistory,
+  loadForDedup,
   withSuggestions,
   importTransactions,
 }: Readonly<Props>) {
@@ -73,10 +84,19 @@ export default function CsvImport({
           categoryNames
         )
       );
-      const { added, skipped } = await importTransactions(rows);
-      const suggested = rows.filter((r) => r.link_status === "suggested").length;
+      // Wydatki dopisane wcześniej automatycznie (Apple Pay) mają inny opis i bywają zaksięgowane
+      // innego dnia niż w banku – sam klucz importu by ich nie rozpoznał (lib/financeDedup.ts).
+      const dates = rows.map((r) => r.date).sort((a, b) => a.localeCompare(b));
+      const existing = await loadForDedup(
+        shiftDay(dates[0], -DEDUP_DATE_WINDOW_DAYS),
+        shiftDay(dates.at(-1) as string, DEDUP_DATE_WINDOW_DAYS)
+      );
+      const { fresh, duplicates } = splitByDuplicates(rows, existing);
+
+      const { added, skipped } = fresh.length ? await importTransactions(fresh) : { added: 0, skipped: 0 };
+      const suggested = fresh.filter((r) => r.link_status === "suggested").length;
       setResult(
-        `Dodano: ${added}. Pominięto (już były): ${skipped}.` +
+        `Dodano: ${added}. Pominięto jako już zapisane: ${skipped + duplicates.length}.` +
           (suggested ? ` Sugestie powiązań z rachunkami do sprawdzenia: ${suggested}.` : "")
       );
     } catch {

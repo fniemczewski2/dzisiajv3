@@ -1,6 +1,11 @@
 // lib/trainPunctuality.ts
 //
-// Jeden opis punktualności pociągu dla planu dnia i widoku „Pociągi” – te same słowa i ta sama ocena.
+// Jeden opis punktualności pociągu dla planu dnia i widoku „Pociągi” – te same znaki i ta sama ocena.
+// Etykiety są skrótowe, bo stoją na kafelku obok godziny i peronu:
+//   „?”   – brak danych (także przed uruchomieniem śledzenia i przy limicie zapytań),
+//   „OK”  – jedzie zgodnie z rozkładem,
+//   „+12” – opóźnienie w minutach,
+//   „X”   – pociąg odwołany.
 // Zasada: „bez opóźnienia” tylko wtedy, gdy PKP PLK zwróciło status przejazdu; brak danych nigdy nie jest punktualnością.
 
 export type TrainPunctualityKind = "cancelled" | "delayed" | "onTime" | "noData" | "notTracked";
@@ -35,11 +40,9 @@ export interface TrainFinalResult {
  */
 export function describeFinalPunctuality(train: TrainFinalResult): TrainPunctuality | null {
   if (!train.finalRecordedAt) return null;
-  if ((train.finalStatus ?? "").toLowerCase().includes("odwołany")) return { kind: "cancelled", label: "Odwołany" };
+  if ((train.finalStatus ?? "").toLowerCase().includes("odwołany")) return { kind: "cancelled", label: "X" };
   const delay = Math.max(0, train.finalDelay ?? 0);
-  return delay > 0
-    ? { kind: "delayed", label: `+ ${delay} min (przyjazd)` }
-    : { kind: "onTime", label: "Na czas (przyjazd)" };
+  return delay > 0 ? { kind: "delayed", label: `+${delay}` } : { kind: "onTime", label: "OK" };
 }
 
 export function describeTrainPunctuality(input: {
@@ -50,17 +53,12 @@ export function describeTrainPunctuality(input: {
   finished?: boolean;
 }): TrainPunctuality {
   if (input.tracked === false) {
-    return input.finished ? { kind: "noData", label: "B/d" } : { kind: "notTracked", label: "Wkrótce..." };
+    return input.finished ? { kind: "noData", label: "?" } : { kind: "notTracked", label: "?" };
   }
   const status = (input.status ?? "").trim();
   const lower = status.toLowerCase();
-  if (lower.includes("odwołany")) return { kind: "cancelled", label: "Odwołany" };
-  if (input.delay > 0) return { kind: "delayed", label: `+ ${input.delay} min` };
-  if (NO_DATA_STATUSES.has(status)) {
-    return {
-      kind: "noData",
-      label: status === "Zbyt wiele zapytań" ? "B/d (limit)" : "B/d",
-    };
-  }
-  return { kind: "onTime", label: lower.includes("w trasie") ? "W trasie" : "Na czas" };
+  if (lower.includes("odwołany")) return { kind: "cancelled", label: "X" };
+  if (input.delay > 0) return { kind: "delayed", label: `+${input.delay}` };
+  if (NO_DATA_STATUSES.has(status)) return { kind: "noData", label: "?" };
+  return { kind: "onTime", label: "OK" };
 }

@@ -7,8 +7,8 @@
 // automatyczne mają w karcie przyciski „Zatwierdź” i „Odrzuć”.
 
 import React, { useId, useMemo, useState } from "react";
-import { Check, Lightbulb, Link2, X } from "lucide-react";
-import { formatPln, summarizeMonth } from "@/lib/finance";
+import { Check, Lightbulb, Link2, Undo2, X } from "lucide-react";
+import { applyRefundRules, formatPln, isRefundCategory, summarizeMonth } from "@/lib/finance";
 import TransactionForm from "./TransactionForm";
 import CsvImport from "./CsvImport";
 import { AddButton, DeleteButton, EditButton, FormButtons } from "../ui/CommonButtons";
@@ -63,19 +63,28 @@ function TransactionEditor({ t, categories, categoryLabel, bills, onSave, onCanc
   const [date, setDate] = useState(t.date);
   const [categoryId, setCategoryId] = useState(t.category_id ?? "");
   const [billId, setBillId] = useState(t.recurring_bill_id ?? "");
+  const [refundFrom, setRefundFrom] = useState(t.refund_from ?? "");
   const value = Number.parseFloat(amount.replace(",", "."));
   const valid = Number.isFinite(value) && value >= 0;
+  // Kategoria „Do zwrotu” zmienia wydatek we wpływ i pyta, od kogo wróci kwota.
+  const categoryName = categories.find((c) => c.id === categoryId)?.name ?? (categoryId ? categoryLabel : null);
+  const refund = isRefundCategory(categoryName);
 
   const submit = () => {
     if (!valid) return;
     onSave(
-      {
-        description: description.trim().slice(0, 300),
-        amount: Math.round(value * 100) / 100,
-        date,
-        category_id: categoryId || null,
-      },
-      billId || null
+      applyRefundRules(
+        {
+          description: description.trim().slice(0, 300),
+          amount: Math.round(value * 100) / 100,
+          date,
+          category_id: categoryId || null,
+          is_income: t.is_income,
+          refund_from: refundFrom,
+        },
+        categoryName
+      ),
+      refund ? null : billId || null
     );
   };
 
@@ -145,7 +154,23 @@ function TransactionEditor({ t, categories, categoryLabel, bills, onSave, onCanc
           ))}
         </select>
       </div>
-      {!t.is_income && (
+      {refund && (
+        <div>
+          <label htmlFor={`${id}-refund`} className="form-label">
+            Od kogo zwrot:
+          </label>
+          <input
+            id={`${id}-refund`}
+            value={refundFrom}
+            onChange={(e) => setRefundFrom(e.target.value)}
+            maxLength={120}
+            className="input-field"
+            placeholder="np. Fundacja, Ania"
+          />
+          <p className="mt-1 text-sm text-text-secondary">Kwota liczy się jako wpływ (+).</p>
+        </div>
+      )}
+      {!t.is_income && !refund && (
         <div>
           <label htmlFor={`${id}-bill`} className="form-label">
             Połącz z płatnością cykliczną:
@@ -207,6 +232,11 @@ function TransactionCard({
                 {category && (
                   <span className="inline-block rounded-full border px-2 py-0.5 text-center text-xs text-text-secondary">
                     {category}
+                  </span>
+                )}
+                {t.refund_from && (
+                  <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
+                    <Undo2 className="h-3 w-3" aria-hidden="true" /> od: {t.refund_from}
                   </span>
                 )}
                 {linkedBill && !suggested && (

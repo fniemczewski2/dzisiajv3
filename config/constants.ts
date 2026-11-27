@@ -92,7 +92,14 @@ export const BOILERPLATE_REGEXES = [
   /\d{26}/g,
 ];
 
+/**
+ * Kategoria wydatków poniesionych za kogoś. Transakcja z tą kategorią jest zapisywana jako wpływ
+ * (zwrot powiększy stan konta), a pole „od kogo” trafia do transactions.refund_from.
+ */
+export const REFUND_CATEGORY = "Do zwrotu";
+
 export const REQUIRED_CATEGORIES = [
+  REFUND_CATEGORY,
   "Opłaty stałe",
   "Rozrywka",
   "Odzież",

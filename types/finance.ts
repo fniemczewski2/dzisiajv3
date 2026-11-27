@@ -43,6 +43,8 @@ export interface Transaction {
   /** „shortcut” – automatyzacja Apple Pay w Skrótach iOS (pages/api/finance/shortcut.ts). */
   source: "manual" | "csv" | "legacy" | "shortcut";
   import_key: string | null;
+  /** Kategoria „Do zwrotu”: od kogo spodziewany jest zwrot (puste dla pozostałych kategorii). */
+  refund_from?: string | null;
 }
 
 export type NewTransaction = Omit<Transaction, "id" | "user_id">;

@@ -9,6 +9,7 @@
 // - wydatki dnia z transakcji w wybranych kategoriach,
 // - podsumowanie miesiąca.
 
+import { REFUND_CATEGORY } from "@/config/constants";
 import { addDays, addMonths, endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { billOccurrences as sharedBillOccurrences } from "@/shared/bills";
 import type { BudgetCategory } from "@/types/bills";
@@ -269,6 +270,23 @@ export function formatPln(value: number): string {
 }
 
 /** Klucz deduplikacji transakcji z CSV. */
+/** Czy to kategoria „Do zwrotu” (porównanie bez wielkości liter i zbędnych spacji). */
+export function isRefundCategory(name: string | null | undefined): boolean {
+  return (name ?? "").trim().toLocaleLowerCase("pl") === REFUND_CATEGORY.toLocaleLowerCase("pl");
+}
+
+/**
+ * Transakcja w kategorii „Do zwrotu” jest zapisywana jako wpływ: wydatek 20 zł poniesiony za kogoś
+ * to 20 zł, które wrócą, więc w zestawieniu widnieje jako +20. Pole „od kogo” zostaje tylko w tej kategorii.
+ */
+export function applyRefundRules<T extends { is_income: boolean; amount: number; refund_from?: string | null }>(
+  tx: T,
+  categoryName: string | null | undefined
+): T {
+  if (!isRefundCategory(categoryName)) return { ...tx, refund_from: null };
+  return { ...tx, is_income: true, amount: Math.abs(Number(tx.amount)), refund_from: tx.refund_from?.trim() || null };
+}
+
 export function importKey(
   t: { date: string; amount: number; is_income: boolean; description: string },
   occurrence = 0

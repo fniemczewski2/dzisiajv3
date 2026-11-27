@@ -8,6 +8,7 @@ import { useQueryState } from "@/hooks/useQueryState";
 import { TRAIN_PLAN_TICK_MS } from "@/config/timing";
 import { useNow } from "@/hooks/useNow";
 import {
+  cleanValue,
   currentTrainStop,
   isStatusRelevant,
   plannedDeparture,
@@ -505,10 +506,9 @@ export function useTrainPlanStatus(train: Parameters<typeof useTrainStatus>[0], 
   const now = useNow(TRAIN_PLAN_TICK_MS);
 
   const stop = currentTrainStop(train, status.live, now);
-  return {
-    ...status,
-    delay: stop.delay,
-    platform: status.loading && !stop.platform ? status.platform : (stop.platform ?? "-"),
-    stop,
-  };
+  // Peron bierzemy z bieżącego przystanku (odjazd albo przyjazd), a gdy PKP PLK poda go tylko
+  // w polu zbiorczym `platform`, sięgamy po nie – inaczej plan dnia pokazywał pusty peron
+  // mimo poprawnej odpowiedzi API.
+  const platform = stop.platform ?? cleanValue(status.platform) ?? (status.loading ? status.platform : "-");
+  return { ...status, delay: stop.delay, platform, stop };
 }
